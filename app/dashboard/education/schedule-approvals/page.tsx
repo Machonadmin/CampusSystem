@@ -5,6 +5,8 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toast } from '@/components/ui/toast'
@@ -30,6 +32,7 @@ function weekdayLabel(lang: string, wd: number): string {
 export default function ScheduleApprovalsPage() {
   const t = useTranslations('education.schedule')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const { lang } = useLang()
 
   const [requests, setRequests] = useState<ApprovalRequest[]>([])
@@ -79,10 +82,11 @@ export default function ScheduleApprovalsPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('approvals_title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('approvals_title')} subtitle={t('approvals_subtitle')} />
+      <ModuleHeader module="education" title={t('approvals_title')} subtitle={t('approvals_subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {loading ? (
         <SkeletonRows avatar={false} rows={4} />

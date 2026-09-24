@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
-import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import type { ClassGroupUpdate } from '@/types/database'
@@ -9,8 +9,8 @@ import { isMissingColumn } from '@/lib/supabase/errors'
 
 const CLASS_GROUP_SELECT = `
   *,
-  subject:subjects(id, name, name_he),
-  department:departments(id, name)
+  subject:subjects(id, name, name_he, name_en),
+  department:departments(id, name, name_he, name_en)
 `
 
 /**
@@ -21,10 +21,8 @@ const CLASS_GROUP_SELECT = `
  * (ФИО студенток) — как в enrollments/assessments/lessons той же группы, —
  * поэтому одной авторизации мало.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -111,7 +109,7 @@ export async function GET(
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -121,10 +119,8 @@ export async function GET(
  * При смене department_id — проверка в обоих.
  * При смене subject_id — проверка принадлежности к (новому) department.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string
@@ -231,7 +227,7 @@ export async function PATCH(
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -241,10 +237,8 @@ export async function PATCH(
  * Отказывает (409) если есть enrollments — нужно сначала снять студентов.
  * class_teachers удаляются каскадно (ON DELETE CASCADE).
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -274,6 +268,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

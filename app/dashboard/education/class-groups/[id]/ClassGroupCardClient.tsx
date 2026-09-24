@@ -7,6 +7,8 @@ import { EDUCATION_SECTION_ROUTES } from '@/lib/education/education-hub'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '@/app/dashboard/education/components/useSectionCrumb'
 import ClassGroupTeachers from '@/app/dashboard/education/components/ClassGroupTeachers'
 import ClassGroupStudents from '@/app/dashboard/education/components/ClassGroupStudents'
 import LessonsJournalTab from '@/app/dashboard/education/components/LessonsJournalTab'
@@ -43,8 +45,8 @@ interface ClassGroupDetail {
   period_end: string | null
   notes: string | null
   is_active: boolean
-  subject: { id: string; name: string } | null
-  department: { id: string; name: string } | null
+  subject: { id: string; name: string; name_he?: string | null; name_en?: string | null } | null
+  department: { id: string; name: string; name_he?: string | null; name_en?: string | null } | null
   teachers: Teacher[]
   students: StudentMini[]
 }
@@ -76,6 +78,8 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
   const tSchedule = useTranslations('education.schedule')
   const tNav = useTranslations('navigation')
   const { lang } = useLang()
+  // Крошка раздела «לימודים»: группа открывается из раздела, а не с хаба «חינוך».
+  const sectionCrumb = useSectionCrumb('studies')
 
   const [group, setGroup] = useState<ClassGroupDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -123,6 +127,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
         <Breadcrumb items={[
           { label: tNav('home'), href: '/dashboard' },
           { label: tNav('education'), href: '/dashboard/education' },
+          sectionCrumb,
           { label: t('class_groups.card_not_found') },
         ]} />
         <div style={{
@@ -165,15 +170,17 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: localizedName(group, lang) },
       ]} />
 
       <ModuleHeader
         module="education"
         title={localizedName(group, lang)}
+        actions={<BackButton fallback={EDUCATION_SECTION_ROUTES.studies} />}
         subtitle={<>
-          {group.subject?.name && <span>{group.subject.name}</span>}
-          {group.department?.name && <span> · {group.department.name}</span>}
+          {group.subject?.name && <span>{localizedName(group.subject, lang)}</span>}
+          {group.department?.name && <span> · {localizedName(group.department, lang)}</span>}
           {!group.is_active && (
             <span style={{ marginInlineStart: 8, padding: '2px 8px', background: 'var(--surface-2)', color: 'var(--text-muted)', borderRadius: 6, fontSize: 11 }}>
               {t('class_groups.inactive_badge')}

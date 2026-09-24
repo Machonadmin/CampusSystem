@@ -8,6 +8,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 const accent = getModuleColor('education')
 
@@ -28,6 +29,7 @@ export default function TracksTab() {
   const [tracks, setTracks] = useState<TrackRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [forbidden, setForbidden] = useState(false)
   const [showInactive, setShowInactive] = useState(true)
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
@@ -36,8 +38,11 @@ export default function TracksTab() {
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setForbidden(false)
     try {
       const resp = await fetch('/api/education/study-tracks?includeInactive=1')
+      // 403 → ForbiddenState без тулбара и «+ מסלול חדש»
+      if (resp.status === 403) { setForbidden(true); return }
       if (!resp.ok) {
         const e = await resp.json().catch(() => ({})) as { error?: string }
         throw new Error(e.error ?? String(resp.status))
@@ -76,6 +81,8 @@ export default function TracksTab() {
     padding: '5px 10px', fontSize: 12, color: 'var(--text)',
     background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 6, cursor: 'pointer',
   }
+
+  if (forbidden) return <ForbiddenState />
 
   return (
     <div>

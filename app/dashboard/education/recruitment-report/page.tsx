@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ─── Типы ответа API ────────────────────────────────────────────────────────
@@ -29,6 +31,7 @@ type T = (key: string, fallback?: string) => string
 export default function RecruitmentReportPage() {
   const t = useTranslations('education.recruitment_report')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('recruitment')
 
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
@@ -51,10 +54,11 @@ export default function RecruitmentReportPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {forbidden ? (
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('forbidden')}</div>
@@ -84,6 +88,10 @@ function Dashboard({ report, t }: { report: Report; t: T }) {
     if (stage === 'unknown') return t('unknown')
     return tEdu(`process.stages.${stage}`, stage)
   }
+  // Источник — по тому же словарю card.source, что и карточка лида (раньше в
+  // отчёте показывался сырой код: «public_form», «self»…).
+  const sourceLabel = (source: string): string =>
+    source === 'unknown' || !source.trim() ? t('unknown') : tEdu(`card.source.${source}`, source)
   const ageLabel = (bucket: string): string => {
     switch (bucket) {
       case '<18': return t('age_lt18')
@@ -110,7 +118,7 @@ function Dashboard({ report, t }: { report: Report; t: T }) {
       {/* Разбивки — карточки с горизонтальными барами */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
         <BreakdownCard title={t('by_source')} empty={t('empty')}
-          rows={report.by_source.map(r => ({ label: orUnknown(r.source), value: r.count }))} />
+          rows={report.by_source.map(r => ({ label: sourceLabel(r.source), value: r.count }))} />
         {report.by_stage.length > 0 && (
           <BreakdownCard title={t('by_stage')} empty={t('empty')}
             rows={report.by_stage.map(r => ({ label: stageLabel(r.stage), value: r.count }))} />

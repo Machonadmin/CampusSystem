@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
@@ -20,10 +21,13 @@ interface HeaderProps {
 export default function Header({ userName, roles }: HeaderProps) {
   const { lang, setLang, t, isRTL } = useLang()
   const tNav = useTranslations('navigation')
+  const tSearch = useTranslations('search')
   const { toggle: toggleSidebar } = useSidebar()
   const router = useRouter()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [pwdOpen, setPwdOpen] = useState(false)
+  // Мобильная панель поиска людей (на телефоне поле поиска в шапке скрыто).
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -60,6 +64,13 @@ export default function Header({ userName, roles }: HeaderProps) {
   // Подпись под именем: конкретная должность-ярлык (напр. «מזכירת טורו»),
   // с падением на имя роли, если должность не задана.
   const subtitle = me?.position_title || roleName
+  // Имя в меню пользователя ведёт в СВОЮ карточку человека. Карточка
+  // (/dashboard/persons/[id] и её API) требует persons.view — отдельного права
+  // «смотреть себя» нет. Поэтому ссылка только тем, у кого модуль «אנשים»
+  // доступен; остальным имя просто текст (а не переход на «нет доступа»).
+  const ownCardHref = me?.person_id && me.accessible_modules?.includes('persons')
+    ? `/dashboard/persons/${me.person_id}`
+    : null
   const initials = userName
     ? userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?'
@@ -112,6 +123,19 @@ export default function Header({ userName, roles }: HeaderProps) {
 
       {/* ── Right actions ── */}
       <div className="flex items-center gap-2 flex-shrink-0">
+
+        {/* Поиск людей на телефоне: лупа открывает панель с тем же GlobalSearch */}
+        <button
+          onClick={() => setMobileSearchOpen(v => !v)}
+          aria-label={tSearch('placeholder')}
+          aria-expanded={mobileSearchOpen}
+          className="sm:hidden icon-ghost flex items-center justify-center rounded-lg transition flex-shrink-0"
+          style={{ width: 36, height: 36, color: 'var(--text-muted)' }}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
+          </svg>
+        </button>
 
         {/* Theme toggle (per-user light/dark) */}
         <ThemeToggle />
@@ -169,10 +193,23 @@ export default function Header({ userName, roles }: HeaderProps) {
               className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-full mt-1.5 w-52 max-w-[calc(100vw-1rem)] rounded-xl py-1 z-50`}
               style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
             >
-              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-                <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{userName ?? '—'}</p>
-                <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
-              </div>
+              {ownCardHref ? (
+                <Link
+                  href={ownCardHref}
+                  prefetch={false}
+                  onClick={() => setUserMenuOpen(false)}
+                  className="menu-item block px-4 py-3 transition"
+                  style={{ borderBottom: '1px solid var(--border)' }}
+                >
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--accent-strong)' }}>{userName ?? '—'}</p>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
+                </Link>
+              ) : (
+                <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>{userName ?? '—'}</p>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
+                </div>
+              )}
 
               {/* Переключатель языка — только на телефоне (в шапке он скрыт) */}
               <div className="sm:hidden flex gap-1 px-3 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
@@ -190,8 +227,8 @@ export default function Header({ userName, roles }: HeaderProps) {
                 ))}
               </div>
 
-              {/* «הפרופיל שלי»: детали, тема/язык, пароль, пуши и личная раскладка.
-                  Раньше пункт только закрывал меню и никуда не вёл. */}
+              {/* «הפרופיל שלי»: тема/язык, пароль, пуши и личная раскладка меню и
+                  главной. Имя вверху ведёт в карточку человека, это — настройки. */}
               <button
                 onClick={() => { setUserMenuOpen(false); router.push('/dashboard/profile') }}
                 className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
@@ -201,7 +238,7 @@ export default function Header({ userName, roles }: HeaderProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                {t.user.profile}
+                {t.nav.profile}
               </button>
 
               <button
@@ -234,6 +271,29 @@ export default function Header({ userName, roles }: HeaderProps) {
         </div>
       </div>
     </header>
+
+    {/* Мобильная панель поиска: под шапкой, во всю ширину; фон закрывает её. */}
+    {mobileSearchOpen && (
+      <div className="sm:hidden">
+        <div
+          className="fixed inset-0 z-40"
+          style={{ top: 64, background: 'rgba(0,0,0,0.25)' }}
+          onClick={() => setMobileSearchOpen(false)}
+        />
+        <div
+          className="fixed inset-x-0 z-50 px-4 py-3"
+          style={{ top: 64, background: 'var(--surface)', borderBottom: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}
+        >
+          <GlobalSearch
+            searchHint={t.searchHint}
+            inputId="global-search-mobile"
+            autoFocus
+            fullWidth
+            onDone={() => setMobileSearchOpen(false)}
+          />
+        </div>
+      </div>
+    )}
 
     {pwdOpen && <ChangePasswordModal onClose={() => setPwdOpen(false)} />}
     </>

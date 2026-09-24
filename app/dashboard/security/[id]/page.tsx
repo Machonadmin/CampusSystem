@@ -9,7 +9,8 @@ import SecurityDetailClient from './SecurityDetailClient'
  * назначение, серьёзность, разрешение. Просмотр — security.view. Действия под
  * security.manage гейтятся флагом canManage (с сервера).
  */
-export default async function SecurityIncidentPage({ params }: { params: { id: string } }) {
+export default async function SecurityIncidentPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

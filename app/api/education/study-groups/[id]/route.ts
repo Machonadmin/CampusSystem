@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
 import type { StudyGroupUpdate } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * PATCH /api/education/study-groups/[id]
@@ -11,10 +12,8 @@ import type { StudyGroupUpdate } from '@/types/database'
  * При переносе между подразделениями — проверка в обоих.
  * При смене specialty_id — проверка консистентности с (новым) department_id.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string
@@ -91,7 +90,7 @@ export async function PATCH(
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -101,10 +100,8 @@ export async function PATCH(
  * Отказывает (409) если есть активные студенты — нужно сначала перевести их.
  * (education_journeys.main_group_id имеет ON DELETE SET NULL, но молчаливое обнуление нежелательно.)
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -138,6 +135,6 @@ export async function DELETE(
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
+import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 
 interface CloseProcessEarlyResult {
   process_instance_id: string
@@ -26,8 +27,9 @@ interface CloseProcessEarlyResult {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { processInstanceId: string } }
+  props: { params: Promise<{ processInstanceId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -89,6 +91,15 @@ export async function POST(
         p_actor_id: session.person_id,
       })
       if (gateErr) console.error('[close-early] dormitory gating:', gateErr)
+
+      // Задачи и уведомления первого этапа приёма (בירור יהדות) — как при
+      // обычной передаче через /stages/[id]/complete. Без этого комиссия ничего
+      // не получала до следующего завершения этапа. Best-effort.
+      try {
+        await syncAcceptanceTasks(sb, journeyId, session.person_id)
+      } catch (taskErr) {
+        console.error('[close-early] syncAcceptanceTasks:', taskErr)
+      }
     }
 
     return NextResponse.json({ success: true, ...(result as CloseProcessEarlyResult) })

@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField } from '@/lib/public/form-config'
@@ -16,7 +17,11 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 interface Program {
   id: string
   name: string
+  name_he?: string | null
+  name_en?: string | null
   institution_name: string | null
+  institution_name_he?: string | null
+  institution_name_en?: string | null
 }
 
 // Стили пседокласса/hover/focus/адаптив — через <style> (инлайн их не покрывает).
@@ -157,6 +162,9 @@ export default function ApplyPage() {
     return o && o.trim() ? o : t(key)
   }
   // Направления с учётом режима (все активные / выбранное подмножество).
+  // Названия программ на языке страницы (раньше всегда по-русски); нет перевода — русское.
+  const progName = (p: Program) => localizedName({ name: p.name, name_he: p.name_he, name_en: p.name_en }, lang)
+  const instName = (p: Program) => localizedName({ name: p.institution_name ?? '', name_he: p.institution_name_he, name_en: p.institution_name_en }, lang)
   const visiblePrograms = config?.directions.mode === 'subset'
     ? programs.filter(p => config.directions.ids.includes(p.id))
     : programs
@@ -297,8 +305,8 @@ export default function ApplyPage() {
           <div className="ap-prog-grid">
             {visiblePrograms.map(p => (
               <div key={p.id} className="ap-prog">
-                <div className="pname">{p.name}</div>
-                {p.institution_name && <div className="pinst">{p.institution_name}</div>}
+                <div className="pname">{progName(p)}</div>
+                {p.institution_name && <div className="pinst">{instName(p)}</div>}
               </div>
             ))}
           </div>
@@ -401,7 +409,7 @@ export default function ApplyPage() {
                     <option value="">{t('program_placeholder')}</option>
                     {visiblePrograms.map(p => (
                       <option key={p.id} value={p.id}>
-                        {p.name}{p.institution_name ? ` — ${p.institution_name}` : ''}
+                        {progName(p)}{p.institution_name ? ` — ${instName(p)}` : ''}
                       </option>
                     ))}
                   </select>

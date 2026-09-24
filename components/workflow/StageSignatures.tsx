@@ -81,8 +81,12 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
                     {decision}
                   </span>
                 ) : (
+                  // Пропущенный/отменённый этап не «ждёт подписи» — раньше тут всегда
+                  // было «ממתין לחתימה», а блок «תהליכים קודמים» рядом показывал его зачёркнутым.
                   <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 10px', borderRadius: 999, background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
-                    {t('signatures.pending')}
+                    {st.status === 'skipped' || st.status === 'cancelled'
+                      ? t(`process.stage_status.${st.status}`)
+                      : t('signatures.pending')}
                   </span>
                 )}
               </div>

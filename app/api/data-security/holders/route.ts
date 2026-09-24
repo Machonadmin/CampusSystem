@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { loadPrivilegeHolders } from '@/lib/data-security/load'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Кто сейчас держит конкретное право — для карточки права на общем экране.
@@ -20,6 +21,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(await loadPrivilegeHolders(moduleCode, code, getCookieLocale()))
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

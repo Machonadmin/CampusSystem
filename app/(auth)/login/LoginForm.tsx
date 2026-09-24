@@ -3,14 +3,15 @@
 import { useState, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { landingRouteForRoles } from '@/lib/auth/landing'
+import { landingRouteForRoles, safeInternalPath } from '@/lib/auth/landing'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 
 export default function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  // Явный ?from (пришёл со страницы под гейтом) уважаем; иначе — посадка по роли.
-  const explicitFrom = searchParams.get('from')
+  // Явный ?from (пришёл со страницы под гейтом) уважаем, если это внутренний
+  // путь (safeInternalPath); иначе — посадка по роли.
+  const explicitFrom = safeInternalPath(searchParams.get('from'))
   const t = useTranslations('auth')
 
   const [email, setEmail] = useState('')

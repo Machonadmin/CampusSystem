@@ -23,8 +23,21 @@ const STATUS_COLOR: Record<string, { bg: string; fg: string }> = {
 /**
  * Глобальный поиск людей в шапке. Дебаунс, выпадающий список результатов,
  * навигация по клику. Сохраняет id="global-search" для фокуса по Ctrl/Cmd+K.
+ *
+ * Тот же компонент используется и в мобильной панели поиска (кнопка-лупа в
+ * шапке на телефоне): там он во всю ширину, с автофокусом, со своим id (чтобы
+ * не дублировать id="global-search") и закрывает панель после перехода/Escape.
  */
-export default function GlobalSearch({ searchHint }: { searchHint: string }) {
+export default function GlobalSearch({
+  searchHint, inputId = 'global-search', autoFocus = false, fullWidth = false, onDone,
+}: {
+  searchHint: string
+  inputId?: string
+  autoFocus?: boolean
+  fullWidth?: boolean
+  /** Вызывается после перехода к результату или по Escape (закрыть мобильную панель). */
+  onDone?: () => void
+}) {
   const t = useTranslations('search')
   const { isRTL } = useLang()
   const router = useRouter()
@@ -62,10 +75,11 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
   function go(r: Result) {
     setOpen(false); setQ('')
     router.push(r.link)
+    onDone?.()
   }
 
   return (
-    <div className="flex-1 max-w-xs mx-auto relative" ref={ref}>
+    <div className={fullWidth ? 'w-full relative' : 'flex-1 max-w-xs mx-auto relative'} ref={ref}>
       <div className="relative">
         <svg
           className="absolute top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
@@ -75,13 +89,14 @@ export default function GlobalSearch({ searchHint }: { searchHint: string }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
         </svg>
         <input
-          id="global-search"
+          id={inputId}
           type="text"
           aria-label={t('placeholder')}
           value={q}
           onChange={e => onChange(e.target.value)}
           onFocus={() => { if (results.length) setOpen(true) }}
-          onKeyDown={e => { if (e.key === 'Escape') setOpen(false) }}
+          onKeyDown={e => { if (e.key === 'Escape') { setOpen(false); onDone?.() } }}
+          autoFocus={autoFocus}
           placeholder={t('placeholder')}
           autoComplete="off"
           className="gsearch-input w-full rounded-lg py-2 text-sm focus:outline-none transition"

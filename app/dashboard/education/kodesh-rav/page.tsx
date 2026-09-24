@@ -2,6 +2,8 @@
 
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import KodeshRavClient from './KodeshRavClient'
 
@@ -11,6 +13,7 @@ import KodeshRavClient from './KodeshRavClient'
  */
 export default function KodeshRavPage() {
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const t = useTranslations('education.kodesh_rav')
 
   return (
@@ -18,6 +21,7 @@ export default function KodeshRavPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
@@ -29,6 +33,7 @@ export default function KodeshRavPage() {
         </svg>}
         title={t('title')}
         subtitle={t('subtitle')}
+        actions={<BackButton fallback={sectionCrumb.href} />}
       />
 
       <KodeshRavClient />

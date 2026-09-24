@@ -18,6 +18,7 @@ import { formatDate as fmtDate } from '@/lib/i18n/format-date'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 interface CheckRow {
   id: string
@@ -75,6 +76,7 @@ export default function QualityControlPage() {
   const [urlTab, setTab] = useUrlTab<Tab>({ allowed: ['planned', 'history', 'templates'], fallback: 'planned' })
   const [checks, setChecks] = useState<CheckRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [forbidden, setForbidden] = useState(false)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [refresh, setRefresh] = useState(0)
@@ -109,8 +111,10 @@ export default function QualityControlPage() {
       const params = new URLSearchParams({ tab })
       if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim())
       const res = await fetch(`/api/quality-control?${params}`)
+      // 403 → ForbiddenState без тоста, поиска и «+ בדיקה»
+      setForbidden(res.status === 403)
       if (res.ok) setChecks(await res.json())
-      else toast(tCommon('load_error'), 'error')
+      else if (res.status !== 403) toast(tCommon('load_error'), 'error')
     } finally {
       setLoading(false)
     }
@@ -165,7 +169,8 @@ export default function QualityControlPage() {
         )}
 
         {/* Checks tabs */}
-        {tab !== 'templates' && (
+        {tab !== 'templates' && forbidden && <ForbiddenState />}
+        {tab !== 'templates' && !forbidden && (
           <>
             {/* Search toolbar */}
             <div style={{

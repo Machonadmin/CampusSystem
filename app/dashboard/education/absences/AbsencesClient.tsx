@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
@@ -24,6 +26,7 @@ interface StudentOpt { journey_id: string; full_name: string }
 export default function AbsencesClient() {
   const t = useTranslations('education.absences')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
 
@@ -118,6 +121,7 @@ export default function AbsencesClient() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
@@ -126,6 +130,7 @@ export default function AbsencesClient() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={<>
+          <BackButton fallback={sectionCrumb.href} />
           {canManage && (
             <button onClick={() => setShowForm(s => !s)} style={{ fontSize: 13, fontWeight: 600, padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', cursor: 'pointer', background: 'var(--surface-2)', color: 'var(--text)' }}>
               {showForm ? t('cancel') : t('new_case')}

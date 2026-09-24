@@ -11,6 +11,7 @@
  *   ylevel — год ('none' | положительное целое)
  *   cohort — набор (year_label; 'none' = без года)
  *   sem    — открытый семестр ИЛИ уровень кодеша (class_group id)
+ *   sub    — открытый подэкран раздела «Настройки» (StudiesSettings)
  */
 
 export type StudySection = 'dashboard' | 'actions' | 'semester_groups' | 'students' | 'settings'
@@ -36,7 +37,7 @@ export interface StudiesNav {
 }
 
 /** Ключи drill-навигации «Учёбы» (для очистки при смене раздела рельса). */
-export const STUDIES_NAV_KEYS = ['struct', 'ylevel', 'cohort', 'sem'] as const
+export const STUDIES_NAV_KEYS = ['struct', 'ylevel', 'cohort', 'sem', 'sub'] as const
 
 /**
  * Разбор drill-состояния из query. Иерархия НОРМАЛИЗУЕТСЯ: cohort требует

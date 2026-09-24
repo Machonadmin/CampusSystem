@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api/handler'
+import { requireAuth, errorResponse } from '@/lib/api/handler'
 import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -11,7 +11,8 @@ async function requireSuperadmin() {
     throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireAuth()
     const sb = createServerClient()
@@ -27,11 +28,12 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -56,11 +58,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(data)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -83,6 +86,6 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import TeachersHoursClient from '../teachers-hours/TeachersHoursClient'
 import TeacherAttendanceClient from '../teacher-attendance/TeacherAttendanceClient'
@@ -32,7 +33,7 @@ export default function TeachersClient({ canHours, canApprove }: { canHours: boo
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
 
       {canHours && (
         <div style={{ display: 'flex', gap: 6 }}>

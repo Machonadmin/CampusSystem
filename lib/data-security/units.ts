@@ -54,6 +54,12 @@ export interface UnitNode {
   seats: { personId: string; isHead: boolean }[]
   /** Сотрудники этой единицы и всего, что под ней, — сколько человек её «видит». */
   seatCountDeep: number
+  /**
+   * Подписи как они лежат в базе (name — русская) — только для формы правки:
+   * name выше уже выбран под язык экрана, и форма, взяв его, записала бы его
+   * в поле иврита, а пустое поле английского стёрло бы перевод.
+   */
+  names: { he: string; ru: string; en: string }
   children: UnitNode[]
 }
 
@@ -96,6 +102,7 @@ export function buildUnitTree(
       seatCount: (seatsByDept.get(d.id) ?? []).length,
       seats: seatsByDept.get(d.id) ?? [],
       seatCountDeep: 0,
+      names: { he: d.name_he ?? '', ru: d.name ?? '', en: d.name_en ?? '' },
       children: [],
     })
   }

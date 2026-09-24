@@ -61,9 +61,6 @@
     "sent": "Отправлено",
     "action_failed": "Не удалось выполнить, попробуйте ещё раз",
     "city_input_placeholder": "Введите название города",
-    "city_choose_from_list": "Выбрать из списка",
-    "select_city": "Выберите город",
-    "other_city": "Другой город",
     "select_country": "Выберите страну",
     "popular_countries": "Популярные страны",
     "all_countries": "Все страны",
@@ -674,7 +671,8 @@
         "external_studies": "Внешнее обучение",
         "admitted": "Принята",
         "admitted_conditional": "Условно принята",
-        "waitlisted": "В список ожидания"
+        "waitlisted": "В список ожидания",
+        "converted": "Передана в приёмную комиссию"
       },
       "modals": {
         "activate_title": "Активировать пропущенный подэтап?",
@@ -762,7 +760,10 @@
         "social": "Соцсети",
         "call": "Звонок",
         "exhibition": "Выставка",
-        "other": "Другое"
+        "other": "Другое",
+        "public_form": "Форма на сайте",
+        "public_form_parent": "Форма на сайте (родитель)",
+        "public_form_representative": "Форма на сайте (представитель)"
       },
       "relation": {
         "mother": "Мать",
@@ -1778,7 +1779,7 @@
         "granted_by": "Одобрил(а)",
         "ongoing": "бессрочно"
       },
-      "levels_manage": "Управление названиями уровней",
+      "levels_manage": "Управление уровнями",
       "levels_hide": "Скрыть управление уровнями",
       "levels_rename": "Переименовать",
       "levels_save": "Сохранить",
@@ -1788,7 +1789,15 @@
       "suggest_clear": "Очистить",
       "suggest_chip": "Предложено",
       "suggest_approve": "Утвердить",
-      "suggest_graduated": "Выпуск"
+      "suggest_graduated": "Выпуск",
+      "levels_add_ph": "Название нового уровня (на иврите)",
+      "levels_add": "Добавить уровень",
+      "levels_archive": "Скрыть",
+      "levels_archive_confirm": "Скрыть уровень «{name}»? Он пропадёт из шибуца и списков, но останется в истории. Его можно вернуть.",
+      "levels_archived_show": "Скрытые уровни",
+      "levels_archived_empty": "Скрытых уровней нет",
+      "levels_restore": "Вернуть",
+      "levels_empty": "Уровней пока нет"
     },
     "student_calendar": {
       "title": "Календарь",
@@ -3089,7 +3098,6 @@
     "tabs": {
       "users": "Пользователи",
       "roles": "Роли и права",
-      "reference_cities": "Справочник городов",
       "reference_positions": "Справочник должностей",
       "workflows": "Шаблоны процессов",
       "audit": "Журнал изменений"
@@ -3169,28 +3177,6 @@
       "err_both_fields": "Заполните оба поля",
       "priv_name_placeholder": "Просмотр записей",
       "error": "Ошибка"
-    },
-    "reference_cities": {
-      "title": "Справочник городов",
-      "desc": "Управление списком городов по странам",
-      "country_label": "Страна",
-      "cities_title": "Города",
-      "add_city_button": "+ Добавить город",
-      "city_name_in_country_label": "Название города в стране «{country}»",
-      "city_name_placeholder": "Например: Петах-Тиква",
-      "save_button": "Добавить",
-      "saving": "Сохранение...",
-      "cancel": "Отмена",
-      "edit_save_button": "Сохранить",
-      "edit_button": "Изменить",
-      "delete_button": "Удалить",
-      "loading": "Загрузка...",
-      "empty_none": "Для этой страны пока нет городов",
-      "confirm_delete": "Удалить город «{name}»?",
-      "error_load": "Ошибка загрузки",
-      "error_add": "Ошибка добавления",
-      "error_save": "Ошибка сохранения",
-      "error_delete": "Ошибка удаления"
     },
     "reference_positions": {
       "title": "Справочник должностей",
@@ -3438,7 +3424,19 @@
       "convert_to_applicant": "Передана в приём",
       "waitlisted": "В списке ожидания",
       "qualified": "Подходит",
-      "not_qualified": "Не подходит"
+      "not_qualified": "Не подходит",
+      "done_event_yes": "Записан на мероприятие",
+      "done_event_skip": "Без мероприятия",
+      "postponed": "Приём отложен",
+      "all_collected": "Все собраны",
+      "partial": "Частично собраны",
+      "not_provided": "Не предоставил",
+      "feedback_received": "Мероприятие состоялось",
+      "no_show": "Мероприятие не состоялось",
+      "refused": "Отказ от приезда",
+      "refer_to_psychologist": "Направить к психологу",
+      "exam_required": "Нужны вступительные экзамены",
+      "external_studies": "Внешнее обучение"
     },
     "process_names": {
       "Набор": "Набор",
@@ -4323,6 +4321,7 @@
         "dormitory": "Общежитие",
         "jewishness": "Еврейство",
         "medical": "Врач",
+        "medical_psych": "Психолог",
         "final_approval": "Финал"
       }
     },
@@ -4749,6 +4748,7 @@
     "kodesh_slot_warning": "Внимание: это время зарезервировано под первые два урока иудаики. Слот сохранён — проверьте наложение.",
     "unauthorized": "Не авторизован",
     "forbidden": "Недостаточно прав",
+    "person_privileges_moved": "Личные права теперь меняются только в «Безопасности данных» — здесь сохранить изменения нельзя",
     "stage_reopen_blocked": "Сейчас нельзя изменить решение — следующий этап уже обработан",
     "no_access": "Нет доступа",
     "no_view_permission": "Нет прав на просмотр",
@@ -5040,6 +5040,7 @@
     "database_error": "Ошибка базы данных",
     "state_conflict": "Конфликт состояния",
     "invalid_input": "Некорректные входные данные",
+    "invalid_url": "Ссылка должна начинаться с https:// (или http://)",
     "validation_error": "Ошибка валидации",
     "db_constraint_amount_status": "Нарушено ограничение БД (проверьте сумму/статус)",
     "db_constraint_amount_type_status": "Нарушено ограничение БД (проверьте сумму/тип/статус)",
@@ -5132,7 +5133,9 @@
     "dorm_student_overlap": "У студента уже есть назначение, пересекающееся по датам",
     "dorm_room_number_exists": "Комната с таким номером уже есть в этом здании",
     "series_max_repeats": "Максимум {n} повторений в серии",
-    "series_over_limit": "Серия превышает лимит в {n} задач"
+    "series_over_limit": "Серия превышает лимит в {n} задач",
+    "kodesh_level_hide_has_students": "Нельзя скрыть уровень — к нему приписано студенток: {count}. Сначала переведите их в другой уровень.",
+    "kodesh_level_hide_has_courses": "Нельзя скрыть уровень — в нём активных курсов: {count}. Сначала закройте или перенесите курсы."
   },
   "workflow": {
     "error": "Ошибка"

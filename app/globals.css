@@ -7,6 +7,8 @@
    Компоненты стилизуются ЧЕРЕЗ токены, не задавая цвета напрямую в @media.
    ============================================================================ */
 :root {
+  /* Основной шрифт интерфейса (Rubik из @fontsource-variable/rubik, см. app/layout.tsx). */
+  --font-heebo: 'Rubik Variable';
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   /* Нативные контролы (select/option/scrollbar/date-picker) следуют теме. */

@@ -26,33 +26,27 @@ function proxied(id: string, init?: ConstructorParameters<typeof NextRequest>[1]
   return new NextRequest(new URL(`/api/education/journeys/${id}`, INTERNAL_BASE), init)
 }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const resp = await journeyGET(proxied(params.id), { params })
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  const resp = await journeyGET(proxied(params.id), props)
   const data = await resp.json().catch(() => ({}))
   return NextResponse.json(data, { status: resp.status })
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const body = await request.text()
   const resp = await journeyPATCH(
     proxied(params.id, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body }),
-    { params },
+    props,
   )
   const data = await resp.json().catch(() => ({}))
   return NextResponse.json(data, { status: resp.status })
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const resp = await journeyDELETE(proxied(params.id, { method: 'DELETE' }), { params })
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  const resp = await journeyDELETE(proxied(params.id, { method: 'DELETE' }), props)
   const data = await resp.json().catch(() => ({}))
   return NextResponse.json(data, { status: resp.status })
 }

@@ -9,7 +9,8 @@ import DoctorStudentClient from './DoctorStudentClient'
  * закрытие/переоткрытие. Просмотр — doctor.view. Действия гейтятся canManage
  * (с сервера). [id] = journey_id. ЧУВСТВИТЕЛЬНЫЕ ДАННЫЕ.
  */
-export default async function DoctorStudentPage({ params }: { params: { id: string } }) {
+export default async function DoctorStudentPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

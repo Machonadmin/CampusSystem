@@ -155,3 +155,44 @@ describe('порядок прав в каталоге определён одн�
     expect(sql).toMatch(/UPDATE\s+security_tree_items/i)
   })
 })
+
+// ─── SECURITY DEFINER-функции не должны быть открыты публичному ключу ─────────
+//
+// Функции public по умолчанию исполнимы для PUBLIC, и PostgREST отдаёт их как
+// /rest/v1/rpc/<имя>. Обычная функция (SECURITY INVOKER) под публичным ключом
+// упирается в RLS deny-all и ничего не видит, а SECURITY DEFINER выполняется с
+// правами владельца — мимо RLS. Так verify_login из миграции 004 отдавала хэш
+// пароля любого сотрудника; её убрала 20260923200000, она же отозвала EXECUTE у
+// PUBLIC/anon/authenticated на все функции, существовавшие на тот момент.
+//
+// Новые функции снова получают EXECUTE для PUBLIC автоматически (это глобальное
+// правило Postgres, схемой его не отменить). Поэтому каждая более поздняя
+// миграция, создающая SECURITY DEFINER-функцию, обязана в том же файле
+// отозвать у неё EXECUTE для PUBLIC.
+const RPC_RULE_MIGRATION = '20260923200000'
+
+describe('SECURITY DEFINER-функции после 20260923200000 закрыты от PUBLIC', () => {
+  const laterFiles = files.filter(f => (/^(\d+)_/.exec(f)?.[1] ?? '') > RPC_RULE_MIGRATION)
+
+  it('каждая SECURITY DEFINER-функция отзывает EXECUTE у PUBLIC в той же миграции', () => {
+    const offenders: string[] = []
+    for (const file of laterFiles) {
+      const sql = readFileSync(join(DIR, file), 'utf8')
+      if (!/SECURITY\s+DEFINER/i.test(sql)) continue
+      const names = [...sql.matchAll(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?"?([a-z_][a-z0-9_]*)"?/gi)]
+        .map(m => m[1])
+      for (const fn of [...new Set(names)]) {
+        const revoked = new RegExp(
+          `REVOKE\\s+(?:ALL|EXECUTE)[\\s\\S]*?ON\\s+FUNCTION\\s+(?:public\\.)?"?${fn}"?[\\s\\S]*?FROM[^;]*\\bPUBLIC\\b`, 'i',
+        ).test(sql)
+        if (!revoked) offenders.push(`${file}: ${fn}`)
+      }
+    }
+    expect(
+      offenders,
+      'Миграция создаёт SECURITY DEFINER-функцию и не отзывает EXECUTE у PUBLIC. ' +
+      'Добавьте: REVOKE EXECUTE ON FUNCTION public.<имя>(<аргументы>) FROM PUBLIC, anon, authenticated;\n' +
+      offenders.join('\n'),
+    ).toEqual([])
+  })
+})

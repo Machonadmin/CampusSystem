@@ -6,7 +6,7 @@ import { isMissingColumn } from '@/lib/supabase/errors'
 import ReceiptClient from './ReceiptClient'
 
 interface Props {
-  params: { paymentId: string }
+  params: Promise<{ paymentId: string }>
 }
 
 /**
@@ -20,7 +20,8 @@ interface Props {
  * Новые реквизиты (deposited_to/…/signer_name) появились миграцией
  * 20260719120000 — читаем деплой-безопасно (probe на 42703).
  */
-export default async function ReceiptPage({ params }: Props) {
+export default async function ReceiptPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

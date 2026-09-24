@@ -46,7 +46,7 @@ export default function PersonDetailClient({
   const t = useTranslations('persons')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
-  const { lang } = useLang()
+  const { lang, isRTL } = useLang()
 
   const primary = getModuleColor('persons', 'primary')
   const light = getModuleColor('persons', 'light')
@@ -140,7 +140,8 @@ export default function PersonDetailClient({
               }}
             >
               {t('detail.student_card_link')}
-              <span aria-hidden>→</span>
+              {/* «Вперёд» в RTL указывает влево. */}
+              <span aria-hidden>{isRTL ? '←' : '→'}</span>
             </Link>
           )}
         </>

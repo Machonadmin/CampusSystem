@@ -31,8 +31,9 @@ interface CompleteStageResult {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { stageInstanceId: string } }
+  props: { params: Promise<{ stageInstanceId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -255,11 +256,20 @@ export async function POST(
       try {
         const { data: si } = await sb
           .from('stage_instances')
-          .select('process_instance:process_instances(created_by)')
+          .select('process_instance:process_instances(created_by, process_template:process_templates(code))')
           .eq('id', params.stageInstanceId)
           .maybeSingle()
-        const recruiterId = (si?.process_instance as unknown as { created_by: string | null } | null)?.created_by ?? null
-        if (recruiterId) {
+        const pi = (si?.process_instance as unknown as {
+          created_by: string | null
+          process_template: { code: string | null } | null
+        } | null) ?? null
+        const recruiterId = pi?.created_by ?? null
+        // «נדחה» на этапе самого ГИЮСА (набора) — это НЕ решение приёмной комиссии:
+        // раньше создателю лида уходило «לא התקבלה», как будто комиссия отказала.
+        // Для набора — свой текст «תהליך הגיוס נסגר», и только если закрыл
+        // кто-то другой (себе не шлём — как notifyOwnerOfDocument).
+        const isRecruitment = pi?.process_template?.code === 'recruitment'
+        if (recruiterId && !(isRecruitment && recruiterId === session.person_id)) {
           const { data: j } = await sb
             .from('education_journeys')
             .select('person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name)')
@@ -267,12 +277,14 @@ export async function POST(
             .maybeSingle()
           const p = (j?.person as unknown as { full_name?: string | null; hebrew_name?: string | null } | null) ?? null
           const name = p?.hebrew_name || p?.full_name || ''
-          const title = finish === 'rejected'
-            ? (name ? `לא התקבלה: ${name}` : 'מועמדת לא התקבלה')
-            : (name ? `התקבלה 🎉 ${name}` : 'מועמדת התקבלה 🎉')
+          const title = isRecruitment
+            ? (name ? `תהליך הגיוס נסגר (נדחה): ${name}` : 'תהליך הגיוס נסגר (נדחה)')
+            : finish === 'rejected'
+              ? (name ? `לא התקבלה: ${name}` : 'מועמדת לא התקבלה')
+              : (name ? `התקבלה 🎉 ${name}` : 'מועמדת התקבלה 🎉')
           await createNotifications(sb, [{
             person_id: recruiterId,
-            type: 'acceptance_result',
+            type: isRecruitment ? 'recruitment_closed' : 'acceptance_result',
             title,
             link: `/dashboard/education/leads/${ctx.journeyId}`,
             metadata: { journey_id: ctx.journeyId, finish_reason: finish },

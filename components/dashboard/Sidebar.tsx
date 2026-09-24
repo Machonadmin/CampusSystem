@@ -633,10 +633,13 @@ export default function Sidebar() {
                     />
                   ))}
                   {kodeshMoreItems.map(item => {
+                    const isFinance = item.key === 'finance'
                     const active = (item.key as string) === 'health'
                       ? ['/dashboard/health', '/dashboard/doctor', '/dashboard/psychologist'].some(p => pathname.startsWith(p))
-                      : isActive(item.href)
-                    return (
+                      : isFinance
+                        ? pathname === '/dashboard/finance' || (pathname.startsWith('/dashboard/finance/') && !pathname.startsWith('/dashboard/finance/staff'))
+                        : isActive(item.href)
+                    const link = (
                       <SidebarNavLink
                         key={`more-${item.key}`}
                         href={item.href}
@@ -649,6 +652,22 @@ export default function Sidebar() {
                         soonLabel={t.soon}
                       />
                     )
+                    // «שכר צוות» (תלושי שכר) — как в обычном меню: подпункт
+                    // «Финансов», только при canViewStaffComp === true.
+                    if (!isFinance || !canViewStaffComp) return link
+                    return [link, (
+                      <SidebarNavLink
+                        key="more-finance-staff"
+                        href="/dashboard/finance/staff"
+                        iconPath={I.staff}
+                        label={tFin('staff.link_label')}
+                        active={pathname.startsWith('/dashboard/finance/staff')}
+                        isOpen={isOpen}
+                        isRTL={isRTL}
+                        moduleKey="finance"
+                        soonLabel={t.soon}
+                      />
+                    )]
                   })}
                 </div>
               </div>

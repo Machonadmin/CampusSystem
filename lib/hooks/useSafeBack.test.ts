@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveBackTarget } from './useSafeBack'
+import { resolveBackTarget, nextNavDepth } from './useSafeBack'
 
 describe('resolveBackTarget', () => {
   it('uses real browser back when there is in-app history', () => {
@@ -18,5 +18,16 @@ describe('resolveBackTarget', () => {
     expect(d.action).toBe('push')
     expect(d.href).toBe('/dashboard/finance')
     expect(d.href).not.toBe('/dashboard')
+  })
+})
+
+describe('nextNavDepth', () => {
+  it('counts forward navigations and steps back on browser back, never below zero', () => {
+    let d = 0
+    d = nextNavDepth(d, 'push'); expect(d).toBe(1)
+    d = nextNavDepth(d, 'push'); expect(d).toBe(2)
+    d = nextNavDepth(d, 'pop'); expect(d).toBe(1)
+    d = nextNavDepth(d, 'pop'); expect(d).toBe(0)
+    d = nextNavDepth(d, 'pop'); expect(d).toBe(0)
   })
 })

@@ -8,6 +8,7 @@ export interface Me {
   roles: string[]
   position_title?: string | null
   login_email?: string | null
+  /** Модули, которые человек может открыть (из /api/auth/me). */
   accessible_modules?: string[]
   is_chavruta_teacher?: boolean
   can_view_chavruta?: boolean

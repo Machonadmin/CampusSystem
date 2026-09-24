@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/class-groups/levels — уже используемые значения «уровня»
@@ -30,6 +31,6 @@ export async function GET() {
     return NextResponse.json({ levels })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

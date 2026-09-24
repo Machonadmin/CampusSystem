@@ -10,6 +10,7 @@ import { createNotifications } from '@/lib/notifications/create'
 import type { ScheduleSlotUpdate } from '@/types/database'
 import { isMissingColumn } from '@/lib/supabase/errors'
 import { parseOptionalUuid } from '@/lib/education/slot-fields'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Уведомляет преподавателей и учениц группы о переносе кабинета урока.
@@ -69,10 +70,8 @@ function timeToSeconds(t: string): number | null {
  * Разрешено менять: day_of_week, start_time, end_time, room.
  * Не трогает уже сгенерированные уроки.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { slotId: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ slotId: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       day_of_week?: number
@@ -170,12 +169,12 @@ export async function PATCH(
     let data: unknown
     if (Object.keys(update).length > 0) {
       const res = await sb.from('class_schedule_slots').update(update).eq('id', params.slotId).select('*').maybeSingle()
-      if (res.error) { const m = mapDbError(res.error); return NextResponse.json({ error: m.message }, { status: m.status }) }
+      if (res.error) { const m = mapDbError(res.error); return errorResponse(m) }
       if (!res.data) return apiError('slot_not_found', 404)
       data = res.data
     } else {
       const res = await sb.from('class_schedule_slots').select('*').eq('id', params.slotId).maybeSingle()
-      if (res.error) { const m = mapDbError(res.error); return NextResponse.json({ error: m.message }, { status: m.status }) }
+      if (res.error) { const m = mapDbError(res.error); return errorResponse(m) }
       if (!res.data) return apiError('slot_not_found', 404)
       data = res.data
     }
@@ -233,9 +232,9 @@ export async function PATCH(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -244,10 +243,8 @@ export async function PATCH(
  * Удаление слота. Право: set_lesson_topics в контексте группы слота.
  * НЕ трогает никакие уроки (lessons) — слот лишь шаблон.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { slotId: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ slotId: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -264,8 +261,8 @@ export async function DELETE(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

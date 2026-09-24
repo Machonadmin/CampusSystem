@@ -4,11 +4,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { BackButton } from '@/components/ui/BackButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField, CustomFieldType } from '@/lib/public/form-config'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 interface Program { id: string; name: string; institution_name: string | null }
 
@@ -34,6 +37,7 @@ const FIELD_ROWS: { key: BuiltinFieldKey; labelKey: string }[] = [
 export default function RecruitmentFormSettingsPage() {
   const t = useTranslations('education.recruitment_form')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('recruitment')
   const ta = useTranslations('apply')
   const { lang } = useLang()
   const accent = getModuleColor('education')
@@ -42,15 +46,18 @@ export default function RecruitmentFormSettingsPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [forbidden, setForbidden] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
-    setLoading(true); setError(null)
+    setLoading(true); setError(null); setForbidden(false)
     try {
       const [cRes, pRes] = await Promise.all([
         fetch('/api/education/recruitment/form-config'),
         fetch('/api/public/programs'),
       ])
+      // 403 — нет прав: ForbiddenState вместо «ошибки загрузки»
+      if (cRes.status === 403) { setForbidden(true); return }
       if (!cRes.ok) { setError(t('load_error')); return }
       setCfg(await cRes.json())
       setPrograms(pRes.ok ? await pRes.json() : [])
@@ -167,6 +174,7 @@ export default function RecruitmentFormSettingsPage() {
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
@@ -175,6 +183,7 @@ export default function RecruitmentFormSettingsPage() {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={<>
+          <BackButton fallback={sectionCrumb.href} />
           {/* Просмотр публичной страницы регистрации «как видит абитуриентка». */}
           <a
             href="/apply" target="_blank" rel="noopener noreferrer"
@@ -187,6 +196,8 @@ export default function RecruitmentFormSettingsPage() {
 
       {loading ? (
         <SkeletonRows />
+      ) : forbidden ? (
+        <ForbiddenState />
       ) : error ? (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>
       ) : cfg ? (

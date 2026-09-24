@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { loadPersonAccess } from '@/lib/data-security/load'
 import { clearDataSecurityPermissionsCache } from '@/lib/data-security/permissions'
 import type { PrivilegeModule } from '@/types/database'
+import { planOverrideChanges, type ExistingOverride } from '@/lib/data-security/person-overrides'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * Права конкретного сотрудника.
@@ -19,7 +21,8 @@ import type { PrivilegeModule } from '@/types/database'
  * держателей разом, а этот экран — про одного человека.
  */
 
-export async function GET(_request: NextRequest, { params }: { params: { personId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     await requireDataSecurityPrivilege('access')
     const access = await loadPersonAccess(params.personId, getCookieLocale())
@@ -27,7 +30,7 @@ export async function GET(_request: NextRequest, { params }: { params: { personI
     return NextResponse.json(access)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -39,10 +42,12 @@ interface Override {
   reason?: string | null
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireDataSecurityPrivilege('grant')
-    const sb = createServerClient()
+    // Автор изменения уходит в журнал изменений (см. createServerClient).
+    const sb = createServerClient({ actorPersonId: session.person_id })
     const personId = params.personId
     if (!personId) return apiError('invalid_reference', 400)
 
@@ -59,20 +64,44 @@ export async function PUT(request: NextRequest, { params }: { params: { personId
     const unknown = rows.filter(r => !known.has(`${r.module}::${r.privilege_code}`))
     if (unknown.length > 0) return apiError('invalid_reference', 400)
 
-    // Замена целиком, как в app/api/settings/person-privileges: экран присылает
-    // полный список личных решений по человеку, пустой список снимает все.
-    const { error: delErr } = await sb.from('person_privileges').delete().eq('person_id', personId)
-    if (delErr) throw delErr
+    // Экран присылает полный список личных решений по человеку; пустой список
+    // снимает все. Но строки НЕ пересоздаются целиком: иначе вместе с ними
+    // пропадали бы срок, причина и «кто выдал» (см. lib/data-security/
+    // person-overrides.ts). Вставляются новые, удаляются снятые, обновляются
+    // только изменившиеся — остальные остаются как есть.
+    const { data: existing, error: readErr } = await sb
+      .from('person_privileges')
+      .select('id, module, privilege_code, is_granted, expires_at, reason')
+      .eq('person_id', personId)
+    if (readErr) throw readErr
 
-    if (rows.length > 0) {
+    const plan = planOverrideChanges((existing ?? []) as ExistingOverride[], rows)
+    const nowIso = new Date().toISOString()
+
+    if (plan.remove.length > 0) {
+      const { error } = await sb.from('person_privileges').delete().in('id', plan.remove)
+      if (error) throw error
+    }
+
+    for (const u of plan.update) {
+      const { error } = await sb
+        .from('person_privileges')
+        .update(u.regranted
+          ? { ...u.patch, granted_by: session.person_id, granted_at: nowIso }
+          : u.patch)
+        .eq('id', u.id)
+      if (error) throw error
+    }
+
+    if (plan.insert.length > 0) {
       const { error } = await sb.from('person_privileges').insert(
-        rows.map(r => ({
+        plan.insert.map(r => ({
           person_id: personId,
           module: r.module as PrivilegeModule,
           privilege_code: r.privilege_code,
-          is_granted: !!r.is_granted,
-          reason: r.reason?.trim() || null,
-          expires_at: r.expires_at ?? null,
+          is_granted: r.is_granted,
+          reason: r.reason,
+          expires_at: r.expires_at,
           granted_by: session.person_id,
         })),
       )
@@ -88,6 +117,6 @@ export async function PUT(request: NextRequest, { params }: { params: { personId
     return NextResponse.json(access)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getClassGroupTarget, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { LessonInsert } from '@/types/database'
+import { errorResponse } from '@/lib/api/handler'
 
 // Размер страницы для агрегаций (attendance). PostgREST обрезает на db-max-rows.
 const PAGE = 1000
@@ -22,10 +23,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  * а ответ — enrolled_count (сколько студентов записано в группу).
  * Право: view_students в контексте группы.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -89,9 +88,9 @@ export async function GET(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
 
@@ -102,10 +101,8 @@ export async function GET(
  * Body: { scheduled_date (обязательно), scheduled_time?, topic?, description?, location? }
  * created_by = текущий пользователь.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       scheduled_date?: string
@@ -145,7 +142,7 @@ export async function POST(
       .single()
     if (error) {
       const m = mapDbError(error)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
 
     return NextResponse.json(data, { status: 201 })
@@ -153,8 +150,8 @@ export async function POST(
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
       const m = mapDbError(e)
-      return NextResponse.json({ error: m.message }, { status: m.status })
+      return errorResponse(m)
     }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }

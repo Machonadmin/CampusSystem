@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny } from '@/lib/education/permissions'
+import { canDoEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
+import { errorResponse } from '@/lib/api/handler'
 
 /**
  * GET /api/education/tab-access — какие вкладки модуля «Учёба» вправе видеть
@@ -25,8 +26,16 @@ export async function GET() {
           canDoEducationInAny(session, 'view_students'),
         ])
 
+    // Правка/удаление лида в списке גיוס. Лиды живут без подразделения, а сервер
+    // (PATCH/DELETE /api/education/leads/[id], restore) для таких требует
+    // manage_leads со scope='all' — то же условие здесь, чтобы у «только
+    // просмотра» в меню ··· не было «עריכה»/«מחיקה», которые всё равно упадут.
+    const recruitmentManage = isSuper
+      || (await getEducationPrivilegeScope(session, 'manage_leads')) === 'all'
+
     return NextResponse.json({
       recruitment: leads,
+      recruitment_manage: recruitmentManage,
       admission: applicants,
       committee: applicants,
       study: students,
@@ -34,6 +43,6 @@ export async function GET() {
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
-    return NextResponse.json({ error: e.message ?? serverT('generic_error') }, { status: e.status ?? 500 })
+    return errorResponse(e)
   }
 }
