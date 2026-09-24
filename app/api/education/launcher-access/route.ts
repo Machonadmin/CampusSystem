@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope } from '@/lib/education/permissions'
+import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope, hasEducationPrivilege } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
+import { canManageKodesh } from '@/lib/education/kodesh-access'
+import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { headsOnlyKodesh } from '@/lib/education/kodesh-workspace'
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
@@ -22,6 +24,17 @@ import { createServerClient } from '@/lib/supabase/server'
  *   kodesh → canManageUnit(KODESH_DEPT_ID)
  *   semesters → manage_class_groups · structure → manage_subjects
  *   units → manage_study_groups · chavruta → преподаватель хеврусы
+ * Экраны модуля иудаики и прочие пункты (решение владельца: прятать карточку,
+ * если экран всё равно покажет «אין לך הרשאה») — зеркало проверки главного GET:
+ *   kodesh_home     → canManageKodesh (GET /api/education/kodesh/home)
+ *   kodesh_rav      → GET teacher-approvals ИЛИ GET teacher-quotas (экран =
+ *                     ForbiddenState только если закрыты оба)
+ *   track_catalog   → hasEducationPrivilege manage_tracks (GET study-tracks?includeInactive=1)
+ *   no_lesson_days  → canManageEducationInAny manage_class_groups (GET no-lesson-days)
+ *   student_alerts  → canDoEducationInAny view_students ИЛИ manage_alerts (GET alerts)
+ *   finance_admin   → GET finance/settings ИЛИ GET finance/discount-approvals
+ *                     (экран без ForbiddenState; без обоих — пустая страница)
+ *   «קורסי קודש» гейта нет: её GET class-groups открыт любому вошедшему.
  * Deploy-безопасно: при любой ошибке карточка не скрывается (fail-open).
  */
 export async function GET() {
@@ -36,6 +49,8 @@ export async function GET() {
         chavruta: true, semesters: true, structure: true, units: true, reports: true,
         teacher_home: false, students_view_all: true, students_manage_all: true,
         restrict_to_kodesh: false,
+        kodesh_home: true, kodesh_rav: true, track_catalog: true, no_lesson_days: true,
+        student_alerts: true, finance_admin: true,
       })
     }
 
@@ -49,6 +64,9 @@ export async function GET() {
       viewStudentsMgr, manageStudents, manageSubjects,
       manageStudyGroups, kodesh, chavruta, classGroupsScope, viewStudentsAny,
       viewStudentsScope, manageStudentsScope,
+      manageKodesh, manageClassTeachers, approveKodeshTeacher, setTeacherQuota,
+      manageTracks, manageClassGroupsMgr, manageAlerts,
+      finView, finViewBalance, finManageBudget, finApproveDiscount, manageEnrollmentsMgr,
     ] = await Promise.all([
       canManageEducationInAny(session, 'view_students'),
       canManageEducationInAny(session, 'manage_students'),
@@ -60,6 +78,19 @@ export async function GET() {
       canDoEducationInAny(session, 'view_students'),
       getEducationPrivilegeScope(session, 'view_students'),
       getEducationPrivilegeScope(session, 'manage_students'),
+      // ↓ зеркала проверок главного GET экранов (см. шапку файла)
+      canManageKodesh(session),
+      canManageEducationInAny(session, 'manage_class_teachers'),
+      canDoEducationInAny(session, 'approve_kodesh_teacher'),
+      canDoEducationInAny(session, 'set_teacher_quota'),
+      hasEducationPrivilege(session, 'manage_tracks'),
+      canManageEducationInAny(session, 'manage_class_groups'),
+      hasEducationPrivilege(session, 'manage_alerts'),
+      hasFinancePrivilege(session, 'view'),
+      hasFinancePrivilege(session, 'view_student_balance'),
+      hasFinancePrivilege(session, 'manage_budget'),
+      hasFinancePrivilege(session, 'approve_discount'),
+      canManageEducationInAny(session, 'manage_enrollments'),
     ])
     // Видит ли всех студенток института (view='all') и может ли всеми управлять
     // (manage='all'). У главы кафедры кодеша view='all', но manage='department' —
@@ -106,6 +137,14 @@ export async function GET() {
       students_view_all,
       students_manage_all,
       restrict_to_kodesh: restrictToKodesh,
+      kodesh_home: manageKodesh,
+      kodesh_rav: (manageClassTeachers || approveKodeshTeacher)
+        || (manageClassTeachers || setTeacherQuota),
+      track_catalog: manageTracks,
+      no_lesson_days: manageClassGroupsMgr,
+      student_alerts: viewStudentsAny || manageAlerts,
+      finance_admin: (finView || finViewBalance || finManageBudget)
+        || (finView || finApproveDiscount || manageEnrollmentsMgr),
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
