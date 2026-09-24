@@ -14,6 +14,8 @@ import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/d
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { PersonLinkBanner } from '@/components/persons/PersonLinkBanner'
+import type { PersonLinkView } from '@/lib/persons/record-link'
 
 interface Contact {
   id: string
@@ -27,6 +29,8 @@ interface Contact {
   contact_person: string | null
   notes: string | null
   is_active: boolean
+  // Решение №11: связь с центральной персоной (null — миграция не применена).
+  person_link?: PersonLinkView | null
 }
 
 interface FormState {
@@ -52,6 +56,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
   const t = useTranslations('contacts')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const tPersons = useTranslations('persons')
 
   const primary = getModuleColor('contacts', 'primary')
   const light = getModuleColor('contacts', 'light')
@@ -62,6 +67,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [pendingOnly, setPendingOnly] = useState(false)
 
   // inline editor: null — закрыт; '' — новый контакт; иначе id редактируемого
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -93,9 +99,20 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
   const filtered = useMemo(() => {
     let list = contacts
     if (categoryFilter) list = list.filter(c => c.category === categoryFilter)
+    if (pendingOnly) list = list.filter(c => c.person_link?.status === 'suggested')
     if (search.trim()) list = list.filter(c => matchesSearch(c, search))
     return list
-  }, [contacts, search, categoryFilter])
+  }, [contacts, search, categoryFilter, pendingOnly])
+
+  const pendingCount = useMemo(
+    () => contacts.filter(c => c.person_link?.status === 'suggested').length,
+    [contacts],
+  )
+  const editingContact = editingId ? contacts.find(c => c.id === editingId) ?? null : null
+
+  function setContactLink(id: string, link: PersonLinkView) {
+    setContacts(list => list.map(c => (c.id === id ? { ...c, person_link: link } : c)))
+  }
 
   function openNew() {
     setForm(EMPTY_FORM)
@@ -160,8 +177,15 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
         const b = await res.json().catch(() => ({}))
         setFormError(b.error ?? t('errors.save')); return
       }
-      closeForm()
+      const saved = await res.json().catch(() => ({})) as { id?: string; person_link?: PersonLinkView | null }
       await load()
+      // Решение №11: неуверенное совпадение с персоной — оставляем редактор
+      // открытым на этой записи, чтобы ответственный сразу увидел запрос.
+      if (canManage && saved.id && saved.person_link?.status === 'suggested') {
+        setEditingId(saved.id)
+      } else {
+        closeForm()
+      }
     } catch {
       setFormError(t('errors.save'))
     } finally {
@@ -269,6 +293,19 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
             <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
           ))}
         </select>
+        <button
+          type="button"
+          aria-pressed={pendingOnly}
+          onClick={() => setPendingOnly(v => !v)}
+          style={{
+            fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+            border: `1px solid ${pendingOnly ? primary : 'var(--border-strong)'}`,
+            background: pendingOnly ? light : 'var(--surface)',
+            color: pendingOnly ? primary : 'var(--text)',
+          }}
+        >
+          {tPersons('person_link.pending_filter')} · {pendingCount}
+        </button>
         <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ marginInlineStart: 'auto' }}>
           <DownloadIcon /> {tCommon('export_csv')}
         </Button>
@@ -281,6 +318,17 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
             {editingId === '' ? t('form.new_title') : t('form.edit_title')}
           </h2>
           {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
+          {editingContact && (
+            <div style={{ marginBottom: 12 }}>
+              <PersonLinkBanner
+                entity="contacts"
+                recordId={editingContact.id}
+                link={editingContact.person_link}
+                canManage={canManage}
+                onChange={link => setContactLink(editingContact.id, link)}
+              />
+            </div>
+          )}
           <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <Field label={`${t('fields.name')} *`}>
               <input value={form.name} onChange={e => setField('name', e.target.value)} style={inp} />
@@ -368,6 +416,11 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
                     <td style={td} data-label={t('list.name')}>
                       <div style={{ fontWeight: 500, color: 'var(--text)' }}>{c.name}</div>
                       {c.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{c.contact_person}</div>}
+                      {c.person_link?.status === 'suggested' && (
+                        <span style={{ fontSize: 10.5, fontWeight: 600, padding: '1px 8px', borderRadius: 999, background: 'var(--surface-2)', color: 'var(--warn)' }}>
+                          {tPersons('person_link.pending_filter')}
+                        </span>
+                      )}
                     </td>
                     <td style={td} data-label={t('list.type')}>{t(`types.${c.contact_type}`)}</td>
                     <td style={td} data-label={t('list.category')}>

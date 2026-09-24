@@ -3,8 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireDormitoryPrivilege } from '@/lib/dormitory/permissions'
 import { mapDbError } from '@/lib/dormitory/http'
-import { occupancy } from '@/lib/dormitory/occupancy'
-import { roomsOfBuildings, activeAssignmentsByRoom, todayISO } from '@/lib/dormitory/occupancy-server'
+import { loadOccupancy } from '@/lib/reports/metrics'
 import type { DormBuildingInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -23,37 +22,10 @@ export async function GET() {
     await requireDormitoryPrivilege('view')
 
     const sb = createServerClient()
-    const today = todayISO()
 
-    const { data: buildings, error } = await sb
-      .from('dorm_buildings')
-      .select('id, name, code, gender, address, notes, is_active, created_at, updated_at')
-      .order('name', { ascending: true })
-    if (error) throw error
-
-    const rows = buildings ?? []
-    const buildingIds = rows.map(b => b.id)
-
-    const rooms = await roomsOfBuildings(sb, buildingIds)
-    const roomIds = rooms.map(r => r.id)
-    const asgByRoom = await activeAssignmentsByRoom(sb, roomIds)
-
-    // Агрегация по зданию: комнаты, вместимость, занято (на сегодня).
-    const agg = new Map<string, { rooms_count: number; total_capacity: number; occupied: number }>()
-    for (const b of rows) agg.set(b.id, { rooms_count: 0, total_capacity: 0, occupied: 0 })
-    for (const r of rooms) {
-      const a = agg.get(r.building_id)
-      if (!a) continue
-      a.rooms_count += 1
-      a.total_capacity += r.capacity
-      a.occupied += occupancy(asgByRoom.get(r.id) ?? [], r.capacity, today).occupied
-    }
-
-    const result = rows.map(b => {
-      const a = agg.get(b.id) ?? { rooms_count: 0, total_capacity: 0, occupied: 0 }
-      const free = Math.max(0, a.total_capacity - a.occupied)
-      return { ...b, rooms_count: a.rooms_count, total_capacity: a.total_capacity, occupied: a.occupied, free }
-    })
+    // ЕДИНЫЙ источник с «דוחות» (/api/reports/dormitory): loadOccupancy считает
+    // занятость на сегодня по каждому зданию, итог там — сумма этих же чисел.
+    const { buildings: result } = await loadOccupancy(sb)
 
     return NextResponse.json({ buildings: result })
   } catch (err: unknown) {

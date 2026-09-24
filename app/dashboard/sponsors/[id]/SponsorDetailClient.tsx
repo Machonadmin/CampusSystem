@@ -16,6 +16,8 @@ import { DONATION_STATUSES, SPONSOR_TYPES } from '@/lib/sponsors/validation'
 import type { DonationStats } from '@/lib/sponsors/donations'
 import type { SponsorRow } from '@/types/database'
 import { formatMoney } from '@/lib/finance/money'
+import { PersonLinkBanner } from '@/components/persons/PersonLinkBanner'
+import type { PersonLinkView, PersonLinkResult } from '@/lib/persons/record-link'
 
 interface Donation {
   id: string
@@ -55,10 +57,11 @@ interface SponsorForm {
 
 
 export default function SponsorDetailClient({
-  sponsor: initialSponsor, canManage,
+  sponsor: initialSponsor, canManage, personLink: initialPersonLink,
 }: {
   sponsor: SponsorRow
   canManage: boolean
+  personLink: PersonLinkView | null
 }) {
   const router = useRouter()
   const t = useTranslations('sponsors')
@@ -69,6 +72,7 @@ export default function SponsorDetailClient({
   const light = getModuleColor('sponsors', 'light')
 
   const [sponsor, setSponsor] = useState<SponsorRow>(initialSponsor)
+  const [personLink, setPersonLink] = useState<PersonLinkView | null>(initialPersonLink)
 
   const [donations, setDonations] = useState<Donation[]>([])
   const [stats, setStats] = useState<DonationStats | null>(null)
@@ -229,8 +233,13 @@ export default function SponsorDetailClient({
         const b = await res.json().catch(() => ({}))
         setSFormError(b.error ?? t('errors.save')); return
       }
-      const updated = await res.json()
-      setSponsor(updated as SponsorRow)
+      const updated = await res.json() as SponsorRow & { person_link?: PersonLinkResult | null }
+      const { person_link: nextLink, ...nextSponsor } = updated
+      setSponsor(nextSponsor as SponsorRow)
+      // Сбой связывания (best-effort) не должен стирать уже показанное состояние.
+      if (nextLink && !(nextLink.outcome === 'skipped' && nextLink.reason === 'error')) {
+        setPersonLink({ status: nextLink.status, person: nextLink.person, candidate: nextLink.candidate })
+      }
       setEditingSponsor(false)
     } catch {
       setSFormError(t('errors.save'))
@@ -293,6 +302,18 @@ export default function SponsorDetailClient({
             <button onClick={openEditSponsor} style={outlineBtn(primary)}>{tCommon('edit')}</button>
           )}
         </div>
+
+        {personLink?.status && (
+          <div style={{ marginBottom: 12 }}>
+            <PersonLinkBanner
+              entity="sponsors"
+              recordId={sponsor.id}
+              link={personLink}
+              canManage={canManage}
+              onChange={setPersonLink}
+            />
+          </div>
+        )}
 
         {editingSponsor ? (
           <>

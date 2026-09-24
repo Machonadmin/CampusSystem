@@ -1,3 +1,5 @@
+import { extractStudentTag, withStudentTag } from './student-tag'
+
 /**
  * ─── Связь «Задачи ↔ Эксплуатация» ───────────────────────────────────────────
  *
@@ -75,16 +77,20 @@ export function withMaintenanceFlag(metadata: MetadataLike, on: boolean): Record
 /**
  * Санитайзер metadata, пришедшей из ТЕЛА ЗАПРОСА.
  *
- * POST /api/tasks и /api/tasks/series принимают произвольную metadata (там
- * живут ссылки на связанные сущности модулей-источников). Если просто передать
- * её в insert, любой сотрудник отправил бы `{"metadata":{"maintenance":true}}`
- * и выложил бы произвольную задачу на доску техслужбы в обход проверки роли.
+ * POST /api/tasks и /api/tasks/series принимают metadata из тела запроса. Если
+ * просто передать её в insert, любой сотрудник отправил бы
+ * `{"metadata":{"maintenance":true}}` и выложил бы произвольную задачу на доску
+ * техслужбы в обход проверки роли (или подделал бы служебные ключи вроде
+ * source='acceptance').
  *
- * Поэтому метка снимается ВСЕГДА и ставится потом только сервером, по
- * результату canBeMaintenanceTask. Прочие ключи metadata сохраняются.
+ * Поэтому от клиента принимается ТОЛЬКО метка «תלמידה קשורה» — пара
+ * student_person_id + journey_id, оба UUID (см. lib/tasks/student-tag.ts);
+ * всё остальное, включая maintenance, отбрасывается. Метку эксплуатации сервер
+ * ставит потом сам, по результату canBeMaintenanceTask; принадлежность journey
+ * человеку проверяет роут (verifyStudentTag).
  */
 export function sanitizeIncomingMetadata(metadata: MetadataLike): Record<string, unknown> {
-  return withMaintenanceFlag(metadata, false)
+  return withStudentTag({}, extractStudentTag(metadata))
 }
 
 /**

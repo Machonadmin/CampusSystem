@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireContactsPrivilege } from '@/lib/contacts/permissions'
+import { requireContactsPrivilege, hasContactsPrivilege } from '@/lib/contacts/permissions'
 import { mapDbError } from '@/lib/contacts/http'
 import { isContactType, isContactCategory } from '@/lib/contacts/validation'
 import { isValidEmail } from '@/lib/contacts/directory'
 import type { ContactUpdate } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { autoLinkRecordToPerson, canViewPersonsSafe, loadRecordPersonLink } from '@/lib/persons/record-link'
 
 /**
  * GET    /api/contacts/[id] — контакт по id (view).
@@ -23,7 +24,7 @@ const CONTACT_COLS =
 export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireContactsPrivilege('view')
+    const session = await requireContactsPrivilege('view')
 
     const sb = createServerClient()
     const { data, error } = await sb
@@ -31,7 +32,13 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     if (error) throw error
     if (!data) return apiError('contact_not_found', 404)
 
-    return NextResponse.json(data)
+    // Решение №11: состояние связи с persons (null — миграция не применена).
+    const person_link = await loadRecordPersonLink(sb, 'contacts', params.id, {
+      canManage: await hasContactsPrivilege(session, 'manage'),
+      canViewPersons: await canViewPersonsSafe(session),
+    })
+
+    return NextResponse.json({ ...(data as object), person_link })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
@@ -45,7 +52,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireContactsPrivilege('manage')
+    const session = await requireContactsPrivilege('manage')
 
     const body = await request.json() as {
       name?: string
@@ -135,7 +142,14 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       return errorResponse(m)
     }
 
-    return NextResponse.json(data)
+    // Решение №11: best-effort ПОСЛЕ записи. Уже linked/rejected — не
+    // пересопоставляем (autoLink вернёт 'skipped'); правка телефона/почты
+    // в persons НЕ копируется.
+    const person_link = await autoLinkRecordToPerson(sb, 'contacts', params.id, {
+      canViewPersons: await canViewPersonsSafe(session),
+    })
+
+    return NextResponse.json({ ...(data as object), person_link })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

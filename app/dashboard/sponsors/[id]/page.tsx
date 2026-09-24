@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasSponsorsPrivilege } from '@/lib/sponsors/permissions'
+import { canViewPersonsSafe, loadRecordPersonLink } from '@/lib/persons/record-link'
 import SponsorDetailClient from './SponsorDetailClient'
 import type { SponsorRow } from '@/types/database'
 
@@ -35,10 +36,16 @@ export default async function SponsorDetailPage(props: Props) {
 
   const canManage = await hasSponsorsPrivilege(session, 'manage')
 
+  // Решение №11: связь донора с центральной персоной (null — миграция не применена).
+  const personLink = await loadRecordPersonLink(sb, 'sponsors', params.id, {
+    canManage, canViewPersons: await canViewPersonsSafe(session),
+  })
+
   return (
     <SponsorDetailClient
       sponsor={sponsor as unknown as SponsorRow}
       canManage={canManage}
+      personLink={personLink}
     />
   )
 }

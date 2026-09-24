@@ -94,15 +94,31 @@ describe('MAINTENANCE_ROLE_CODES', () => {
   })
 })
 
+const P = '11111111-2222-4333-8444-555555555555'
+const J = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
+
 describe('sanitizeIncomingMetadata', () => {
   it('снимает метку, пришедшую из тела запроса (обход проверки роли)', () => {
     // Иначе `POST /api/tasks {"metadata":{"maintenance":true}}` выложил бы
     // произвольную задачу на доску техслужбы мимо canBeMaintenanceTask.
     expect(isMaintenanceTask(sanitizeIncomingMetadata({ maintenance: true }))).toBe(false)
   })
-  it('сохраняет остальные ключи metadata', () => {
-    expect(sanitizeIncomingMetadata({ maintenance: true, lead_id: 'L1', source: 'x' }))
-      .toEqual({ lead_id: 'L1', source: 'x' })
+  it('пропускает ТОЛЬКО метку תלמידה (student_person_id + journey_id, оба UUID)', () => {
+    expect(sanitizeIncomingMetadata({ maintenance: true, lead_id: 'L1', source: 'acceptance', student_person_id: P, journey_id: J }))
+      .toEqual({ student_person_id: P, journey_id: J })
+  })
+  it('прочие ключи отбрасываются (нельзя подделать source и т.п.)', () => {
+    expect(sanitizeIncomingMetadata({ lead_id: 'L1', source: 'x' })).toEqual({})
+  })
+  it('неполная или не-UUID метка отбрасывается целиком', () => {
+    expect(sanitizeIncomingMetadata({ student_person_id: P })).toEqual({})
+    expect(sanitizeIncomingMetadata({ journey_id: J })).toEqual({})
+    expect(sanitizeIncomingMetadata({ student_person_id: 'p1', journey_id: J })).toEqual({})
+    expect(sanitizeIncomingMetadata({ student_person_id: P, journey_id: 42 })).toEqual({})
+  })
+  it('UUID приводятся к нижнему регистру (jsonb @> сравнивает точно)', () => {
+    expect(sanitizeIncomingMetadata({ student_person_id: P.toUpperCase(), journey_id: J.toUpperCase() }))
+      .toEqual({ student_person_id: P, journey_id: J })
   })
   it('пустой/отсутствующий/мусорный вход → чистый объект', () => {
     expect(sanitizeIncomingMetadata(undefined)).toEqual({})
@@ -111,13 +127,13 @@ describe('sanitizeIncomingMetadata', () => {
     expect(sanitizeIncomingMetadata([{ maintenance: true }])).toEqual({})
   })
   it('после санитайзера метку ставит только серверная проверка', () => {
-    const clean = sanitizeIncomingMetadata({ maintenance: true, keep: 1 })
+    const clean = sanitizeIncomingMetadata({ maintenance: true, student_person_id: P, journey_id: J })
     const staff = new Set(['p-maint'])
     // исполнитель не из техслужбы → метки нет даже после «повторной» попытки
     expect(isMaintenanceTask(withMaintenanceFlag(clean, canBeMaintenanceTask('person', 'p-x', staff)))).toBe(false)
-    // из техслужбы → метка ставится сервером, посторонние ключи целы
+    // из техслужбы → метка ставится сервером, метка תלמידה цела
     const flagged = withMaintenanceFlag(clean, canBeMaintenanceTask('person', 'p-maint', staff))
     expect(isMaintenanceTask(flagged)).toBe(true)
-    expect(flagged.keep).toBe(1)
+    expect(flagged.journey_id).toBe(J)
   })
 })

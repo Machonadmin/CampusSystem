@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { isMaintenanceTask } from '@/lib/tasks/maintenance-link'
 import type { TaskRow, TaskCommentType, TaskStatus } from '@/types/database'
+import type { TaskStudentRef } from '@/lib/tasks/student-tag'
 
 /**
  * Вся логика карточки задачи (загрузка + действия + комментарии + наблюдатели +
@@ -64,6 +65,8 @@ export interface TaskDetail extends TaskRow {
   assignee?: { id: string; full_name: string; hebrew_name?: string | null } | null
   department?: { id: string; name: string } | null
   creator?: { id: string; full_name: string; hebrew_name?: string | null } | null
+  /** Метка «תלמידה קשורה» (добавляет GET /api/tasks/[id]). */
+  student?: TaskStudentRef | null
 }
 
 export type ActionKey =

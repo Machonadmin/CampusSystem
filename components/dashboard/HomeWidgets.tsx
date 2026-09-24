@@ -11,7 +11,8 @@ import HomeAgenda from './HomeAgenda'
 
 /**
  * «העבודה שלי» на главной: всё, что ждёт сотрудника, в одном месте — ближайшие
- * дни, подписи, задачи, заявки техобслуживания, уроки, лиды. Каждый блок
+ * дни, подписи, задачи, заявки техобслуживания, уроки, лиды, оповещения по
+ * תלמידות, случаи отсутствия. Каждый блок
  * грузится сам и рендерит null, если пусто (или нет доступа: сервер отвечает
  * 403 → блока нет). Секция целиком скрывается, когда всё пусто.
  *
@@ -41,6 +42,8 @@ export default function HomeWidgets({ widgets }: { widgets: WidgetId[] }) {
             case 'my_lessons': return <MyLessonsWidget key={id} onData={onData} />
             case 'recent_leads': return <RecentLeadsWidget key={id} onData={onData} />
             case 'stalled': return <StalledApplicantsWidget key={id} onData={onData} />
+            case 'my_alerts': return <MyAlertsWidget key={id} onData={onData} />
+            case 'my_absences': return <MyAbsencesWidget key={id} onData={onData} />
             default: return null
           }
         })}
@@ -225,7 +228,11 @@ function PendingSignaturesWidget({ onData }: { onData: () => void }) {
 
 // ── Мои задачи ───────────────────────────────────────────────────────────────
 type TaskPriority = 'urgent' | 'high' | 'normal' | 'low'
-interface MyTask { id: string; title: string; due_date: string | null; due_time?: string | null; priority?: TaskPriority }
+interface MyTask {
+  id: string; title: string; due_date: string | null; due_time?: string | null; priority?: TaskPriority
+  // Метка «תלמידה קשורה» — имя показывается в строке.
+  student?: { name: string } | null
+}
 
 const TASK_PRIORITY_COLOR: Record<TaskPriority, string> = {
   urgent: '#DC2626', high: '#D97706', normal: 'var(--accent-strong)', low: 'var(--text-faint)',
@@ -266,6 +273,11 @@ function MyTasksWidget({ onData }: { onData: () => void }) {
             <div key={tk.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: TASK_PRIORITY_COLOR[tk.priority ?? 'normal'] }} />
               <span style={{ flex: 1, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: overdue ? 600 : 400 }}>{tk.title}</span>
+              {tk.student?.name && (
+                <span style={{ flexShrink: 1, minWidth: 0, maxWidth: 110, fontSize: 11, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', borderRadius: 8, padding: '1px 7px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {tk.student.name}
+                </span>
+              )}
               <span style={{ flexShrink: 0, fontSize: 11.5, fontWeight: overdue || isToday ? 700 : 500, color: dueColor }}>{dueLabel}</span>
             </div>
           )
@@ -313,6 +325,94 @@ function MyMaintenanceWidget({ onData }: { onData: () => void }) {
             </div>
           )
         })}
+        {items.length > 4 && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>+{items.length - 4} {t('more')}</span>}
+      </div>
+    </Card>
+  )
+}
+
+// ── Открытые оповещения по תלמידות (только для обрабатывающих) ──────────────
+// Решение владельца: блок видят ТОЛЬКО те, кто обрабатывает оповещения
+// (manage_alerts). ?handler=1 → сервер отвечает 403 всем остальным, и блока нет.
+// state=open — все незакрытые (state<>'closed'). Чувствительные оповещения
+// сервер отдаёт только при view_sensitive_alerts.
+interface MyAlert {
+  id: string; title: string | null; severity: string; state: string
+  student: { full_name: string | null; hebrew_name: string | null } | null
+}
+const ALERT_SEVERITY_COLOR: Record<string, string> = {
+  critical: 'var(--danger, #DC2626)', warning: 'var(--warn)', info: 'var(--text-faint)',
+}
+function MyAlertsWidget({ onData }: { onData: () => void }) {
+  const t = useTranslations('home')
+  const tAlerts = useTranslations('education.alerts')
+  const router = useRouter()
+  const [items, setItems] = useState<MyAlert[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/education/alerts?state=open&handler=1')
+      if (res.ok) { const b = await res.json(); const s = (b.alerts ?? []) as MyAlert[]; setItems(s); if (s.length) onData() }
+    } catch { /* тихо */ } finally { setLoaded(true) }
+  }, [onData])
+  useEffect(() => { load() }, [load])
+
+  if (!loaded || items.length === 0) return null
+  return (
+    <Card title={t('my_alerts')} accent="var(--danger)" count={items.length} onClick={() => router.push('/dashboard/education/alerts')}>
+      <div style={{ display: 'grid', gap: 7 }}>
+        {items.slice(0, 4).map(a => (
+          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, background: ALERT_SEVERITY_COLOR[a.severity] ?? 'var(--text-faint)' }} />
+            <span style={{ flex: 1, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {a.student?.hebrew_name || a.student?.full_name || '—'}{a.title ? ` · ${a.title}` : ''}
+            </span>
+            <span style={{ flexShrink: 0, fontSize: 11.5, color: 'var(--text-faint)' }}>{tAlerts(`state_${a.state}`, a.state)}</span>
+          </div>
+        ))}
+        {items.length > 4 && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger)' }}>+{items.length - 4} {t('more')}</span>}
+      </div>
+    </Card>
+  )
+}
+
+// ── Случаи отсутствия (менеджер — все, остальные — переданные их подразделениям) ─
+// Видимость решает сервер (GET /api/education/absences); 403 → блока нет.
+interface MyAbsence { id: string; student_name: string; absence_date: string | null; status: string; department_name: string | null }
+function MyAbsencesWidget({ onData }: { onData: () => void }) {
+  const t = useTranslations('home')
+  const tAbs = useTranslations('education.absences')
+  const { lang } = useLang()
+  const router = useRouter()
+  const [items, setItems] = useState<MyAbsence[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      // «Открытые» = все нерешённые: open (ещё не передан) + in_handling (передан подразделению).
+      const [rOpen, rHandling] = await Promise.all([
+        fetch('/api/education/absences?status=open'),
+        fetch('/api/education/absences?status=in_handling'),
+      ])
+      if (rOpen.ok || rHandling.ok) {
+        const s: MyAbsence[] = []
+        for (const r of [rOpen, rHandling]) if (r.ok) { const b = await r.json(); s.push(...((b.items ?? []) as MyAbsence[])) }
+        setItems(s); if (s.length) onData()
+      }
+    } catch { /* тихо */ } finally { setLoaded(true) }
+  }, [onData])
+  useEffect(() => { load() }, [load])
+
+  if (!loaded || items.length === 0) return null
+  return (
+    <Card title={t('my_absences')} accent="var(--warn)" count={items.length} onClick={() => router.push('/dashboard/education/absences')}>
+      <div style={{ display: 'grid', gap: 5 }}>
+        {items.slice(0, 4).map(c => (
+          <Row key={c.id}
+            main={c.student_name || '—'}
+            sub={c.absence_date ? formatDate(c.absence_date, lang) : tAbs(`status_${c.status}`, c.status)} />
+        ))}
         {items.length > 4 && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>+{items.length - 4} {t('more')}</span>}
       </div>
     </Card>

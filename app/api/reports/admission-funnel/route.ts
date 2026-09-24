@@ -4,6 +4,7 @@ import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
 import { pageAll } from '@/lib/reports/paging'
+import { loadAdmissionFunnel } from '@/lib/reports/metrics'
 
 /**
  * GET /api/reports/admission-funnel — READ-ONLY.
@@ -14,16 +15,8 @@ import { pageAll } from '@/lib/reports/paging'
  *
  * Конверсия оценивается по текущему срезу education_status: статус кумулятивен
  * (студентка когда-то была лидом), поэтому «дошли до абитуриентки/студентки»
- * считаются как все, кто на этом статусе ИЛИ дальше.
+ * считаются как все, кто на этом статусе ИЛИ дальше (расчёт — lib/reports/funnel.ts).
  */
-
-const BEYOND_LEAD = ['applicant', 'student', 'on_leave', 'graduated', 'expelled']
-const BEYOND_APPLICANT = ['student', 'on_leave', 'graduated', 'expelled']
-
-function pct(part: number, whole: number): number {
-  if (whole <= 0) return 0
-  return Math.round((part / whole) * 1000) / 10
-}
 
 export async function GET() {
   try {
@@ -31,29 +24,10 @@ export async function GET() {
     await requireReportModule('education')
     const sb = createServerClient()
 
-    // 1. Срез по education_status (постранично).
-    const journeys = await pageAll<{ education_status: string }>((from, to) =>
-      sb.from('education_journeys').select('education_status').order('id', { ascending: true }).range(from, to),
-    )
-    const byStatus: Record<string, number> = {}
-    for (const j of journeys) byStatus[j.education_status] = (byStatus[j.education_status] ?? 0) + 1
-
-    const leads = byStatus['lead'] ?? 0
-    const reachedApplicant = BEYOND_LEAD.reduce((s, k) => s + (byStatus[k] ?? 0), 0)
-    const reachedStudent = BEYOND_APPLICANT.reduce((s, k) => s + (byStatus[k] ?? 0), 0)
-    const everLead = leads + reachedApplicant
-
-    const funnel = {
-      leads,
-      applicants: byStatus['applicant'] ?? 0,
-      students: byStatus['student'] ?? 0,
-      reached_applicant: reachedApplicant,
-      reached_student: reachedStudent,
-    }
-    const conversion = {
-      lead_to_applicant: pct(reachedApplicant, everLead),
-      applicant_to_student: pct(reachedStudent, reachedApplicant),
-    }
+    // 1. Воронка — ЕДИНЫЙ источник (lib/reports/metrics.loadAdmissionFunnel),
+    // тот же, что в дашборде набора (/api/education/recruitment-report).
+    // Soft-deleted journeys (is_deleted) не учитываются.
+    const { funnel, conversion } = await loadAdmissionFunnel(sb)
 
     // 2. Узкие места — активные этапы процесса acceptance по коду шага.
     const stageRows = await pageAll<{ status: string; stage_template: unknown; process_instance: unknown }>((from, to) =>

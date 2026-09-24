@@ -7,6 +7,7 @@ import { toCents, centsToNumber } from '@/lib/finance/money'
 import { sumDiscountCentsForCharges } from '@/lib/finance/discounts'
 import { mapDbError } from '@/lib/finance/http'
 import { errorResponse } from '@/lib/api/handler'
+import { loadFinanceTotals } from '@/lib/reports/metrics'
 
 /**
  * GET /api/finance/students
@@ -24,7 +25,10 @@ import { errorResponse } from '@/lib/api/handler'
  * Фильтры:
  *   ?search=...  — app-side по persons.full_name/hebrew_name/email/phones
  *
- * Ответ: { students: FinanceStudentListItem[] }
+ * Ответ: { students: FinanceStudentListItem[], summary, can_charge, can_manage_access }
+ *   summary — сводка сбора из lib/reports/metrics.loadFinanceTotals (та же, что
+ *   /api/reports/finance): { charged, discounts, collected, outstanding,
+ *   collection_rate, debtor_count } по ВСЕМ journey с начислениями.
  */
 
 const PERSON_SELECT =
@@ -231,7 +235,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ students, can_charge: canCharge, can_manage_access: canManageAccess })
+    // Сводка сбора — ЕДИНЫЙ источник с «דוחות» (/api/reports/finance): тот же
+    // загрузчик по ВСЕМ journey с начислениями/платежами (решение владельца:
+    // считаем всех, кто должен, а не только текущих студенток из списка выше).
+    // Не зависит от ?search — это итог по всем.
+    const { summary } = await loadFinanceTotals(sb)
+
+    return NextResponse.json({ students, summary, can_charge: canCharge, can_manage_access: canManageAccess })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

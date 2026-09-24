@@ -5,6 +5,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
+import { extractStudentTag } from '@/lib/tasks/student-tag'
+import { verifyStudentTag } from '@/lib/tasks/student-tag-server'
 import {
   generateSeriesDates,
   validateRecurrenceRule,
@@ -144,6 +146,14 @@ export async function POST(request: NextRequest) {
     // задачи серии: каждое повторение — отдельная работа для техслужбы.
     // Метка из тела запроса снимается всегда — см. POST /api/tasks.
     let metadata = sanitizeIncomingMetadata(body.metadata)
+
+    // Метка «תלמידה קשורה» — та же проверка, что в POST /api/tasks; ставится на
+    // ВСЕ задачи серии.
+    const studentTag = extractStudentTag(metadata)
+    if (studentTag && !(await verifyStudentTag(sb, studentTag))) {
+      return apiError('task_student_tag_invalid', 400)
+    }
+
     if (body.is_maintenance) {
       // staff === null → метку не ставим (fail-closed), см. POST /api/tasks.
       const staff = await maintenanceStaffPersonIds(sb)

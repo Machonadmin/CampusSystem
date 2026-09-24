@@ -17,14 +17,21 @@ interface LessonRow {
   subject: string | null
   attendance_id: string | null
   status: string | null
+  /** Урок не моей группы — я замещала (отметила посещаемость учениц). */
+  substitute?: boolean
 }
 interface PendingRow {
   id: string
   lesson_id: string
+  teacher_person_id: string
   teacher_name: string
   status: string
   note: string | null
-  reported_at: string
+  reported_at: string | null
+  /** Виртуальная заявка «через посещаемость учениц» — строки отметки ещё нет. */
+  virtual?: boolean
+  via_student_attendance?: boolean
+  two_teachers?: boolean
   lesson: { date: string | null; time: string | null; group_name: string; subject: string | null } | null
 }
 
@@ -72,15 +79,30 @@ export default function TeacherAttendanceClient({ canApprove, embedded = false }
     } finally { setBusy(null) }
   }
 
-  async function decide(id: string, decision: 'approved' | 'rejected') {
-    setBusy(id)
+  async function decide(p: PendingRow, decision: 'approved' | 'rejected') {
+    setBusy(p.id)
     try {
-      await fetch(`/api/education/teacher-attendance/${id}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decision }),
-      })
+      const res = p.virtual
+        // Виртуальная заявка: решение создаёт отметку на того, кто отметил посещаемость.
+        ? await fetch('/api/education/teacher-attendance/from-attendance', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lesson_id: p.lesson_id, teacher_person_id: p.teacher_person_id, decision }),
+        })
+        : await fetch(`/api/education/teacher-attendance/${p.id}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ decision }),
+        })
+      if (!res.ok) toast(tCommon('load_error'), 'error')
       await load()
     } finally { setBusy(null) }
   }
+
+  const flag = (text: string, tone: 'warn' | 'info') => (
+    <span style={{
+      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, whiteSpace: 'nowrap', marginInlineStart: 6,
+      background: tone === 'warn' ? 'rgba(239,68,68,0.12)' : 'rgba(59,130,246,0.12)',
+      color: tone === 'warn' ? 'var(--danger)' : 'var(--accent-strong)',
+    }}>{text}</span>
+  )
 
   const statusChip = (status: string | null) => {
     if (!status) return null
@@ -125,17 +147,21 @@ export default function TeacherAttendanceClient({ canApprove, embedded = false }
               ) : pending.map(p => (
                 <div key={p.id} style={rowStyle}>
                   <div style={{ flex: 1, minWidth: 200 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{p.teacher_name || '—'}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                      {p.teacher_name || '—'}
+                      {p.two_teachers && flag(t('flag_two_teachers'), 'warn')}
+                      {p.via_student_attendance && flag(t('flag_via_student_attendance'), 'info')}
+                    </div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                       {fmtDate(lang, p.lesson?.date ?? null)}{p.lesson?.time ? ` · ${p.lesson.time}` : ''}
                       {p.lesson?.subject ? ` · ${p.lesson.subject}` : ''}{p.lesson?.group_name ? ` · ${p.lesson.group_name}` : ''}
                     </div>
                   </div>
-                  <SubmitButton onClick={() => decide(p.id, 'approved')} loading={busy === p.id}
+                  <SubmitButton onClick={() => decide(p, 'approved')} loading={busy === p.id}
                     style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: 'var(--success)', color: '#fff', opacity: busy === p.id ? 0.6 : 1 }}>
                     {t('approve')}
                   </SubmitButton>
-                  <SubmitButton onClick={() => decide(p.id, 'rejected')} loading={busy === p.id}
+                  <SubmitButton onClick={() => decide(p, 'rejected')} loading={busy === p.id}
                     style={{ fontSize: 12, fontWeight: 600, padding: '7px 14px', borderRadius: 8, border: '1px solid var(--border)', cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-muted)', opacity: busy === p.id ? 0.6 : 1 }}>
                     {t('reject')}
                   </SubmitButton>
@@ -155,6 +181,7 @@ export default function TeacherAttendanceClient({ canApprove, embedded = false }
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
                     {l.subject || l.group_name || '—'}
+                    {l.substitute && flag(t('flag_substitute'), 'info')}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
                     {fmtDate(lang, l.date)}{l.time ? ` · ${l.time}` : ''}{l.subject && l.group_name ? ` · ${l.group_name}` : ''}

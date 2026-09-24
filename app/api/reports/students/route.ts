@@ -8,7 +8,7 @@ import { studentStatusSummary } from '@/lib/reports/summaries'
 /**
  * GET /api/reports/students — READ-ONLY.
  *
- * Сводка по education_journeys: всего journey и разбивка по education_status
+ * Сводка по ЖИВЫМ education_journeys (is_deleted = false): всего journey и разбивка по education_status
  * (lead / applicant / student / on_leave / graduated / expelled / alumni / lost).
  * Право: reports.view.
  *
@@ -27,6 +27,7 @@ export async function GET() {
       sb
         .from('education_journeys')
         .select('education_status')
+        .eq('is_deleted', false)
         .order('id', { ascending: true })
         .range(from, to),
     )

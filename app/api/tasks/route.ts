@@ -6,6 +6,8 @@ import { getPersonDepartments, mapDbError } from '@/lib/tasks/helpers'
 import { createNotifications } from '@/lib/notifications/create'
 import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
+import { extractStudentTag } from '@/lib/tasks/student-tag'
+import { attachStudentRefs, verifyStudentTag } from '@/lib/tasks/student-tag-server'
 import type {
   TaskInsert, TaskStatus, TaskModule, TaskPriority, TaskAssigneeType,
 } from '@/types/database'
@@ -95,7 +97,9 @@ export async function GET(request: NextRequest) {
     }
 
     type TaskListRow = NonNullable<Awaited<ReturnType<typeof buildQuery>>['data']>[number]
-    const tasks = await fetchAllPages<TaskListRow>((from, to) => buildQuery().range(from, to), PAGE)
+    const rows = await fetchAllPages<TaskListRow>((from, to) => buildQuery().range(from, to), PAGE)
+    // Имя תלמידה для чипа на карточке (только у задач с меткой).
+    const tasks = await attachStudentRefs(sb, rows)
 
     return NextResponse.json({ tasks })
   } catch (err: unknown) {
@@ -185,6 +189,16 @@ export async function POST(request: NextRequest) {
     // sanitizeIncomingMetadata снимает метку, пришедшую из тела запроса: иначе
     // её можно было бы протащить мимо проверки роли, послав metadata напрямую.
     let metadata = sanitizeIncomingMetadata(body.metadata)
+
+    // ─── Метка «תלמידה קשורה» ─────────────────────────────────────────────────
+    // Санитайзер пропустил только пару UUID; здесь сервер проверяет, что
+    // journey действительно принадлежит этому человеку. Несовпадение — 400:
+    // автор явно выбрал תלמידה, молча потерять выбор нельзя.
+    const studentTag = extractStudentTag(metadata)
+    if (studentTag && !(await verifyStudentTag(sb, studentTag))) {
+      return apiError('task_student_tag_invalid', 400)
+    }
+
     if (body.is_maintenance) {
       // staff === null — состав техслужбы прочитать не удалось; тогда метку НЕ
       // ставим (fail-closed), задача создаётся как обычная.

@@ -10,7 +10,9 @@ import { errorResponse } from '@/lib/api/handler'
  * POST /api/staff-comp/[personId]/generate-chavruta-plus?year&month
  *
  * Начисляет менторство (хеврута-плюс) за месяц по базису сотрудника:
- *   • per_student_month — по одной записи на каждую АКТИВНУЮ пару, amount =
+ *   • per_student_month — по одной записи на каждую АКТИВНУЮ пару из «מרכז
+ *     חברותא» (chavruta_pairs, решение владельца #6: каждая пара хаба
+ *     оплачивается, флага «платная» нет), amount =
  *     chavruta_plus_rate, дата = 1-е число месяца. Идемпотентно (пропускает, если
  *     запись за эту ученицу в этом месяце уже есть).
  *   • per_hour — ничего не начисляет автоматически (часы вносятся вручную как
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ pers
     // Активные пары.
     let assignments: Array<{ student_journey_id: string }> = []
     try {
-      const { data, error } = await sb.from('chavruta_plus_assignments')
+      const { data, error } = await sb.from('chavruta_pairs')
         .select('student_journey_id').eq('teacher_person_id', params.personId).eq('is_active', true)
       if (error) throw error
       assignments = (data ?? []) as typeof assignments

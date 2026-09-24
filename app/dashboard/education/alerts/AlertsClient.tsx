@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { PersonSelect } from '@/components/ui/person-select'
@@ -35,6 +36,12 @@ export default function AlertsClient() {
   const [fState, setFState] = useState('')
   const [fType, setFType] = useState('')
   const [fSeverity, setFSeverity] = useState('')
+  // ?student=<person_id> — переход из панели «פתוח עכשיו» карточки תלמידה:
+  // показываем оповещения только этой תלמידה.
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const fStudent = searchParams.get('student') ?? ''
 
   const [showCreate, setShowCreate] = useState(false)
   const [showTypes, setShowTypes] = useState(false)
@@ -51,6 +58,7 @@ export default function AlertsClient() {
     try {
       const qs = new URLSearchParams()
       if (fState) qs.set('state', fState); if (fType) qs.set('type_code', fType); if (fSeverity) qs.set('severity', fSeverity)
+      if (fStudent) qs.set('student_id', fStudent)
       const [aRes, tRes] = await Promise.all([
         fetch(`/api/education/alerts?${qs.toString()}`),
         fetch('/api/education/alert-types?active_only=false'),
@@ -60,7 +68,7 @@ export default function AlertsClient() {
       if (aRes.ok) { const b = await aRes.json(); setAlerts(b.alerts ?? []) }
       if (tRes.ok) { const b = await tRes.json(); setTypes(b.types ?? []) }
     } finally { setLoading(false) }
-  }, [fState, fType, fSeverity])
+  }, [fState, fType, fSeverity, fStudent])
   useEffect(() => { load() }, [load])
 
   const changeState = async (a: Alert, state: string) => {
@@ -94,6 +102,11 @@ export default function AlertsClient() {
           <option value="">{t('all_severities')}</option>
           {SEVERITIES.map(s => <option key={s} value={s}>{t(`severity_${s}`)}</option>)}
         </select>
+        {fStudent && (
+          <button onClick={() => router.push(pathname)} style={{ ...inp, cursor: 'pointer', color: 'var(--accent-strong)', background: 'var(--accent-tint)' }}>
+            {t('student_filter_clear')} ✕
+          </button>
+        )}
         <div style={{ flex: 1 }} />
         <button onClick={() => setShowTypes(true)} style={{ ...inp, cursor: 'pointer', color: 'var(--text-muted)' }}>{t('manage_types')}</button>
         <button onClick={() => setShowCreate(true)} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer' }}>{t('new_alert')}</button>

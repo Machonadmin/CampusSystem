@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireSponsorsPrivilege } from '@/lib/sponsors/permissions'
+import { requireSponsorsPrivilege, hasSponsorsPrivilege } from '@/lib/sponsors/permissions'
 import { mapDbError } from '@/lib/sponsors/http'
 import { isSponsorType } from '@/lib/sponsors/validation'
 import { syncSponsorToContacts } from '@/lib/contacts/sync-sponsor'
 import type { SponsorUpdate } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { autoLinkRecordToPerson, canViewPersonsSafe, loadRecordPersonLink } from '@/lib/persons/record-link'
 
 /**
  * GET    /api/sponsors/[id] — донор по id (view).
@@ -23,7 +24,7 @@ const SPONSOR_COLS =
 export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireSponsorsPrivilege('view')
+    const session = await requireSponsorsPrivilege('view')
 
     const sb = createServerClient()
     const { data, error } = await sb
@@ -31,7 +32,13 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     if (error) throw error
     if (!data) return apiError('donor_not_found', 404)
 
-    return NextResponse.json(data)
+    // Решение №11: состояние связи с persons (null — миграция не применена).
+    const person_link = await loadRecordPersonLink(sb, 'sponsors', params.id, {
+      canManage: await hasSponsorsPrivilege(session, 'manage'),
+      canViewPersons: await canViewPersonsSafe(session),
+    })
+
+    return NextResponse.json({ ...(data as object), person_link })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
@@ -45,7 +52,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireSponsorsPrivilege('manage')
+    const session = await requireSponsorsPrivilege('manage')
 
     const body = await request.json() as {
       name?: string
@@ -117,11 +124,19 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     // Берём итоговые значения из обновлённой строки. Best-effort.
     const s = data as { name: string; email: string | null; phone: string | null; sponsor_type: string | null; created_by: string | null }
     await syncSponsorToContacts(sb, {
+      id: params.id,
       name: s.name, email: s.email, phone: s.phone,
       sponsor_type: s.sponsor_type, created_by: s.created_by,
     })
 
-    return NextResponse.json(data)
+    // Решение №11: best-effort ПОСЛЕ записи. Уже linked/rejected — не
+    // пересопоставляем (autoLink вернёт 'skipped'); правка телефона/почты
+    // в persons НЕ копируется.
+    const person_link = await autoLinkRecordToPerson(sb, 'sponsors', params.id, {
+      canViewPersons: await canViewPersonsSafe(session),
+    })
+
+    return NextResponse.json({ ...(data as object), person_link })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

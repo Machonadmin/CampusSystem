@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireSecurityPrivilege } from '@/lib/security/permissions'
 import { mapDbError } from '@/lib/security/http'
-import { incidentStats } from '@/lib/security/incidents'
+import { loadIncidentStats } from '@/lib/reports/metrics'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -11,35 +11,14 @@ import { errorResponse } from '@/lib/api/handler'
  * investigating). Читается постранично (без N+1). Право: security.view.
  */
 
-const PAGE = 1000
-
-interface StatRow {
-  status: string
-  severity: string
-}
-
 export async function GET() {
   try {
     await requireSecurityPrivilege('view')
 
     const sb = createServerClient()
 
-    const rows: StatRow[] = []
-    let offset = 0
-    for (;;) {
-      const { data, error } = await sb
-        .from('security_incidents')
-        .select('status, severity')
-        .order('id', { ascending: true })
-        .range(offset, offset + PAGE - 1)
-      if (error) throw error
-      const batch = (data ?? []) as unknown as StatRow[]
-      rows.push(...batch)
-      if (batch.length < PAGE) break
-      offset += PAGE
-    }
-
-    return NextResponse.json(incidentStats(rows))
+    // ЕДИНЫЙ источник с «דוחות» (/api/reports/security): loadIncidentStats.
+    return NextResponse.json(await loadIncidentStats(sb))
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
