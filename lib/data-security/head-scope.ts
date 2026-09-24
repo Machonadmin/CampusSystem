@@ -278,7 +278,9 @@ export async function saveHeadOverrides(
 ): Promise<'ok' | 'forbidden' | 'invalid'> {
   if (!ctx.scope.personIds.has(personId)) return 'forbidden'
 
-  const sb = createServerClient()
+  // actorPersonId → «кто изменил» в журнале изменений (как в остальных маршрутах
+  // «אבטחת מידע»); без него правки руководителя подразделения шли без имени.
+  const sb = createServerClient({ actorPersonId: ctx.session.person_id })
   const { data, error } = await sb
     .from('person_privileges')
     .select('id, module, privilege_code, is_granted, expires_at, reason, granted_by')

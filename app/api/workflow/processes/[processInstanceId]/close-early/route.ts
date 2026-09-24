@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
+import { flattenPhones } from '@/lib/persons/phone'
 
 interface CloseProcessEarlyResult {
   process_instance_id: string
@@ -76,6 +77,21 @@ export async function POST(
     await requireEducationPrivilege(journeyId ? managePrivilege(eduStatus) : 'manage_leads', target)
     if (body.final_code === 'convert_to_applicant') {
       await requireEducationPrivilege('convert_lead', target)
+      // Та же проверка готовности, что у кнопки «העבר לוועדת קבלה» (handoff):
+      // без имени и телефона передавать в приём нельзя. Раньше досрочное
+      // закрытие обходило её.
+      if (journeyId) {
+        const { data: j } = await sb
+          .from('education_journeys')
+          .select('person:persons!applicant_profiles_person_id_fkey(first_name, full_name, phones)')
+          .eq('id', journeyId)
+          .maybeSingle()
+        const person = (j?.person as unknown as { first_name?: string | null; full_name?: string | null; phones?: unknown } | null) ?? null
+        const missing: string[] = []
+        if (!(person?.first_name?.trim() || person?.full_name?.trim())) missing.push('name')
+        if (flattenPhones(person?.phones).length === 0) missing.push('phone')
+        if (missing.length > 0) return apiError('handoff_missing_fields', 400, { missing })
+      }
     }
 
     const { data: result, error: rpcErr } = await sb.rpc('close_process_early', {

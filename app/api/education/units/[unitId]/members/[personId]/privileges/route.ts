@@ -1,23 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
-import { createServerClient } from '@/lib/supabase/server'
-import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
-import { canManageUnit, isGrantablePrivilege, getHeadedUnitIds } from '@/lib/education/unit-access'
-import { hasEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+import { canManageUnit } from '@/lib/education/unit-access'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
- * PUT /api/education/units/[unitId]/members/[personId]/privileges
- * Руководитель задаёт персональные тумблеры члена своей единицы.
- *   body: { privileges: { [code]: boolean } }
- *   true  → выдать (person_privileges is_granted=true, действует в scope=department)
- *   false → убрать (удаляем строку — откат к базовому праву роли)
+ * PUT /api/education/units/[unitId]/members/[personId]/privileges — БЫВШИЕ
+ * личные тумблеры члена единицы от руководителя.
  *
- * Право: superadmin или глава единицы; цель обязана быть активным членом единицы.
+ * Решение владельца: права редактируются ТОЛЬКО в «אבטחת מידע» (руководитель
+ * подразделения — через свой урезанный вид там). Ни один экран этот маршрут
+ * больше не вызывает; отвечаем 410 Gone (как /api/settings/person-privileges),
+ * сохранив прежние проверки доступа.
  */
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   props: { params: Promise<{ unitId: string; personId: string }> }
 ) {
   const params = await props.params
@@ -25,58 +22,7 @@ export async function PUT(
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (!(await canManageUnit(session, params.unitId))) return apiError('forbidden', 403)
-
-    const sb = createServerClient()
-
-    // Цель — активный член именно этой единицы.
-    const today = todayISO()
-    const { data: pos } = await sb.from('staff_positions')
-      .select('id, end_date').eq('person_id', params.personId).eq('department_id', params.unitId)
-    const isMember = (pos ?? []).some(p => {
-      const ed = (p as { end_date: string | null }).end_date
-      return ed === null || ed > today
-    })
-    if (!isMember) return apiError('forbidden', 403)
-
-    const body = await request.json().catch(() => ({})) as { privileges?: Record<string, boolean> }
-    const privileges = body.privileges ?? {}
-
-    const toGrant: string[] = []
-    const toRevoke: string[] = []
-    for (const [code, on] of Object.entries(privileges)) {
-      if (!isGrantablePrivilege(code)) continue
-      if (on) toGrant.push(code); else toRevoke.push(code)
-    }
-
-    // Cap делегирования (§4): не-глава (делегат) не может (а) пере-делегировать
-    // право `delegate_privileges`, (б) выдать больше, чем держит сам. Глава/
-    // superadmin — без ограничений.
-    const isSuper = session.roles.includes('superadmin')
-    const isHead = isSuper || (await getHeadedUnitIds(session.person_id)).includes(params.unitId)
-    if (!isHead) {
-      for (const code of toGrant) {
-        if (code === 'delegate_privileges') return apiError('delegate_no_redelegate', 403)
-        const holds = await hasEducationPrivilege(session, code as EducationPrivilege, { department_id: params.unitId })
-        if (!holds) return apiError('delegate_cap', 403)
-      }
-    }
-
-    if (toGrant.length > 0) {
-      const rows = toGrant.map(code => ({
-        person_id: params.personId, module: 'education', privilege_code: code,
-        is_granted: true, granted_by: session.person_id,
-      }))
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await sb.from('person_privileges').upsert(rows as any, { onConflict: 'person_id,module,privilege_code' })
-      if (error) throw error
-    }
-    if (toRevoke.length > 0) {
-      const { error } = await sb.from('person_privileges')
-        .delete().eq('person_id', params.personId).eq('module', 'education').in('privilege_code', toRevoke)
-      if (error) throw error
-    }
-
-    return NextResponse.json({ ok: true })
+    return apiError('person_privileges_moved', 410, { redirect_to: '/dashboard/data-security' })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)
