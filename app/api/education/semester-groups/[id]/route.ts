@@ -287,6 +287,32 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       if (trErr && isMissingColumn(trErr)) warning = (warning ? warning + ' ' : '') + 'Переводы имени не обновлены: миграция class_groups_multilang не применена.'
     }
 
+    // Плата задана/изменена в учёбе → открываем счета уже зачисленным студенткам
+    // (идемпотентно, как в finance/semester-tuition). Новым студенткам счёт
+    // откроет синхронизация ниже.
+    if (typeof body.tuition_amount === 'number' && body.tuition_amount > 0) {
+      const { data: enrolls, error: eErr } = await sb
+        .from('class_enrollments')
+        .select('journey_id')
+        .eq('class_group_id', params.id)
+      if (!eErr && enrolls && enrolls.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const gInfo = await (sb.from('class_groups')
+          .select('tuition_amount, name, year_label, term_number')
+          .eq('id', params.id).maybeSingle() as any)
+        if (!gInfo.error && gInfo.data) {
+          const journeyIds = [...new Set(enrolls.map(r => r.journey_id as string))]
+          const tuition = await ensureSemesterTuitionCharges(
+            sb,
+            { id: params.id, tuition_amount: gInfo.data.tuition_amount ?? null, name: gInfo.data.name ?? null, year_label: gInfo.data.year_label ?? null, term_number: gInfo.data.term_number ?? null },
+            journeyIds,
+            session.person_id,
+          )
+          if (tuition.warning) warning = (warning ? warning + ' ' : '') + tuition.warning
+        }
+      }
+    }
+
     // ── Синхронизация преподавателей ──────────────────────────────────────
     if (body.teachers !== undefined) {
       const desired = new Map<string, TeacherInput>()
