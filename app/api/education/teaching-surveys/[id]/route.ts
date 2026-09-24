@@ -31,7 +31,8 @@ async function gateSurvey(id: string): Promise<{ error: NextResponse } | { depar
   return { departmentId: department_id }
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const gate = await gateSurvey(params.id)
     if ('error' in gate) return gate.error
@@ -51,7 +52,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const gate = await gateSurvey(params.id)
     if ('error' in gate) return gate.error
@@ -99,7 +101,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const gate = await gateSurvey(params.id)
     if ('error' in gate) return gate.error

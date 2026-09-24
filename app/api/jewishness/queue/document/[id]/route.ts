@@ -10,10 +10,8 @@ import { getSignedUrl } from '@/lib/documents/storage'
  * (journey документа должен быть на активном этапе jewishness).
  */
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireJewishnessAccess()
     const sb = createServerClient()

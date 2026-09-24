@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 
-type Params = { params: { stageInstanceId: string } }
+type Params = { params: Promise<{ stageInstanceId: string }> }
 
 async function getJourneyFromStage(sb: ReturnType<typeof createServerClient>, stageInstanceId: string) {
   const { data } = await sb
@@ -38,7 +38,8 @@ function managePrivilegeFor(status: string): 'manage_leads' | 'manage_applicants
 /**
  * GET /api/workflow/stages/[stageInstanceId]/events
  */
-export async function GET(_req: NextRequest, { params }: Params) {
+export async function GET(_req: NextRequest, props: Params) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -88,7 +89,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
  * POST /api/workflow/stages/[stageInstanceId]/events
  * Body: { event_type, content, metadata? }
  */
-export async function POST(req: NextRequest, { params }: Params) {
+export async function POST(req: NextRequest, props: Params) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

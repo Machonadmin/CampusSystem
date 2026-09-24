@@ -11,7 +11,7 @@ import LeadViewClient, { type LeadViewData } from '../../leads/[id]/LeadViewClie
 import type { StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 /** Статусы учебного цикла — карточка студента показывается только для них. */
@@ -27,7 +27,8 @@ function pickPrivilege(status: string | null, scope: EduWriteScope): EducationPr
 }
 
 
-export default async function StudentViewPage({ params }: Props) {
+export default async function StudentViewPage(props: Props) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

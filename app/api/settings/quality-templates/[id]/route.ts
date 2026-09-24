@@ -11,7 +11,8 @@ async function requireSuperadmin() {
     throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireAuth()
     const sb = createServerClient()
@@ -31,7 +32,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -60,7 +62,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()

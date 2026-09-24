@@ -16,7 +16,8 @@ import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
  * НЕ переписывает уже выставленные счета (как и в легаси-потоке semesters) — она
  * применяется к тем, у кого счёта ещё нет.
  */
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireFinancePrivilege('create_invoice')
     const body = await request.json().catch(() => ({})) as { tuition_amount?: number | null }

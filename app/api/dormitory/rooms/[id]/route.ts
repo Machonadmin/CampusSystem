@@ -13,10 +13,8 @@ import type { DormRoomUpdate } from '@/types/database'
  * DELETE /api/dormitory/rooms/[id] — удаление, каскадом назначения (manage)
  */
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDormitoryPrivilege('view')
 
@@ -48,10 +46,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDormitoryPrivilege('manage')
 
@@ -121,10 +117,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDormitoryPrivilege('manage')
 

@@ -17,10 +17,8 @@ import type { PsychProfileInsert } from '@/types/database'
 const PROFILE_COLS =
   'id, journey_id, presenting_concerns, background, risk_level, referral_source, notes, created_at, updated_at'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requirePsychologistPrivilege('view')
 
@@ -44,10 +42,8 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requirePsychologistPrivilege('manage')
 

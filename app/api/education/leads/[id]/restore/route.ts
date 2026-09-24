@@ -9,10 +9,8 @@ import { getEducationPrivilegeScope } from '@/lib/education/permissions'
  * Восстанавливает мягко-удалённого лида.
  * Требует: manage_leads + scope=all
  */
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

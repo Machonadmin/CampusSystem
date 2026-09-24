@@ -26,10 +26,8 @@ function formStr(form: FormData, key: string): string | null {
   return typeof v === 'string' && v.trim() !== '' ? v.trim() : null
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })

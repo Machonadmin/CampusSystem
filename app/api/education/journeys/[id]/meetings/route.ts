@@ -33,12 +33,13 @@ async function gate(journeyId: string, allowStudent: boolean) {
     return { sb, session }
   }
   const ok = session.roles.includes('superadmin')
-    || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, journeyId))
+    || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, journeyId)))
   if (!ok) return { err: apiError('forbidden', 403) }
   return { sb, session }
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const g = await gate(params.id, true)
     if (g.err) return g.err
@@ -58,7 +59,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const g = await gate(params.id, false)
     if (g.err) return g.err
@@ -90,7 +92,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
 const STATUSES = ['scheduled', 'completed', 'cancelled', 'no_show'] as const
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const g = await gate(params.id, false)
     if (g.err) return g.err

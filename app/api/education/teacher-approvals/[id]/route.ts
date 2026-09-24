@@ -19,7 +19,8 @@ const decideSchema = z.object({
   note: z.string().trim().max(2000).nullish(),
 })
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await parseBody(request, decideSchema)
     const session = await requireEducationPrivilege('approve_kodesh_teacher', { department_id: KODESH_DEPT_ID })

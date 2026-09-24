@@ -14,10 +14,8 @@ import { todayISO } from '@/lib/food/enrollment-server'
 
 interface PlanJoin { id?: string; name?: string | null }
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFoodPrivilege('view')
 

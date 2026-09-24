@@ -18,7 +18,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Право: view_students в подразделении студентки (или superadmin) — как карточка.
  * Деплой-безопасно к отсутствию таблиц (пустой список).
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       if (session.student_journey_id !== params.id) return apiError('forbidden', 403)
     } else {
       const allowed = session.roles.includes('superadmin')
-        || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+        || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id)))
       if (!allowed) return apiError('forbidden', 403)
     }
 

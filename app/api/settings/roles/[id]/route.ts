@@ -10,7 +10,8 @@ async function guard() {
     throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await guard()
     const sb = createServerClient()
@@ -44,7 +45,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await guard()
     const sb = createServerClient()

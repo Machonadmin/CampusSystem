@@ -16,10 +16,8 @@ const PROFILE_COLS =
 const SESSION_COLS =
   'id, journey_id, session_date, session_type, summary, follow_up_date, status, counselor_id, created_by, created_at, updated_at'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requirePsychologistPrivilege('view')
 

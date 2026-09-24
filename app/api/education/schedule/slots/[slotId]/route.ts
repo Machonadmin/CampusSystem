@@ -69,10 +69,8 @@ function timeToSeconds(t: string): number | null {
  * Разрешено менять: day_of_week, start_time, end_time, room.
  * Не трогает уже сгенерированные уроки.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { slotId: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ slotId: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       day_of_week?: number
@@ -244,10 +242,8 @@ export async function PATCH(
  * Удаление слота. Право: set_lesson_topics в контексте группы слота.
  * НЕ трогает никакие уроки (lessons) — слот лишь шаблон.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { slotId: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ slotId: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

@@ -14,7 +14,11 @@ import { canSeatInUnit } from '@/lib/auth/seat-access'
  * Право: единое правило посадки — глава единицы/делегат ИЛИ держатель
  * data_security.manage_units. Главу единицы удалить нельзя.
  */
-export async function DELETE(_req: NextRequest, { params }: { params: { unitId: string; personId: string } }) {
+export async function DELETE(
+  _req: NextRequest,
+  props: { params: Promise<{ unitId: string; personId: string }> }
+) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

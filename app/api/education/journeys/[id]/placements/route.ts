@@ -14,13 +14,14 @@ import { getHeadedUnitIds } from '@/lib/education/unit-access'
  *
  * Право: view_students по подразделению journey (или superadmin).
  */
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const sb = createServerClient()
     const isSuper = session.roles.includes('superadmin')
-    const allowed = isSuper || await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id))
+    const allowed = isSuper || (await hasEducationPrivilege(session, 'view_students', await journeyDeptTarget(sb, params.id)))
     if (!allowed) return apiError('forbidden', 403)
 
     // Зачисления journey → классы.

@@ -24,10 +24,8 @@ type EnrollRow = {
  *
  * Только чтение/агрегация. Право: view_students в контексте группы.
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
     const from = (request.nextUrl.searchParams.get('from') ?? '').trim()

@@ -8,7 +8,8 @@ import FoodPlanDetailClient from './FoodPlanDetailClient'
  * Карточка плана питания: записанные студенты + запись/завершение + диет-профиль.
  * Просмотр — food.view. Действия гейтятся canManage (с сервера).
  */
-export default async function FoodPlanPage({ params }: { params: { id: string } }) {
+export default async function FoodPlanPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   const session = await getSession()
   if (!session) redirect('/login')
 

@@ -16,10 +16,8 @@ import { isMissingColumn } from '@/lib/supabase/errors'
  * Действует только на слоты в статусе 'pending'.
  * Деплой-безопасно: если колонок ещё нет (42703) — понятная ошибка 400.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { slotId: string } },
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ slotId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     if (!session.roles.includes('superadmin')) return apiError('forbidden', 403)

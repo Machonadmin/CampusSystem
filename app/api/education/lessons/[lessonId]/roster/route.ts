@@ -23,10 +23,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
   return { status: 500, message: error.message ?? serverT('db_error') }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { lessonId: string } },
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json().catch(() => ({})) as { journey_id?: string }
     const journeyId = (body.journey_id ?? '').trim()
@@ -62,10 +60,8 @@ export async function POST(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { lessonId: string } },
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const journeyId = (request.nextUrl.searchParams.get('journey_id') ?? '').trim()
     if (!journeyId) return apiError('entry_journey_id_required', 400)

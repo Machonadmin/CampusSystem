@@ -15,10 +15,8 @@ import type { MealEnrollmentUpdate } from '@/types/database'
  *   запись на пересекающемся диапазоне» (исключая саму запись); 409 при
  *   конфликте.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFoodPrivilege('manage')
 

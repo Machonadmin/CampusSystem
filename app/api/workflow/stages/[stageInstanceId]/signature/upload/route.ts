@@ -18,8 +18,9 @@ const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024 // 2 МБ хватает для PNG 
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { stageInstanceId: string } }
+  props: { params: Promise<{ stageInstanceId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

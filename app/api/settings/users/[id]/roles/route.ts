@@ -11,7 +11,8 @@ async function guard() {
 }
 
 // GET /api/settings/users/[id]/roles  — id = account id, pass person_id as query param
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await guard()
     const sb = createServerClient()

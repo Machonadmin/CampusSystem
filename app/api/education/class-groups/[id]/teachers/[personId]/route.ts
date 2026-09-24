@@ -10,8 +10,9 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string; personId: string } }
+  props: { params: Promise<{ id: string; personId: string }> }
 ) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -74,8 +75,9 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string; personId: string } }
+  props: { params: Promise<{ id: string; personId: string }> }
 ) {
+  const params = await props.params
   try {
     const body = await request.json() as { is_primary?: boolean }
     if (body.is_primary === undefined) {

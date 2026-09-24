@@ -13,10 +13,8 @@ import type { DormRoomInsert } from '@/types/database'
  * POST /api/dormitory/buildings/[id]/rooms — создать комнату. Право: manage.
  */
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDormitoryPrivilege('view')
 
@@ -57,10 +55,8 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDormitoryPrivilege('manage')
 

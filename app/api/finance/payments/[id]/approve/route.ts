@@ -16,10 +16,8 @@ import { mapDbError } from '@/lib/finance/http'
  *   переход статуса, как в PATCH payments/[id] (правка подтверждённого — тоже 409).
  */
 
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireFinancePrivilege('approve_payment')
 

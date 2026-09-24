@@ -19,10 +19,8 @@ import type { SponsorUpdate } from '@/types/database'
 const SPONSOR_COLS =
   'id, name, sponsor_type, email, phone, address, contact_person, notes, is_active, created_by, created_at, updated_at'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSponsorsPrivilege('view')
 
@@ -43,10 +41,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSponsorsPrivilege('manage')
 
@@ -135,10 +131,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSponsorsPrivilege('manage')
 

@@ -11,10 +11,8 @@ import type { StudyGroupUpdate } from '@/types/database'
  * При переносе между подразделениями — проверка в обоих.
  * При смене specialty_id — проверка консистентности с (новым) department_id.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       name?: string
@@ -101,10 +99,8 @@ export async function PATCH(
  * Отказывает (409) если есть активные студенты — нужно сначала перевести их.
  * (education_journeys.main_group_id имеет ON DELETE SET NULL, но молчаливое обнуление нежелательно.)
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

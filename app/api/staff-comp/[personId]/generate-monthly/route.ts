@@ -17,7 +17,8 @@ import { canManageStaffComp } from '@/lib/finance/staff-comp'
 
 function pad2(n: number): string { return n < 10 ? `0${n}` : `${n}` }
 
-export async function POST(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

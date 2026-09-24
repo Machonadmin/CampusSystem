@@ -13,8 +13,9 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string; studentId: string } }
+  props: { params: Promise<{ id: string; studentId: string }> }
 ) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

@@ -13,10 +13,8 @@ async function requireSuperadmin() {
 }
 
 // GET /api/workflow/process-templates/[id] — полная структура шаблона
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireAuth()
     const sb = createServerClient()
@@ -76,10 +74,8 @@ export async function GET(
 }
 
 // PATCH /api/workflow/process-templates/[id] — только name_ru, description, is_active (code не меняем)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()
@@ -118,10 +114,8 @@ export async function PATCH(
 }
 
 // DELETE /api/workflow/process-templates/[id] — мягкое (is_active = false)
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSuperadmin()
     const sb = createServerClient()

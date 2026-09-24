@@ -31,10 +31,8 @@ function timeToSeconds(t: string): number | null {
  * Список слотов расписания группы, по дню недели и времени начала.
  * Право: view_students в контексте группы.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -69,10 +67,8 @@ export async function GET(
  * Body: { day_of_week (1-7), start_time, end_time (> start_time), room? }
  * created_by = текущий пользователь.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       day_of_week?: number

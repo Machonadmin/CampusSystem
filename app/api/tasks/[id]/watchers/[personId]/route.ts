@@ -12,8 +12,9 @@ import type { TaskRow } from '@/types/database'
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string; personId: string } }
+  props: { params: Promise<{ id: string; personId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

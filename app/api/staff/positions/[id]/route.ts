@@ -3,7 +3,8 @@ import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     // Изменение штатной позиции (должность, глава отдела, дата увольнения) —
     // административное действие над HR-данными. Гейт как у остального модуля

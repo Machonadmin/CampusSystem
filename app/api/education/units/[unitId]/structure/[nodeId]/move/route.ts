@@ -25,7 +25,11 @@ function subtreeIds(all: Dept[], rootId: string): Set<string> {
   return ids
 }
 
-export async function POST(request: NextRequest, { params }: { params: { unitId: string; nodeId: string } }) {
+export async function POST(
+  request: NextRequest,
+  props: { params: Promise<{ unitId: string; nodeId: string }> }
+) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

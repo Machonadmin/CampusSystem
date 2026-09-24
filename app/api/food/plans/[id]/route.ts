@@ -15,10 +15,8 @@ import type { MealPlanUpdate } from '@/types/database'
 const PLAN_SELECT =
   'id, name, code, description, includes_breakfast, includes_lunch, includes_dinner, price, period_label, is_active, created_at, updated_at'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFoodPrivilege('view')
 
@@ -42,10 +40,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFoodPrivilege('manage')
 
@@ -116,10 +112,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFoodPrivilege('manage')
 

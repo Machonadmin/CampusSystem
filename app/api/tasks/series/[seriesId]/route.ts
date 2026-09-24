@@ -11,10 +11,8 @@ import { mapDbError } from '@/lib/tasks/helpers'
  *   - from_date=YYYY-MM-DD — вернуть только задачи со сроком >= from_date
  * Доступ — автор серии, суперадмин, или исполнитель любой из задач серии.
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { seriesId: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ seriesId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()
@@ -87,10 +85,8 @@ export async function GET(
  *
  * Возвращает: { deleted_count, from_date, preserved_count, preserved_by_status }
  */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { seriesId: string } }
-) {
+export async function DELETE(request: NextRequest, props: { params: Promise<{ seriesId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireAuth()
     const sb = createServerClient()

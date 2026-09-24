@@ -8,7 +8,7 @@ import { checkLiveSession } from './live-session'
  * активен, пароль с тех пор не меняли; роли — текущие). См. live-session.ts.
  */
 export async function getSession(): Promise<SessionPayload | null> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get(AUTH_CONFIG.cookieName)?.value
   if (!token) return null
   const payload = await verifyToken(token)
@@ -18,7 +18,8 @@ export async function getSession(): Promise<SessionPayload | null> {
 
 export async function createSession(payload: Omit<SessionPayload, 'iat' | 'exp'>): Promise<void> {
   const token = await signToken(payload)
-  cookies().set(AUTH_CONFIG.cookieName, token, {
+  const cookieStore = await cookies()
+  cookieStore.set(AUTH_CONFIG.cookieName, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -27,11 +28,12 @@ export async function createSession(payload: Omit<SessionPayload, 'iat' | 'exp'>
   })
   // Новый вход начинает с чистого листа: отложенный токен superadmin'а от
   // прошлой «צפייה כמשתמש» в этом браузере не должен пережить смену человека.
-  clearImpersonationOrigin()
+  await clearImpersonationOrigin()
 }
 
-export function clearSession(): void {
-  cookies().set(AUTH_CONFIG.cookieName, '', {
+export async function clearSession(): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(AUTH_CONFIG.cookieName, '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -41,11 +43,12 @@ export function clearSession(): void {
   // Выход из режима просмотра кнопкой «выйти» раньше оставлял в браузере
   // campus_imp_orig с токеном superadmin'а: следующий человек за этим
   // компьютером мог вызвать stop-impersonate и стать superadmin'ом.
-  clearImpersonationOrigin()
+  await clearImpersonationOrigin()
 }
 
-function clearImpersonationOrigin(): void {
-  cookies().set(AUTH_CONFIG.impOrigCookieName, '', {
+async function clearImpersonationOrigin(): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(AUTH_CONFIG.impOrigCookieName, '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

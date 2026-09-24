@@ -8,10 +8,8 @@ import { mapDbError } from '@/lib/calendar/http'
  * DELETE /api/calendar/blocks/[id] — снять пометку выходного дня. Только строки
  * владельца (provider_id = session.person_id).
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await requireCalendarUser()
     const sb = createServerClient()

@@ -15,10 +15,8 @@ import type { FinanceChargeUpdate } from '@/types/database'
  * 404 — если начисление не найдено.
  */
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFinancePrivilege('create_invoice')
 
@@ -103,10 +101,8 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireFinancePrivilege('create_invoice')
 

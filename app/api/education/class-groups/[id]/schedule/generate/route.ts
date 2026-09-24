@@ -27,10 +27,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  * scheduled_time)). Никогда не UPDATE/DELETE; не трогает вручную созданные
  * и отменённые уроки. Возвращает { created, skipped }.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     // Тело необязательно (период может браться из группы) — пустой body допустим.
     let body: { from?: string; to?: string } = {}

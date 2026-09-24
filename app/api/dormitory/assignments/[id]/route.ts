@@ -15,10 +15,8 @@ import type { DormAssignmentUpdate } from '@/types/database'
  *   вместимость комнаты и отсутствие двойного бронирования студента (исключая
  *   само это назначение); 409 при конфликте.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDormitoryPrivilege('manage')
 

@@ -17,10 +17,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  * Одно задание вместе с его оценками.
  * Право: view_students в контексте группы задания.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -51,10 +49,8 @@ export async function GET(
  * Редактирование задания. Право: set_grades в контексте группы задания.
  * Разрешено менять: title, max_score, assessment_date, description.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       title?: string
@@ -131,10 +127,8 @@ export async function PATCH(
  * Удаление задания. Право: set_grades в контексте группы задания.
  * Оценки удаляются каскадно (ON DELETE CASCADE).
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 

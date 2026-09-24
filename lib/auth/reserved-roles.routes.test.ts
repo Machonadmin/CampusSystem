@@ -58,7 +58,7 @@ function post(body: unknown) {
 function patch(id: string, body: unknown) {
   return PATCH(new NextRequest(`http://localhost/api/settings/roles/${id}`, {
     method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
-  }), { params: { id } })
+  }), { params: Promise.resolve({ id }) })
 }
 
 beforeEach(() => {

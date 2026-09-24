@@ -16,7 +16,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Право: jewishness.access. Деплой-безопасно: нет колонок/таблицы истории →
  * статус 'pending' / пустая история.
  */
-export async function GET(_request: NextRequest, { params }: { params: { journeyId: string } }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ journeyId: string }> }) {
+  const params = await props.params
   try {
     const session = await requireJewishnessAccess()
     const sb = createServerClient()
@@ -113,8 +114,8 @@ export async function GET(_request: NextRequest, { params }: { params: { journey
 
     // Полномочия текущего пользователя для двухшаговой проверки (spec §3.3).
     const isSuper = session.principal !== 'student' && session.roles.includes('superadmin')
-    const can_initial_check = isSuper || await hasEducationPrivilege(session, 'jewishness_initial_check')
-    const can_final_approve = isSuper || await hasEducationPrivilege(session, 'jewishness_final_approve')
+    const can_initial_check = isSuper || (await hasEducationPrivilege(session, 'jewishness_initial_check'))
+    const can_final_approve = isSuper || (await hasEducationPrivilege(session, 'jewishness_final_approve'))
 
     return NextResponse.json({
       journey_id: params.journeyId,

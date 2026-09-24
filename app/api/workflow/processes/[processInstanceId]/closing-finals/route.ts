@@ -12,8 +12,9 @@ import { getSession } from '@/lib/auth/session'
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { processInstanceId: string } }
+  props: { params: Promise<{ processInstanceId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

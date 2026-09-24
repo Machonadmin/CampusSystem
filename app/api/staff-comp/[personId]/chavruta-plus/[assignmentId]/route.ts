@@ -12,8 +12,9 @@ import { isMissingTable } from '@/lib/supabase/errors'
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { personId: string; assignmentId: string } },
+  props: { params: Promise<{ personId: string; assignmentId: string }> }
 ) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

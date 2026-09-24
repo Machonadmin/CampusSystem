@@ -10,10 +10,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * Кодеш-учителей так удалить нельзя (они авто), поэтому удаляем лишь строку из
  * chavruta_teachers. Право — как staff-comp manage. Деплой-безопасно.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { personId: string } },
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

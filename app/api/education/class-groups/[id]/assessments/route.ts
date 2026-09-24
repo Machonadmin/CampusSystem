@@ -22,10 +22,8 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
  * а ответ — enrolled_count (сколько студентов записано в группу).
  * Право: view_students в контексте группы.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -91,10 +89,8 @@ export async function GET(
  * Body: { title (обязательно), max_score?, assessment_date?, description? }
  * max_score по умолчанию 100, должен быть > 0. created_by = текущий пользователь.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       title?: string

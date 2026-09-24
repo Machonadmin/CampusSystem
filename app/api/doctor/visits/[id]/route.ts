@@ -18,10 +18,8 @@ import type { MedicalVisitUpdate } from '@/types/database'
 const VISIT_COLS =
   'id, journey_id, visit_date, reason, diagnosis, treatment, attended_by, follow_up_date, status, notes, created_by, created_at, updated_at'
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDoctorPrivilege('view')
 
@@ -42,10 +40,8 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireDoctorPrivilege('manage')
 

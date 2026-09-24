@@ -20,10 +20,8 @@ import type { DonationUpdate, DonationRow } from '@/types/database'
 const DONATION_COLS =
   'id, sponsor_id, amount, donation_date, purpose, campaign, method, status, notes, created_by, created_at, updated_at'
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireSponsorsPrivilege('manage')
 

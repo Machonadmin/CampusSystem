@@ -26,7 +26,8 @@ interface SeatBody {
   units?: { department_id: string; is_head?: boolean; position_he?: string | null }[]
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function PUT(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     await requireDataSecurityPrivilege('manage_units')
     const sb = createServerClient()

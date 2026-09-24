@@ -31,10 +31,8 @@ const PERSON_SELECT =
 // всему набору. Тот же приём, что в app/api/finance/students/route.ts.
 const PAGE = 1000
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

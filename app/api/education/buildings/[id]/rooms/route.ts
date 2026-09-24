@@ -7,11 +7,12 @@ import { isMissingTable } from '@/lib/supabase/errors'
 
 /** Создание аудитории в здании. Деплой-безопасно (нет таблицы → 503). */
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_class_groups')
+    const allowed = session.roles.includes('superadmin') || (await canDoEducationInAny(session, 'manage_class_groups'))
     if (!allowed) return apiError('forbidden', 403)
 
     const body = await request.json() as { name?: string; capacity?: number | null }

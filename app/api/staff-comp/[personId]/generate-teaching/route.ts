@@ -13,7 +13,8 @@ import { canManageStaffComp, monthRange, lessonHours } from '@/lib/finance/staff
  * Право: manage. Деплой-безопасно.
  */
 
-export async function POST(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

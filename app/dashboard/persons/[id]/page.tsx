@@ -9,14 +9,15 @@ import PersonDetailClient from './PersonDetailClient'
  * Ссылка «К карточке студента» показывается, только если человек — студент И у
  * зрителя есть education.view_students (вычисляется на сервере).
  */
-export default async function PersonDetailPage({ params }: { params: { id: string } }) {
-  const session = await getSession()
-  if (!session) redirect('/login')
+export default async function PersonDetailPage(props: { params: Promise<{ id: string }> }) {
+ const params = await props.params
+ const session = await getSession()
+ if (!session) redirect('/login')
 
-  const canView = await hasPersonsPrivilege(session, 'view')
-  if (!canView) redirect('/dashboard')
+ const canView = await hasPersonsPrivilege(session, 'view')
+ if (!canView) redirect('/dashboard')
 
-  const canViewStudentCards = await hasEducationPrivilege(session, 'view_students')
+ const canViewStudentCards = await hasEducationPrivilege(session, 'view_students')
 
-  return <PersonDetailClient personId={params.id} canViewStudentCards={canViewStudentCards} />
+ return <PersonDetailClient personId={params.id} canViewStudentCards={canViewStudentCards} />
 }

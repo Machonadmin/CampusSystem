@@ -16,10 +16,8 @@ function mapDbError(error: { code?: string; message?: string }) {
  * GET /api/education/communities/[id]
  * Детали общины + количество связанных journeys.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireAuth()
     const sb = createServerClient()
@@ -47,10 +45,8 @@ export async function GET(
  * Право: education.manage_communities (общины — общий ресурс без подразделения,
  * проверка без target → нужен scope='all').
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireEducationPrivilege('manage_communities')
     const body = await request.json() as Partial<CommunityUpdate>
@@ -106,10 +102,8 @@ export async function PATCH(
  * Физически удалить нельзя, пока есть связанные journey_communities
  * (FK ON DELETE RESTRICT). Мягкое удаление безопасно.
  */
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     await requireEducationPrivilege('manage_communities')
     const sb = createServerClient()

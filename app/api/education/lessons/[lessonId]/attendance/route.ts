@@ -32,10 +32,8 @@ type EnrollRow = {
  * записанный студент отдаётся со своим статусом или как не отмеченный (null).
  * Право: view_students в контексте группы урока.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { lessonId: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const sb = createServerClient()
 
@@ -162,10 +160,8 @@ export async function GET(
  * Upsert по паре (lesson_id, journey_id); marked_by = текущий пользователь,
  * marked_at = сейчас. Каждый journey должен быть записан в группу урока.
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { lessonId: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
+  const params = await props.params
   try {
     const body = await request.json() as {
       entries?: { journey_id?: string; status?: string }[]

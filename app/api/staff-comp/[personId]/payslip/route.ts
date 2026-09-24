@@ -19,7 +19,8 @@ async function loadEntries(sb: ReturnType<typeof createServerClient>, personId: 
   return (data ?? []) as Array<{ entry_type: string; hours: number | string | null; amount: number | string | null }>
 }
 
-export async function GET(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -61,7 +62,8 @@ export async function GET(request: NextRequest, { params }: { params: { personId
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { personId: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)

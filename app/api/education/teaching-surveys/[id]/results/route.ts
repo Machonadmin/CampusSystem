@@ -13,7 +13,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * ролью (ученица/менеджер) — сбор НЕ анонимный (решение владельца).
  * Доступ: manage_students / superadmin.
  */
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
