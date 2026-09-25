@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canManageStaffComp, isSelfCompTarget } from '@/lib/finance/staff-comp'
+import { canManageStaffComp, isSelfCompTarget, canAccessStaffCompPerson } from '@/lib/finance/staff-comp'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -47,6 +47,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     catch (e) { if (isMissingTable(e)) return apiError('feature_not_migrated', 503); throw e }
     if (!owner) return apiError('not_found', 404)
     if (isSelfCompTarget(session, owner)) return apiError('staff_comp_self_forbidden', 403)
+    if (!(await canAccessStaffCompPerson(session, owner, 'create_invoice'))) return apiError('forbidden', 403)
     const { data, error } = await ent(sb).update(patch).eq('id', params.id)
       .select('id, entry_type, entry_date, hours, amount, student_journey_id, title, summary, private_notes, created_at').maybeSingle()
     if (error) {
@@ -73,6 +74,7 @@ export async function DELETE(_request: NextRequest, props: { params: Promise<{ i
     try { owner = await entryOwner(sb, params.id) }
     catch (e) { if (isMissingTable(e)) return NextResponse.json({ ok: true }); throw e }
     if (owner && isSelfCompTarget(session, owner)) return apiError('staff_comp_self_forbidden', 403)
+    if (owner && !(await canAccessStaffCompPerson(session, owner, 'create_invoice'))) return apiError('forbidden', 403)
     const { error } = await ent(sb).delete().eq('id', params.id)
     if (error) {
       if (isMissingTable(error)) return NextResponse.json({ ok: true })
