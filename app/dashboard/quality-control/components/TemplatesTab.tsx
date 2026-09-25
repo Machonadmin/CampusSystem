@@ -611,7 +611,7 @@ export default function TemplatesTab({ perms }: Props) {
           <SkeletonRows avatar={false} rows={6} />
         ) : error ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--danger)' }}>{error}</div>
-        ) : templates.length === 0 ? (
+        ) : templates.filter(tpl => tpl.is_active !== false).length === 0 ? (
           <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
             {t('templates.no_templates')}
           </div>
@@ -625,7 +625,8 @@ export default function TemplatesTab({ perms }: Props) {
               </tr>
             </thead>
             <tbody>
-              {templates.map(tpl => (
+              {/* Скрытые шаблоны (is_active = false) не показываем (решение владельца 25.09). */}
+              {templates.filter(tpl => tpl.is_active !== false).map(tpl => (
                 <tr key={tpl.id} style={{ borderBottom: '1px solid var(--surface-2)' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>

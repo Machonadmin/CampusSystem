@@ -8,7 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { localISODate, localTodayISO } from '@/lib/dates'
 
 interface PersonOption { id: string; full_name: string }
-interface TemplateOption { id: string; name: string }
+interface TemplateOption { id: string; name: string; is_active?: boolean | null }
 
 interface ClassGroupOption {
   id: string
@@ -134,7 +134,9 @@ export default function CreateCheckModal({ onClose, onCreated }: Props) {
   useEffect(() => {
     fetch('/api/settings/quality-templates')
       .then(r => r.ok ? r.json() : [])
-      .then((data: TemplateOption[]) => {
+      .then((all: TemplateOption[]) => {
+        // Скрытые шаблоны (is_active = false) не предлагаем для новой проверки.
+        const data = all.filter(tpl => tpl.is_active !== false)
         setTemplates(data)
         if (data.length > 0) setTemplateId(data[0].id)
       })
