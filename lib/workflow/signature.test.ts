@@ -58,4 +58,35 @@ describe('validateSignature', () => {
   it('enforces the org method: drawn-only rejects a typed signature', () => {
     expect(validateSignature({ kind: 'typed', typed_name: 'Sarah Cohen' }, { ...base, method: 'drawn' })).toEqual({ error: 'signature_kind_not_allowed' })
   })
+
+  it('ignores extra/inner whitespace in the typed name', () => {
+    const r = validateSignature({ kind: 'typed', typed_name: '  Sarah   Cohen ' }, base)
+    expect('ok' in r).toBe(true)
+  })
+  it('accepts a match to any of signerAltNames (e.g. Hebrew name)', () => {
+    const r = validateSignature(
+      { kind: 'typed', typed_name: 'שרה כהן' },
+      { ...base, signerAltNames: ['שרה כהן'] },
+    )
+    expect('ok' in r).toBe(true)
+  })
+  it('strips Hebrew niqqud when comparing', () => {
+    const r = validateSignature(
+      { kind: 'typed', typed_name: 'שָׂרָה כֹּהֵן' },
+      { ...base, signerAltNames: ['שרה  כהן'] },
+    )
+    expect('ok' in r).toBe(true)
+  })
+  it('still rejects a name that matches none of the known names', () => {
+    expect(
+      validateSignature({ kind: 'typed', typed_name: 'דוד לוי' }, { ...base, signerAltNames: ['שרה כהן'] }),
+    ).toEqual({ error: 'typed_name_mismatch' })
+  })
+  it('works when signerFullName is null but an alt name matches', () => {
+    const r = validateSignature(
+      { kind: 'typed', typed_name: 'Sarah Cohen' },
+      { ...base, signerFullName: null, signerAltNames: ['', 'Sarah Cohen'] },
+    )
+    expect('ok' in r).toBe(true)
+  })
 })

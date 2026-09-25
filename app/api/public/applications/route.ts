@@ -5,6 +5,7 @@ import { parseBody, jsonError } from '@/lib/api/handler'
 import { serverT } from '@/lib/i18n/api-errors'
 import { rateLimit, clientIp } from '@/lib/public/rate-limit'
 import { getPublicFormConfig } from '@/lib/public/form-config'
+import { createOrMergeLead, writePostStartNotes } from '@/lib/education/create-or-merge-lead'
 
 /** Служебный «актёр» публичной формы (см. 20260703150000_*.sql). */
 const SYSTEM_PERSON_ID = 'ffffffff-0000-4000-8000-000000000001'
@@ -15,7 +16,8 @@ const SYSTEM_PERSON_ID = 'ffffffff-0000-4000-8000-000000000001'
  * Приём заявки абитуриента с публичной формы сайта. Защита от спама двумя
  * слоями без внешних зависимостей: (1) honeypot-поле `website` — скрыто в
  * форме, боты его заполняют; (2) rate limit по IP. Затем RPC
- * create_application (всегда НОВАЯ запись — person_id не передаём). Актёр —
+ * create_application через createOrMergeLead (совпадение по телефону/email —
+ * слияние с существующей карточкой, см. lib/education/create-or-merge-lead). Актёр —
  * служебная запись SYSTEM_PERSON_ID (у публичной формы нет пользователя; у
  * записи есть активный, но невходной person_account — см. 20260703160000).
  *
@@ -92,33 +94,57 @@ export async function POST(request: NextRequest) {
     const baseComment = body.comment?.trim() || ''
     const comment = [baseComment, answerLines.join('\n')].filter(Boolean).join('\n\n') || null
 
-    // 3. Создание заявки — атомарно, всегда новая запись (person_id не передаём)
-    const { data: rpcResult, error: rpcErr } = await sb.rpc('create_application', {
+    // 3. Создание заявки либо слияние с существующей карточкой (решение
+    //    владельца 24.09.2026: совпадение по телефону/email → дозаполняем
+    //    существующую персону, новую не создаём). Ответ клиенту в любом случае
+    //    одинаковый — публичная форма не раскрывает, что человек уже есть.
+    const email = body.email?.trim() || null
+    const birthDate = body.birth_date?.trim() || null
+    const address = body.city?.trim() ? { city: body.city.trim() } : null
+    const interests = body.direction_id ? [{ direction_id: body.direction_id }] : []
+    const lead = await createOrMergeLead(sb, {
       payload: {
         first_name: body.first_name,
         last_name: body.last_name?.trim() || null,
         phone: body.phone,
-        email: body.email?.trim() || null,
-        birth_date: body.birth_date?.trim() || null,
-        address: body.city?.trim() ? { city: body.city.trim() } : null,
-        interests: body.direction_id ? [{ direction_id: body.direction_id }] : [],
+        email,
+        birth_date: birthDate,
+        address,
+        interests,
         referral_source: referralSource,
         comment,
         actor_id: SYSTEM_PERSON_ID,
       },
+      incoming: {
+        first_name: body.first_name,
+        last_name: body.last_name?.trim() || null,
+        email,
+        birth_date: birthDate,
+        address,
+        phones: [body.phone],
+      },
+      interests,
+      actorId: SYSTEM_PERSON_ID,
+      sourceLabel: 'טופס באתר',
+      comment,
     })
-    if (rpcErr) throw rpcErr
-    const { journey_id: journeyId } = rpcResult as { person_id: string; journey_id: string }
+    const journeyId = lead.journeyId
 
     // 3b. Запускаем процесс «Набор», чтобы у публичного лида была та же цепочка,
     //     что и у заведённого вручную: рекрутёр видит кнопку «Передать в приёмную
     //     комиссию» и двигает заявку дальше. Best-effort — ошибка не валит приём.
-    const { error: startErr } = await sb.rpc('start_process', {
-      p_process_code: 'recruitment',
-      p_journey_id: journeyId,
-      p_actor_id: SYSTEM_PERSON_ID,
-    })
-    if (startErr) console.error('[public/applications] start recruitment:', startErr)
+    //     Только для НОВОГО journey: переиспользованный уже в своём процессе.
+    let startErr: unknown = null
+    if (lead.newJourney) {
+      const { error } = await sb.rpc('start_process', {
+        p_process_code: 'recruitment',
+        p_journey_id: journeyId,
+        p_actor_id: SYSTEM_PERSON_ID,
+      })
+      startErr = error
+      if (error) console.error('[public/applications] start recruitment:', error)
+      await writePostStartNotes(sb, lead, SYSTEM_PERSON_ID)
+    }
 
     // 4. Уведомление персоналу — задача отделу «Администрация».
     //    Ищем отдел по имени; если нет — задача уходит в общий пул
@@ -135,11 +161,12 @@ export async function POST(request: NextRequest) {
         ?? null
 
       const applicantName = [body.last_name?.trim(), body.first_name.trim()].filter(Boolean).join(' ')
-      const typeNote = applicantType !== 'student' ? `\nОт: ${applicantType}` : ''
+      const typeNote = applicantType !== 'student' ? `\nמי פונה: ${applicantType}` : ''
       const commentNote = comment ? `\n${comment}` : ''
       const base = {
-        title: `Новая заявка с сайта: ${applicantName}`,
-        description: `Телефон: ${body.phone}${body.email ? `\nEmail: ${body.email}` : ''}${typeNote}${commentNote}`,
+        // Повторная регистрация в уже открытый journey — отдельная пометка в заголовке.
+        title: `${lead.newJourney ? 'פנייה חדשה מהאתר' : 'פנייה חוזרת מהאתר'}: ${applicantName}`,
+        description: `טלפון: ${body.phone}${body.email ? `\nמייל: ${body.email}` : ''}${typeNote}${commentNote}`,
         module: 'education' as const,
         metadata: { source: 'public_form', journey_id: journeyId },
         creator_id: SYSTEM_PERSON_ID,
@@ -154,7 +181,8 @@ export async function POST(request: NextRequest) {
       // (процесс не стартовал / нет отдела). Лиды, заведённые сотрудницей,
       // по-прежнему получает она сама. Best-effort.
       let movedStageTask = false
-      if (dept?.id && !startErr) {
+      // Перенос этапных задач — только для процесса, запущенного сейчас.
+      if (dept?.id && lead.newJourney && !startErr) {
         try {
           const { data: pis } = await sb
             .from('process_instances')

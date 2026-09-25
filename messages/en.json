@@ -232,7 +232,9 @@
       "late": "Late",
       "absent": "Absent",
       "unmarked": "unmarked",
-      "none": "Not marked"
+      "none": "Not marked",
+      "marked_on_teacher_screen": "Attendance is marked on the teacher's lesson screen",
+      "correction_by_head": "Attendance correction (unit head / manager)"
     },
     "grades": {
       "tab_grades": "Grades",
@@ -605,7 +607,8 @@
         "search": "Name or email...",
         "course_class": "1, 2, 10...",
         "enrollment_year": "2025"
-      }
+      },
+      "merged_into_existing": "Details merged into an existing card"
     },
     "process": {
       "title": "Process",
@@ -1004,9 +1007,9 @@
       "tabs": {
         "subjects": "Subjects",
         "specialties": "Specialties",
-        "study_groups": "Base groups",
+        "study_groups": "Homerooms",
         "students": "Students",
-        "class_groups": "Class groups",
+        "class_groups": "All semesters and courses",
         "semester_groups": "Semesters",
         "buildings": "Buildings",
         "settings": "Settings",
@@ -1036,7 +1039,9 @@
         "error_generic": "Error",
         "error_delete_generic": "Delete error",
         "error_send_generic": "Submission error",
-        "error_unknown": "Unknown error"
+        "error_unknown": "Unknown error",
+        "create_anyway_confirm": "Create anyway?",
+        "save_anyway_confirm": "Save anyway?"
       },
       "subjects": {
         "add_button": "Subject",
@@ -1062,7 +1067,7 @@
         "year_3": "Year 3",
         "year_4": "Year 4",
         "semester_price_label": "Semester price (₽)",
-        "semester_price_hint": "Default 210000 ₽, editable. Two semesters are created automatically.",
+        "semester_price_hint": "Price for a new semester, if this track and year have no semester yet",
         "track_required": "Select a track",
         "all_tracks": "All tracks",
         "sem_button": "Semesters",
@@ -1074,7 +1079,9 @@
         "sem_saved": "Saved",
         "sem_none": "No semesters for this subject",
         "name_ru_label": "Name (Russian)",
-        "name_en_label": "Name (English)"
+        "name_en_label": "Name (English)",
+        "add_to_semesters": "Add to semesters",
+        "sem_shared_hint": "Shared semester for all subjects of this track and year — price and status are edited in the semester window"
       },
       "specialties": {
         "add_button": "Specialty",
@@ -1141,7 +1148,7 @@
         "status_inactive": "Inactive",
         "no_teacher_assigned": "Not assigned",
         "card_button": "Open",
-        "empty_none": "No class groups yet",
+        "empty_none": "No semesters or courses yet",
         "load_error": "Error loading groups: {status}",
         "confirm_delete": "Delete class group «{name}»?",
         "modal_create_title": "New Class Group",
@@ -1193,7 +1200,9 @@
         "people_one": "person",
         "people_few": "people",
         "people_many": "people",
-        "add_confirm_button": "Add"
+        "add_confirm_button": "Add",
+        "create_from_semester_hint": "New groups and courses are opened from the semester.",
+        "create_from_semester_link": "Go to semesters"
       },
       "students": {
         "search_placeholder": "Search by name, phone, email…",
@@ -1256,7 +1265,7 @@
         "year_label": "Hebrew year (cohort)",
         "year_placeholder": "5785",
         "year_level_label": "Year (1/2/3)",
-        "name_field_label": "Group name",
+        "name_field_label": "Semester name",
         "term_label": "Term number",
         "track_label": "Track",
         "track_placeholder": "— select a track —",
@@ -1282,7 +1291,7 @@
         "table_students": "Students",
         "table_tuition": "Tuition",
         "table_actions": "Actions",
-        "tuition_hint": "What the student pays for the semester (₽). Unrelated to teacher salary."
+        "tuition_hint": "What the student pays for the semester. Unrelated to teacher salary."
       },
       "rollover": {
         "tab": "Year rollover",
@@ -1314,7 +1323,7 @@
       },
       "settings_card_catalogs": "Subjects & specialties",
       "settings_card_groups": "Groups",
-      "settings_card_units": "Units & structure"
+      "settings_card_units": "Unit team"
     },
     "docs_error": "Error",
     "docs_loading": "Loading documents…",
@@ -1402,7 +1411,7 @@
       "load_error": "Failed to load the overview",
       "track_label": "Chol track",
       "track_later": "Assign later",
-      "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet — you can't approve yet (you can reject).",
+      "medical_pending_warn": "The referred doctor/psychologist hasn't signed yet. You can approve, but it's better to wait for their opinion.",
       "handle_in_module": "Handle in module",
       "stalled_title": "Waiting over {n} days:",
       "days_short": "{n}d"
@@ -2283,6 +2292,7 @@
       "student_required": "Select a student",
       "code_format": "Invalid code",
       "type_name": "Type name",
+      "type_code_latin": "Code (Latin letters)",
       "confirm_delete_type": "Delete type “{name}”?",
       "type_in_use": "Type is in use — deactivate instead",
       "deactivate": "Deactivate",
@@ -2998,7 +3008,8 @@
       "action_view": "View",
       "action_fill": "Fill In",
       "confirm_delete": "Delete the check from {date}?",
-      "table_status": "Status"
+      "table_status": "Status",
+      "delete_failed": "Delete failed"
     },
     "fill": {
       "breadcrumb_title": "Lesson Check",
@@ -3440,7 +3451,13 @@
       "substage_completed": "Stage completed",
       "substage_cancelled": "Stage cancelled",
       "substage_activated": "Stage activated",
-      "process_started": "Process started"
+      "process_started": "Process started",
+      "substage_activated_manually": "Stage activated manually",
+      "substage_reopened": "Stage reopened to change the decision",
+      "substage_activated_dormitory": "Stage activated (dormitory needed)",
+      "dormitory_stage_restored": "Dormitory stage restored (dormitory needed)",
+      "dormitory_stage_skipped": "Dormitory stage skipped (no dormitory needed)",
+      "substage_activated_after_dormitory_skip": "Stage activated (after dormitory skip)"
     },
     "finals": {
       "approved": "Approved",
@@ -4161,7 +4178,10 @@
       "download": "Open",
       "final_approved": "Fit",
       "final_rejected": "Not fit",
-      "confirm": "Confirm & sign"
+      "confirm": "Confirm & sign",
+      "view": "View",
+      "reason_dormitory": "Opened automatically: dormitory needed",
+      "sign_only_role": "Only a doctor can sign here"
     }
   },
   "psychologist": {
@@ -4265,7 +4285,10 @@
       "download": "Open",
       "final_approved": "Fit",
       "final_rejected": "Not fit",
-      "confirm": "Confirm & sign"
+      "confirm": "Confirm & sign",
+      "view": "View",
+      "reason_dormitory": "Opened automatically: dormitory needed",
+      "sign_only_role": "Only a psychologist can sign here"
     }
   },
   "reports": {
@@ -4802,6 +4825,8 @@
     }
   },
   "errors": {
+    "kodesh_assign_no_jewishness_approval": "Cannot assign: no final approval of the Jewishness check",
+    "kodesh_teacher_via_approval": "Teachers for a kodesh course are added via a proposal for the Rav's approval",
     "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two Judaism lessons. The slot was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
@@ -5025,7 +5050,7 @@
     "unsupported_status_enum_migration": "Unsupported status (check whether the enum migration has been applied)",
     "community_exists_city": "A community with this name already exists in this city",
     "specialty_exists_department": "A specialty with this name already exists in this department",
-    "subject_exists": "This subject already exists",
+    "subject_exists": "A subject with this name already exists on the same track and year",
     "position_exists": "A position with this name already exists",
     "city_exists": "This city already exists",
     "slot_exists_day_time": "A slot for this day and time already exists",
@@ -5196,6 +5221,12 @@
     "series_over_limit": "The series exceeds the limit of {n} tasks",
     "kodesh_level_hide_has_students": "Cannot hide this level: {count} students are assigned to it. Move them to another level first.",
     "kodesh_level_hide_has_courses": "Cannot hide this level: it has {count} active courses. Close or move them first.",
+    "handoff_missing_fields": "Cannot hand off to admissions: name or phone is missing.",
+    "acceptance_early_close_admit_blocked": "An applicant cannot be admitted via \"Close process\". Admission only goes through the stage signatures.",
+    "semester_exists": "A semester with the same track, year and semester number already exists: {name}",
+    "track_no_department": "The subject's track has no department — cannot create a semester",
+    "subject_already_in_semesters": "The subject is already in semester 1 and semester 2 of its track and year",
+    "subject_courses_no_privilege": "Subject created, but you are not allowed to create courses — it was not added to semesters",
     "task_student_tag_invalid": "The selected student was not found or does not match",
     "task_student_tag_locked": "The student of an automatic admission task cannot be changed",
     "payslip_month_approved": "The payslip for this month is already approved — teaching hours cannot be recalculated"
@@ -5412,7 +5443,7 @@
     "not_a_teacher": "This page is for chavruta teachers",
     "feature_not_ready": "This feature is not enabled yet",
     "teachers_title": "Chavruta teachers",
-    "teachers_subtitle": "Manage the chavruta teachers list",
+    "teachers_subtitle": "Chavruta teachers list — view only",
     "add_teacher": "Add teacher",
     "source_kodesh": "Automatic (kodesh)",
     "source_manual": "Manual",
@@ -5438,7 +5469,7 @@
     "teacher_added": "Teacher added",
     "teacher_removed": "Teacher removed",
     "hub_title": "Chavruta Center",
-    "hub_subtitle": "Teacher pool, chavruta pairing and session tracking",
+    "hub_subtitle": "Teacher pool and teacher–student chavruta pairing",
     "pool_title": "Teacher pool",
     "assign_title": "Chavruta pairing",
     "assign_hint": "Pair a teacher with a student. Every active pair earns the teacher chavruta-plus pay (the rate is set in Finance).",
@@ -5453,6 +5484,9 @@
     "open_teacher_journal": "Open chavruta session journal",
     "forbidden_hub": "You do not have permission to manage chavrutas",
     "error": "An error occurred",
+    "managed_in_hub_note": "Chavruta teachers and pairings are managed in the Chavruta hub",
+    "open_hub": "Go to the Chavruta hub",
+    "unpair": "Unpair",
     "manage_in_hub_link": "Manage chavruta teachers and pairs",
     "teachers_readonly_hint": "The chavruta teacher list and pairs are managed in the Chavruta hub. View only here.",
     "teachers_readonly_subtitle": "Chavruta teachers — view only"
@@ -5471,7 +5505,7 @@
     "cause_unknown": "Could not read the module privilege list. Please try again in a moment.",
     "has": "granted",
     "missing": "missing",
-    "fix_privilege": "An administrator can grant it in Settings → Roles (for the whole role) or Settings → Users & permissions (for this person only).",
+    "fix_privilege": "Whoever manages permissions can open this in \"Data security → By staff member\".",
     "fix_catalog": "This is an installation problem, not a permission one: the module privilege catalogue must be seeded in the database.",
     "back_home": "Back to home"
   },

@@ -106,7 +106,8 @@ export async function GET(request: NextRequest) {
       // department-scope: показываем только journey своих подразделений.
       if (scope === 'department') {
         const jd = deptByJourney.get(journeyId) ?? null
-        if (!jd || !myDepts.includes(jd)) continue
+        // Без подразделения — видна (как карточка и доска приёма, scope.ts).
+        if (jd && !myDepts.includes(jd)) continue
       }
       const d = daysSince(s.activated_at, nowMs)
       let entry = byJourney.get(journeyId)

@@ -55,7 +55,7 @@ interface Props {
   groupId: string
   canViewLessons: boolean
   canManageLessons: boolean
-  canMarkAttendance: boolean
+  canCorrectAttendance: boolean
   canViewGrades: boolean
   canSetGrades: boolean
 }
@@ -69,7 +69,7 @@ function formatPeriod(lang: string, start: string | null, end: string | null): s
   return `→ ${fmt(end!)}`
 }
 
-export default function ClassGroupCardClient({ groupId, canViewLessons, canManageLessons, canMarkAttendance, canViewGrades, canSetGrades }: Props) {
+export default function ClassGroupCardClient({ groupId, canViewLessons, canManageLessons, canCorrectAttendance, canViewGrades, canSetGrades }: Props) {
   // «Назад» = реальная история; запасной родитель — раздел «Учёба».
   const goBack = useSafeBack(EDUCATION_SECTION_ROUTES.studies)
   const t = useTranslations('education.study')
@@ -261,7 +261,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
         <LessonsJournalTab
           groupId={group.id}
           canManageLessons={canManageLessons}
-          canMarkAttendance={canMarkAttendance}
+          canCorrectAttendance={canCorrectAttendance}
           accentColor={accent}
         />
       )}

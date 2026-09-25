@@ -232,7 +232,9 @@
       "late": "איחורים",
       "absent": "היעדרות",
       "unmarked": "טרם סומנו",
-      "none": "טרם סומן"
+      "none": "טרם סומן",
+      "marked_on_teacher_screen": "סימון נוכחות נעשה במסך השיעור של המורה",
+      "correction_by_head": "תיקון נוכחות (ראש יחידה / מנהל)"
     },
     "grades": {
       "tab_grades": "ציונים",
@@ -476,9 +478,9 @@
       "mark_in_process": "סמן כבתהליך"
     },
     "applicants": {
-      "no_data": "אין מועמדים",
+      "no_data": "אין מועמדות",
       "no_stages": "לא בטיפול",
-      "status_label": "מועמד",
+      "status_label": "מועמדת",
       "table": {
         "full_name": "שם",
         "application_date": "תאריך הגשה",
@@ -515,10 +517,10 @@
       "notes": "הערות",
       "academic": "נתונים אקדמיים",
       "add_lead": "הוספת ליד",
-      "add_applicant": "הוספת מועמד",
+      "add_applicant": "הוספת מועמדת",
       "add_student": "הוספת תלמידה",
       "create_lead": "יצירת ליד",
-      "create_applicant": "יצירת מועמד",
+      "create_applicant": "יצירת מועמדת",
       "create_student": "יצירת תלמידה",
       "edit_lead": "עריכת ליד",
       "saving": "שומר…",
@@ -605,7 +607,8 @@
         "search": "שם או אימייל…",
         "course_class": "1, 2, 10…",
         "enrollment_year": "2025"
-      }
+      },
+      "merged_into_existing": "הפרטים מוזגו לכרטיס קיים"
     },
     "process": {
       "title": "תהליך",
@@ -671,7 +674,7 @@
         "feedback_received": "האירוע התקיים",
         "no_show": "האירוע לא התקיים",
         "refused": "סירבה להגיע",
-        "convert_to_applicant": "העבר למועמד",
+        "convert_to_applicant": "העבר לוועדת קבלה",
         "approved": "אושר",
         "refer_to_doctor": "הפניה לרופא",
         "refer_to_psychologist": "הפניה לפסיכולוג",
@@ -745,18 +748,18 @@
       },
       "status": {
         "lead": "ליד",
-        "applicant": "מועמד",
+        "applicant": "מועמדת",
         "student": "תלמידה",
-        "graduated": "בוגר",
+        "graduated": "בוגרת",
         "expelled": "הופסקו לימודיה",
         "on_leave": "חופשת לימודים"
       },
       "card_type": {
         "lead": "כרטיס ליד",
-        "applicant": "כרטיס מועמד",
+        "applicant": "כרטיס מועמדת",
         "student": "כרטיס תלמידה",
-        "graduated": "כרטיס בוגר",
-        "expelled": "כרטיס מורחק",
+        "graduated": "כרטיס בוגרת",
+        "expelled": "כרטיס מורחקת",
         "on_leave": "כרטיס תלמידה בחופשת לימודים"
       },
       "source": {
@@ -992,7 +995,7 @@
         "launch_subjects": "מקצועות",
         "launch_units": "יחידות לימוד",
         "launch_reports": "דוחות",
-        "launch_teachers": "מורים",
+        "launch_teachers": "מורות",
         "launch_kodesh_courses": "קורסי קודש",
         "launch_kodesh_rav": "אישורי הרב",
         "launch_no_lesson_days": "ימים ללא לימודים",
@@ -1004,9 +1007,9 @@
       "tabs": {
         "subjects": "מקצועות",
         "specialties": "התמחויות",
-        "study_groups": "קבוצות אם",
+        "study_groups": "כיתות אם",
         "students": "תלמידות",
-        "class_groups": "קבוצות לימוד",
+        "class_groups": "כל הסמסטרים והקורסים",
         "semester_groups": "סמסטרים",
         "buildings": "בניינים",
         "settings": "הגדרות",
@@ -1036,7 +1039,9 @@
         "error_generic": "שגיאה",
         "error_delete_generic": "המחיקה נכשלה",
         "error_send_generic": "השליחה נכשלה",
-        "error_unknown": "שגיאה לא ידועה"
+        "error_unknown": "שגיאה לא ידועה",
+        "create_anyway_confirm": "ליצור בכל זאת?",
+        "save_anyway_confirm": "לשמור בכל זאת?"
       },
       "subjects": {
         "add_button": "מקצוע",
@@ -1062,7 +1067,7 @@
         "year_3": "שנה ג׳",
         "year_4": "שנה ד׳",
         "semester_price_label": "מחיר סמסטר (₽)",
-        "semester_price_hint": "ברירת מחדל 210000 ₽, ניתן לשינוי. נוצרים 2 סמסטרים אוטומטית.",
+        "semester_price_hint": "מחיר לסמסטר חדש, אם עוד אין סמסטר למסלול ולשנה האלה",
         "track_required": "נא לבחור מסלול",
         "all_tracks": "כל המסלולים",
         "sem_button": "סמסטרים",
@@ -1074,7 +1079,9 @@
         "sem_saved": "נשמר",
         "sem_none": "אין למקצוע סמסטרים",
         "name_ru_label": "שם ברוסית",
-        "name_en_label": "שם באנגלית"
+        "name_en_label": "שם באנגלית",
+        "add_to_semesters": "הוסף לסמסטרים",
+        "sem_shared_hint": "סמסטר משותף לכל המקצועות של המסלול והשנה — המחיר והסטטוס נערכים במסך הסמסטר"
       },
       "specialties": {
         "add_button": "התמחות",
@@ -1141,7 +1148,7 @@
         "status_inactive": "לא פעילה",
         "no_teacher_assigned": "לא הוקצה",
         "card_button": "פתיחה",
-        "empty_none": "אין עדיין קבוצות לימוד",
+        "empty_none": "אין עדיין סמסטרים או קורסים",
         "load_error": "שגיאה בטעינת קבוצות: {status}",
         "confirm_delete": "למחוק את קבוצת הלימוד \"{name}\"?",
         "modal_create_title": "קבוצת לימוד חדשה",
@@ -1193,7 +1200,9 @@
         "people_one": "איש",
         "people_few": "אנשים",
         "people_many": "אנשים",
-        "add_confirm_button": "הוספה"
+        "add_confirm_button": "הוספה",
+        "create_from_semester_hint": "קבוצות וקורסים חדשים נפתחים מתוך הסמסטר.",
+        "create_from_semester_link": "לסמסטרים"
       },
       "students": {
         "search_placeholder": "חיפוש לפי שם, טלפון, אימייל…",
@@ -1256,7 +1265,7 @@
         "year_label": "שנה עברית (מחזור)",
         "year_placeholder": "תשפ״ה",
         "year_level_label": "שנה (א/ב/ג)",
-        "name_field_label": "שם הקבוצה",
+        "name_field_label": "שם הסמסטר",
         "term_label": "מספר סמסטר",
         "track_label": "מסלול",
         "track_placeholder": "— בחר מסלול —",
@@ -1282,7 +1291,7 @@
         "table_students": "תלמידות",
         "table_tuition": "שכר לימוד",
         "table_actions": "פעולות",
-        "tuition_hint": "מה שהתלמידה משלמת על הסמסטר (₽). לא קשור למשכורת המורה."
+        "tuition_hint": "מה שהתלמידה משלמת על הסמסטר. לא קשור למשכורת המורה."
       },
       "rollover": {
         "tab": "מעבר שנה",
@@ -1314,7 +1323,7 @@
       },
       "settings_card_catalogs": "מקצועות והתמחויות",
       "settings_card_groups": "קבוצות",
-      "settings_card_units": "יחידות ומבנה"
+      "settings_card_units": "ניהול צוות היחידה"
     },
     "docs_error": "שגיאה",
     "docs_loading": "טוען מסמכים…",
@@ -1402,7 +1411,7 @@
       "load_error": "שגיאה בטעינת הסקירה",
       "track_label": "מסלול חול",
       "track_later": "אבחר מאוחר יותר",
-      "medical_pending_warn": "רופא/פסיכולוג שהופנתה אליהם עוד לא חתמו — אי אפשר לאשר עדיין (אפשר לדחות).",
+      "medical_pending_warn": "רופא/פסיכולוג שהופנתה אליהם עוד לא חתמו. אפשר לאשר, אבל מומלץ לחכות לחוות דעתם.",
       "handle_in_module": "לטיפול במודול",
       "stalled_title": "ממתינות מעל {n} ימים:",
       "days_short": "{n} ימ׳"
@@ -2283,6 +2292,7 @@
       "student_required": "יש לבחור תלמידה",
       "code_format": "קוד לא תקין (אותיות קטנות/ספרות/קו תחתון)",
       "type_name": "שם הסוג",
+      "type_code_latin": "קוד (באנגלית)",
       "confirm_delete_type": "למחוק את הסוג «{name}»?",
       "type_in_use": "הסוג בשימוש — השבת אותו במקום למחוק",
       "deactivate": "השבת",
@@ -2998,7 +3008,8 @@
       "action_view": "צפייה",
       "action_fill": "מילוי",
       "confirm_delete": "למחוק את הבדיקה מתאריך {date}?",
-      "table_status": "סטטוס"
+      "table_status": "סטטוס",
+      "delete_failed": "המחיקה נכשלה"
     },
     "fill": {
       "breadcrumb_title": "בדיקת שיעור",
@@ -3440,7 +3451,13 @@
       "substage_completed": "השלב הושלם",
       "substage_cancelled": "השלב בוטל",
       "substage_activated": "השלב הופעל",
-      "process_started": "התהליך הופעל"
+      "process_started": "התהליך הופעל",
+      "substage_activated_manually": "השלב הופעל ידנית",
+      "substage_reopened": "השלב נפתח מחדש לשינוי החלטה",
+      "substage_activated_dormitory": "השלב הופעל (נדרשת פנימייה)",
+      "dormitory_stage_restored": "שלב הפנימייה הוחזר (נדרשת פנימייה)",
+      "dormitory_stage_skipped": "שלב הפנימייה דולג (לא נדרשת פנימייה)",
+      "substage_activated_after_dormitory_skip": "השלב הופעל (אחרי דילוג על פנימייה)"
     },
     "finals": {
       "approved": "אושר",
@@ -3452,7 +3469,7 @@
       "waitlisted": "רשימת המתנה",
       "qualified": "מתאימה",
       "not_qualified": "לא מתאימה",
-      "done_event_yes": "רשום לאירוע",
+      "done_event_yes": "רשומה לאירוע",
       "done_event_skip": "ללא אירוע",
       "postponed": "קבלה נדחית",
       "all_collected": "הכל נאסף",
@@ -3474,7 +3491,7 @@
   },
   "alumni": {
     "list": {
-      "subtitle": "מאגר בוגרי הקמפוס",
+      "subtitle": "מאגר בוגרות הקמפוס",
       "search_placeholder": "חיפוש לפי שם, אימייל, מוסד…",
       "count": "סך הכול",
       "empty": "לא נמצאו בוגרות",
@@ -3491,9 +3508,9 @@
       "open_card": "פתח כרטיס"
     },
     "card": {
-      "section": "בוגר",
-      "profile_title": "פרופיל בוגר",
-      "no_profile": "פרופיל הבוגר טרם נוצר",
+      "section": "בוגרת",
+      "profile_title": "פרופיל בוגרת",
+      "no_profile": "פרופיל הבוגרת טרם נוצר",
       "graduation_year": "שנת סיום",
       "institution": "מוסד",
       "direction": "תוכנית",
@@ -4161,7 +4178,10 @@
       "download": "פתיחה",
       "final_approved": "כשירה",
       "final_rejected": "לא כשירה",
-      "confirm": "אישור וחתימה"
+      "confirm": "אישור וחתימה",
+      "view": "צפייה",
+      "reason_dormitory": "נפתח אוטומטית: המועמדת צריכה פנימייה",
+      "sign_only_role": "רק רופא/ה יכול/ה לחתום כאן"
     }
   },
   "psychologist": {
@@ -4265,7 +4285,10 @@
       "download": "פתיחה",
       "final_approved": "כשירה",
       "final_rejected": "לא כשירה",
-      "confirm": "אישור וחתימה"
+      "confirm": "אישור וחתימה",
+      "view": "צפייה",
+      "reason_dormitory": "נפתח אוטומטית: המועמדת צריכה פנימייה",
+      "sign_only_role": "רק פסיכולוג/ית יכול/ה לחתום כאן"
     }
   },
   "reports": {
@@ -4321,12 +4344,12 @@
       "open_sessions": "פגישות פתוחות",
       "status": {
         "lead": "ליד",
-        "applicant": "מועמד",
+        "applicant": "מועמדת",
         "student": "תלמידה",
         "on_leave": "חופשת לימודים",
-        "graduated": "בוגר",
+        "graduated": "בוגרת",
         "expelled": "הופסקו לימודיה",
-        "alumni": "בוגר בארכיון",
+        "alumni": "בוגרת בארכיון",
         "lost": "לא רלוונטית"
       },
       "priority": {
@@ -4802,6 +4825,8 @@
     }
   },
   "errors": {
+    "kodesh_assign_no_jewishness_approval": "אי אפשר לשבץ: אין אישור סופי בבירור יהדות",
+    "kodesh_teacher_via_approval": "מורה לקורס קודש מוסיפים דרך הצעה לאישור הרב",
     "kodesh_slot_warning": "שים לב: השעות האלה שמורות לשני שיעורי היהדות הראשונים של היום. המשבצת נשמרה — ודא שאין חפיפה.",
     "unauthorized": "לא מורשה",
     "forbidden": "אין הרשאות מספיקות",
@@ -4868,7 +4893,7 @@
     "charge_not_found": "החיוב לא נמצא",
     "payment_not_found": "התשלום לא נמצא",
     "application_not_found": "הבקשה לא נמצאה",
-    "alumni_profile_not_found": "פרופיל הבוגר לא נמצא",
+    "alumni_profile_not_found": "פרופיל הבוגרת לא נמצא",
     "person_not_found": "האדם לא נמצא",
     "employee_not_found": "העובד לא נמצא",
     "institution_not_found": "המוסד לא נמצא",
@@ -5025,7 +5050,7 @@
     "unsupported_status_enum_migration": "סטטוס לא נתמך (בדוק אם מיגרציית ה-enum הוחלה)",
     "community_exists_city": "קהילה בשם זה כבר קיימת בעיר זו",
     "specialty_exists_department": "התמחות בשם זה כבר קיימת במחלקה זו",
-    "subject_exists": "מקצוע כזה כבר קיים",
+    "subject_exists": "כבר קיים מקצוע בשם הזה באותו מסלול ובאותה שנה",
     "position_exists": "תואר משרה בשם זה כבר קיים",
     "city_exists": "עיר כזו כבר קיימת",
     "slot_exists_day_time": "משבצת ליום ולשעה אלה כבר קיימת",
@@ -5196,6 +5221,12 @@
     "series_over_limit": "הסדרה חורגת ממגבלה של {n} משימות",
     "kodesh_level_hide_has_students": "לא ניתן להסתיר את הרמה — משובצות בה {count} תלמידות. יש להעביר אותן לרמה אחרת קודם.",
     "kodesh_level_hide_has_courses": "לא ניתן להסתיר את הרמה — יש בה {count} קורסים פעילים. יש לסגור או להעביר אותם קודם.",
+    "handoff_missing_fields": "אי אפשר להעביר לוועדת קבלה: חסרים שם או טלפון.",
+    "acceptance_early_close_admit_blocked": "אי אפשר לקבל מועמדת דרך «סגירת התהליך». קבלה נעשית רק דרך החתימות בשלבים.",
+    "semester_exists": "כבר קיים סמסטר עם אותו מסלול, שנה ומספר סמסטר: {name}",
+    "track_no_department": "למסלול של המקצוע אין מחלקה משויכת — לא ניתן ליצור סמסטר",
+    "subject_already_in_semesters": "המקצוע כבר נמצא בסמסטר 1 ובסמסטר 2 של המסלול והשנה שלו",
+    "subject_courses_no_privilege": "המקצוע נוצר, אך אין לך הרשאה ליצור קורסים — המקצוע לא נוסף לסמסטרים",
     "task_student_tag_invalid": "התלמידה שנבחרה לא נמצאה או אינה תואמת",
     "task_student_tag_locked": "לא ניתן לשנות תלמידה במשימה אוטומטית של ועדת הקבלה",
     "payslip_month_approved": "תלוש השכר לחודש זה כבר אושר — לא ניתן לחשב מחדש שעות הוראה"
@@ -5220,7 +5251,7 @@
   },
   "apply": {
     "campus_title": "קמפוס «מכון חמש»",
-    "form_subtitle": "טופס הרשמה למועמדים",
+    "form_subtitle": "טופס הרשמה למועמדות",
     "honeypot_label": "אל תמלא שדה זה",
     "label_first_name": "שם פרטי",
     "label_last_name": "שם משפחה",
@@ -5412,7 +5443,7 @@
     "not_a_teacher": "עמוד זה מיועד למורות חברותא",
     "feature_not_ready": "התכונה עדיין אינה פעילה",
     "teachers_title": "מורות חברותא",
-    "teachers_subtitle": "ניהול רשימת מורות החברותא",
+    "teachers_subtitle": "רשימת מורות החברותא — לצפייה בלבד",
     "add_teacher": "הוספת מורה",
     "source_kodesh": "אוטומטי (קודש)",
     "source_manual": "ידני",
@@ -5438,7 +5469,7 @@
     "teacher_added": "המורה נוספה",
     "teacher_removed": "המורה הוסרה",
     "hub_title": "מרכז חברותא",
-    "hub_subtitle": "מאגר מורות, שיוך חברותות ומעקב מפגשים",
+    "hub_subtitle": "מאגר מורות ושיוך תלמידות למורות החברותא",
     "pool_title": "מאגר מורות",
     "assign_title": "שיוך חברותא",
     "assign_hint": "שייכי מורה לתלמידה. כל זוג פעיל מזכה את המורה בתשלום חברותא פלוס (התעריף נקבע בכספים).",
@@ -5453,6 +5484,9 @@
     "open_teacher_journal": "פתחי יומן מפגשי חברותא",
     "forbidden_hub": "אין לך הרשאה לנהל חברותות",
     "error": "אירעה שגיאה",
+    "managed_in_hub_note": "מורות וחברותות מנהלים במרכז החברותא",
+    "open_hub": "למרכז החברותא",
+    "unpair": "ביטול שיוך",
     "manage_in_hub_link": "ניהול מורים וזוגות בחברותא",
     "teachers_readonly_hint": "רשימת מורות החברותא והזוגות מנוהלים במרכז החברותא. כאן — לצפייה בלבד.",
     "teachers_readonly_subtitle": "מורות החברותא — לצפייה בלבד"
@@ -5471,7 +5505,7 @@
     "cause_unknown": "לא הצלחנו לקרוא את רשימת ההרשאות של המודול. נסו שוב בעוד רגע.",
     "has": "יש",
     "missing": "חסר",
-    "fix_privilege": "מנהל מערכת יכול להעניק זאת ב״הגדרות ← תפקידים״ (לתפקיד כולו) או ב״הגדרות ← משתמשים והרשאות״ (לאדם הזה בלבד).",
+    "fix_privilege": "מי שאחראי על ההרשאות יכול לפתוח זאת ב«אבטחת מידע ← לפי איש צוות».",
     "fix_catalog": "זו תקלת התקנה, לא הרשאה: צריך להשלים את קטלוג ההרשאות של המודול במסד הנתונים.",
     "back_home": "חזרה למסך הבית"
   },

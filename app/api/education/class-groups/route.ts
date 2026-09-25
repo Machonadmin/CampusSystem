@@ -3,7 +3,8 @@ import { requireAuth, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import type { ClassGroupInsert } from '@/types/database'
 
 import { isMissingColumn } from '@/lib/supabase/errors'
@@ -159,7 +160,22 @@ export async function POST(request: NextRequest) {
     if (!body.subject_id) return apiError('subject_id_required', 400)
     if (!body.department_id) return apiError('department_id_required', 400)
 
-    await requireEducationPrivilege('manage_class_groups', { department_id: body.department_id })
+    const actor = await requireEducationPrivilege('manage_class_groups', { department_id: body.department_id })
+
+    // Кафедра кодеша: создание курса ограничено create_kodesh_course (как в
+    // POST semester-groups/[id]/courses), а преподавателей сразу при создании
+    // можно передать только superadmin / approve_kodesh_teacher — иначе это
+    // обход утверждения рава (преподавателя предлагают через teacher-approvals).
+    if (body.department_id === KODESH_DEPT_ID) {
+      const kodeshTarget = { department_id: KODESH_DEPT_ID }
+      if (!(await hasEducationPrivilege(actor, 'create_kodesh_course', kodeshTarget))) {
+        return apiError('forbidden', 403)
+      }
+      if ((body.teacher_ids ?? []).length > 0
+        && !(await hasEducationPrivilege(actor, 'approve_kodesh_teacher', kodeshTarget))) {
+        return apiError('kodesh_teacher_via_approval', 403)
+      }
+    }
 
     const sb = createServerClient()
 

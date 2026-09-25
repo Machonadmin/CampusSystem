@@ -3,6 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
+import { chavrutaOverrides } from '@/lib/chavruta/teachers'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
@@ -41,7 +42,15 @@ export async function GET() {
       for (const r of (data ?? []) as Array<{ person_id: string }>) manualSet.add(r.person_id)
     } catch { /* 42P01 → пусто */ }
 
-    const allIds = [...new Set([...kodeshSet, ...manualSet])]
+    // Персональный отзыв доступа (person_privileges chavruta.access
+    // is_granted=false) сильнее автоправила «кодеш-учитель» — так же, как в
+    // effectiveChavrutaTeacherIds (журнал/напоминание). Раньше пул показывал
+    // такую мору как «אוטומטי», и её можно было выбрать для пары.
+    // Ошибка чтения оверрайдов → список без фильтра (как было до правки).
+    let deniedSet = new Set<string>()
+    try { deniedSet = new Set((await chavrutaOverrides(sb)).denied) } catch { /* без фильтра */ }
+
+    const allIds = [...new Set([...kodeshSet, ...manualSet])].filter(id => !deniedSet.has(id))
     const nameById = new Map<string, string>()
     if (allIds.length) {
       const { data: ps } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', allIds)

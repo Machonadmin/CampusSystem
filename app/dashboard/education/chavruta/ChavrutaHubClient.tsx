@@ -10,6 +10,7 @@ import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -25,10 +26,13 @@ interface Assignment {
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export default function ChavrutaHubClient({ canManage }: { canManage: boolean }) {
+export default function ChavrutaHubClient({ canManage, isTeacher }: { canManage: boolean; isTeacher: boolean }) {
   const t = useTranslations('chavruta')
   const tNav = useTranslations('navigation')
   const accent = getModuleColor('education', 'primary')
+  // Хаб — экран-инструмент «לימודים › פעולות»: крошка и «חזרה» ведут туда же
+  // (раньше крошка вела на «חינוך», а «חזרה» — на «לימודים»).
+  const sectionCrumb = useSectionCrumb('studies', '/dashboard/education/studies?sec=actions')
 
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
@@ -137,6 +141,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('hub_title') },
       ]} />
 
@@ -146,14 +151,17 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
         title={t('hub_title')}
         subtitle={t('hub_subtitle')}
         actions={<>
-          <BackButton fallback="/dashboard/education/studies" />
-          <Link
-            href="/dashboard/chavruta"
-            style={{
-              fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface-2)',
-              border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap',
-            }}
-          >{t('open_teacher_journal')}</Link>
+          <BackButton fallback={sectionCrumb.href} />
+          {/* Журнал — только море хавруты (менеджер-не-мора получил бы «לא מורה»). */}
+          {isTeacher && (
+            <Link
+              href="/dashboard/chavruta"
+              style={{
+                fontSize: 13, fontWeight: 600, color: 'var(--success)', background: 'var(--surface-2)',
+                border: '1px solid var(--border-strong)', borderRadius: 8, padding: '8px 14px', textDecoration: 'none', whiteSpace: 'nowrap',
+              }}
+            >{t('open_teacher_journal')}</Link>
+          )}
         </>}
       />
 
@@ -226,7 +234,7 @@ export default function ChavrutaHubClient({ canManage }: { canManage: boolean })
                               type="button"
                               onClick={() => removePair(a.id)}
                               style={{ fontSize: 12, fontWeight: 600, color: 'var(--danger, #DC2626)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}
-                            >× {t('remove_teacher')}</button>
+                            >× {t('unpair')}</button>
                           </td>
                         )}
                       </tr>

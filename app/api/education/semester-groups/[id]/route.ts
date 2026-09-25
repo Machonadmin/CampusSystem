@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, errorResponse } from '@/lib/api/handler'
-import { apiError } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
+import { findDuplicateSemester } from '@/lib/education/subject-semesters'
 
 /**
  * Семестр-группа = class_groups с is_semester=true. Детальная карточка + PATCH.
@@ -169,6 +170,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       period_end?: string | null
       teachers?: TeacherInput[]
       student_journey_ids?: string[]
+      force?: boolean
     }
 
     const sb = createServerClient()
@@ -186,6 +188,38 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const newDepartmentId = body.department_id ?? current.department_id
     if (body.department_id && body.department_id !== current.department_id) {
       await requireEducationPrivilege('manage_class_groups', { department_id: body.department_id })
+    }
+
+    // Предупреждение о дубликате — только когда меняется маршрут / год / номер
+    // семестра. Ищем другой семестр (себя исключаем) с тем же маршрутом + годом +
+    // номером (+ тем же предметом, если он задан). force === true — сохранить всё
+    // равно. Деплой-безопасно: при ошибке чтения (нет колонок) проверку пропускаем.
+    if (body.force !== true && (
+      body.study_track_id !== undefined || body.year_level !== undefined || body.term_number !== undefined
+    )) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: curKey, error: keyErr } = await (sb
+        .from('class_groups')
+        .select('study_track_id, year_level, term_number, subject_id, is_semester')
+        .eq('id', params.id)
+        .maybeSingle() as any)
+      if (!keyErr && curKey && curKey.is_semester) {
+        const cur = curKey as { study_track_id: string | null; year_level: number | null; term_number: number | null; subject_id: string | null }
+        const nextTrack = body.study_track_id !== undefined ? (body.study_track_id ?? null) : cur.study_track_id
+        const nextYear = body.year_level !== undefined ? (body.year_level ?? null) : cur.year_level
+        const nextTerm = body.term_number !== undefined ? (body.term_number ?? null) : cur.term_number
+        const changed = nextTrack !== cur.study_track_id || nextYear !== cur.year_level || nextTerm !== cur.term_number
+        if (changed) {
+          const dup = await findDuplicateSemester(sb, {
+            studyTrackId: nextTrack,
+            yearLevel: nextYear,
+            termNumber: nextTerm,
+            subjectId: cur.subject_id,
+            excludeId: params.id,
+          })
+          if (dup) return apiErrorWith('semester_exists', 409, { name: dup.name })
+        }
+      }
     }
 
     let warning: string | undefined
@@ -251,6 +285,32 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: trErr } = await (sb.from('class_groups').update(tr as any).eq('id', params.id) as any)
       if (trErr && isMissingColumn(trErr)) warning = (warning ? warning + ' ' : '') + 'Переводы имени не обновлены: миграция class_groups_multilang не применена.'
+    }
+
+    // Плата задана/изменена в учёбе → открываем счета уже зачисленным студенткам
+    // (идемпотентно, как в finance/semester-tuition). Новым студенткам счёт
+    // откроет синхронизация ниже.
+    if (typeof body.tuition_amount === 'number' && body.tuition_amount > 0) {
+      const { data: enrolls, error: eErr } = await sb
+        .from('class_enrollments')
+        .select('journey_id')
+        .eq('class_group_id', params.id)
+      if (!eErr && enrolls && enrolls.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const gInfo = await (sb.from('class_groups')
+          .select('tuition_amount, name, year_label, term_number')
+          .eq('id', params.id).maybeSingle() as any)
+        if (!gInfo.error && gInfo.data) {
+          const journeyIds = [...new Set(enrolls.map(r => r.journey_id as string))]
+          const tuition = await ensureSemesterTuitionCharges(
+            sb,
+            { id: params.id, tuition_amount: gInfo.data.tuition_amount ?? null, name: gInfo.data.name ?? null, year_label: gInfo.data.year_label ?? null, term_number: gInfo.data.term_number ?? null },
+            journeyIds,
+            session.person_id,
+          )
+          if (tuition.warning) warning = (warning ? warning + ' ' : '') + tuition.warning
+        }
+      }
     }
 
     // ── Синхронизация преподавателей ──────────────────────────────────────

@@ -69,10 +69,17 @@ export async function GET(
       target: jTarget,
     }
 
-    const [{ data: tasks }, { data: finals }, manageLeads, viewPriv, can_convert, signature_method, signerAuthority] = await Promise.all([
+    const TASK_COLS = 'id, title, status, priority, assignee_type, due_date, completed_at, created_at'
+    const [{ data: directTasks }, { data: metaTasks }, { data: finals }, manageLeads, viewPriv, can_convert, signature_method, signerAuthority] = await Promise.all([
       sb.from('tasks')
-        .select('id, title, status, priority, assignee_type, due_date, completed_at')
+        .select(TASK_COLS)
         .eq('stage_instance_id', params.stageInstanceId)
+        .order('created_at', { ascending: true }),
+      // Задачи подписи этапов приёма (acceptance-tasks) хранят id этапа только
+      // в metadata.stage_instance_id — без них диалог писал «לא נוצרו משימות».
+      sb.from('tasks')
+        .select(TASK_COLS)
+        .contains('metadata', { stage_instance_id: params.stageInstanceId })
         .order('created_at', { ascending: true }),
       stageTemplateId
         ? sb.from('stage_finals')
@@ -86,6 +93,15 @@ export async function GET(
       getSignatureMethod(),
       stageSignerAuthority(session, stageCtx),
     ])
+
+    // Объединяем обе выборки без дублей, по времени создания.
+    type TaskRow = { id: string; created_at: string | null } & Record<string, unknown>
+    const taskById = new Map<string, TaskRow>()
+    for (const tk of [...((directTasks ?? []) as TaskRow[]), ...((metaTasks ?? []) as TaskRow[])]) {
+      if (!taskById.has(tk.id)) taskById.set(tk.id, tk)
+    }
+    const tasks = [...taskById.values()]
+      .sort((x, y) => String(x.created_at ?? '').localeCompare(String(y.created_at ?? '')))
 
     // A role-gated signer (e.g. dorm_director on the dormitory stage) can act on
     // their own stage even without manage_leads → surface the finals buttons.
@@ -104,7 +120,7 @@ export async function GET(
     return NextResponse.json({
       ...stage,
       notes,
-      tasks: tasks ?? [],
+      tasks,
       finals: finals ?? [],
       can_manage,
       // Право ПОДПИСАТЬ этап (ролевой подписант / superadmin) — уже, чем

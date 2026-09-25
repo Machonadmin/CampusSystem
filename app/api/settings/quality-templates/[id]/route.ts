@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireStaff, errorResponse } from '@/lib/api/handler'
-import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireFeaturePrivilege } from '@/lib/auth/feature-privileges'
 
-
-async function requireSuperadmin() {
-  const session = await getSession()
-  if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
-}
 
 export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
@@ -35,7 +29,7 @@ export async function GET(_: NextRequest, props: { params: Promise<{ id: string 
 export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireSuperadmin()
+    await requireFeaturePrivilege('quality_control', 'templates', 'can_edit')
     const sb = createServerClient()
     const body = await request.json() as { name?: string; description?: string; structure?: unknown }
 
@@ -65,7 +59,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireSuperadmin()
+    await requireFeaturePrivilege('quality_control', 'templates', 'can_delete')
     const sb = createServerClient()
 
     const { count } = await sb

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/i18n/api-errors'
+import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
@@ -11,6 +11,7 @@ import {
 } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 import { notifyFinanceSemesterOpened } from '@/lib/finance/notify-semester-opened'
+import { findDuplicateSemester } from '@/lib/education/subject-semesters'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -115,7 +116,29 @@ export async function GET(request: NextRequest) {
       .from('class_groups')
       .select(SEMESTER_GROUP_SELECT)
       .eq('is_semester', true)
-    if (subjectId) qb = qb.eq('subject_id', subjectId)
+    if (subjectId) {
+      // Семестры предмета: старые «по предмету» (subject_id = предмет) И
+      // семестры-контейнеры, где у предмета есть курс (is_semester=false,
+      // subject_id = предмет → parent_semester_id). Деплой-безопасно: нет
+      // колонки parent_semester_id — только старые семестры.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: courseRows, error: cErr } = await (sb
+        .from('class_groups')
+        .select('parent_semester_id')
+        .eq('is_semester', false)
+        .eq('subject_id', subjectId)
+        .not('parent_semester_id', 'is', null) as any)
+      if (cErr && !isMissingRelation(cErr)) throw cErr
+      const parentIds = Array.from(new Set(
+        ((cErr ? [] : courseRows ?? []) as Array<{ parent_semester_id: string | null }>)
+          .map(r => r.parent_semester_id)
+          .filter((v): v is string => typeof v === 'string' && /^[0-9a-f-]{36}$/i.test(v)),
+      ))
+      // subject_id вставляется в строку фильтра .or() — только если это UUID.
+      qb = parentIds.length > 0 && /^[0-9a-f-]{36}$/i.test(subjectId)
+        ? qb.or(`subject_id.eq.${subjectId},id.in.(${parentIds.join(',')})`)
+        : qb.eq('subject_id', subjectId)
+    }
     if (myDepts) qb = qb.in('department_id', myDepts)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: groups, error } = await (qb.order('term_number').order('name') as any)
@@ -140,6 +163,8 @@ export async function GET(request: NextRequest) {
     const result = rows.map(g => ({
       id: g.id,
       name: g.name,
+      // subject_id: null — семестр-контейнер (несколько предметов курсами).
+      subject_id: g.subject_id ?? null,
       year_label: g.year_label ?? null,
       term_number: g.term_number ?? null,
       year_level: yearLevels.get(g.id) ?? null,
@@ -195,6 +220,7 @@ export async function POST(request: NextRequest) {
       period_end?: string | null
       teachers?: TeacherInput[]
       student_journey_ids?: string[]
+      force?: boolean
     }
 
     const name = body.name?.trim()
@@ -204,6 +230,18 @@ export async function POST(request: NextRequest) {
     const session = await requireEducationPrivilege('manage_class_groups', { department_id: body.department_id })
 
     const sb = createServerClient()
+
+    // (1b) Предупреждение о дубликате: семестр с тем же маршрутом + годом +
+    // номером уже есть (subject_id здесь не задаётся — сравниваем без него).
+    // force === true — создать всё равно. Проверка best-effort (деплой-безопасна).
+    if (body.force !== true) {
+      const dup = await findDuplicateSemester(sb, {
+        studyTrackId: body.study_track_id,
+        yearLevel: body.year_level,
+        termNumber: body.term_number,
+      })
+      if (dup) return apiErrorWith('semester_exists', 409, { name: dup.name })
+    }
 
     // (2) Вставка class_groups с новыми колонками (untyped). При 42703 —
     // вставляем только базовые колонки и возвращаем warning, чтобы данные не

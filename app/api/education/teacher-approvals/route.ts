@@ -10,6 +10,8 @@ import {
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { canManageKodesh } from '@/lib/education/kodesh-access'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
 /**
  * Утверждение преподавателя на курс (teacher_course_approvals, spec §3.6 / §4.7-4.8).
@@ -30,9 +32,14 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = (await canManageEducationInAny(session, 'manage_class_teachers'))
+    const fullAccess = (await canManageEducationInAny(session, 'manage_class_teachers'))
       || (await canDoEducationInAny(session, 'approve_kodesh_teacher'))
-    if (!allowed) return apiError('forbidden', 403)
+    // Управляющий кафедрой кодеша (ראש מחלקה — та же проверка, что у экранов
+    // кодеша) без прав рава/Chana получает ТОЛЬКО чтение и ТОЛЬКО по курсам
+    // кафедры кодеша — чтобы на «קורסי קודש» были видны пометки «ממתין».
+    // POST (предложение) по-прежнему требует manage_class_teachers.
+    const kodeshReadOnly = !fullAccess && await canManageKodesh(session)
+    if (!fullAccess && !kodeshReadOnly) return apiError('forbidden', 403)
 
     const url = new URL(request.url)
     const status = url.searchParams.get('status')?.trim()
@@ -41,12 +48,21 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
     let rows: Array<Record<string, unknown>> = []
     try {
+      let kodeshCourseIds: string[] | null = null
+      if (kodeshReadOnly) {
+        const { data: cg, error: cgErr } = await sb
+          .from('class_groups').select('id').eq('department_id', KODESH_DEPT_ID)
+        if (cgErr) throw cgErr
+        kodeshCourseIds = ((cg ?? []) as Array<{ id: string }>).map(r => r.id)
+        if (kodeshCourseIds.length === 0) return NextResponse.json({ approvals: [] })
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let q = (sb.from('teacher_course_approvals') as any)
         .select('id, course_group_id, teacher_id, proposed_by, status, decided_by, decided_at, note, created_at, teacher:persons!teacher_course_approvals_teacher_id_fkey(id, full_name, hebrew_name), course:class_groups!teacher_course_approvals_course_group_id_fkey(id, name, name_he)')
         .order('created_at', { ascending: false })
       if (status) q = q.eq('status', status)
       if (courseId) q = q.eq('course_group_id', courseId)
+      if (kodeshCourseIds) q = q.in('course_group_id', kodeshCourseIds)
       const { data, error } = await q
       if (error) throw error
       rows = (data ?? []) as Array<Record<string, unknown>>

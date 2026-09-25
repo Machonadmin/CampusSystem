@@ -73,12 +73,15 @@ export default function AlumniPage() {
 
   useEffect(() => { load() }, [load])
 
+  // Поиск по тем же полям, что и сервер (?search): имя, email, телефон,
+  // подразделение и направление.
   const q = search.trim().toLowerCase()
   const filtered = q
     ? items.filter(a =>
         a.full_name.toLowerCase().includes(q) ||
         (a.hebrew_name ?? '').toLowerCase().includes(q) ||
         (a.email ?? '').toLowerCase().includes(q) ||
+        a.phones.join(' ').toLowerCase().includes(q) ||
         (a.institution ?? '').toLowerCase().includes(q) ||
         (a.direction ?? '').toLowerCase().includes(q))
     : items

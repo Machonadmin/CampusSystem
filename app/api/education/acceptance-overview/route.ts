@@ -5,7 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
-import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
+import { ACCEPTANCE_PROCESS_CODES, signerRoleCodes } from '@/lib/workflow/acceptance-codes'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -50,11 +50,12 @@ export async function GET(request: NextRequest) {
       .in('process_template.code', ACCEPTANCE_PROCESS_CODES)
       .order('started_at', { ascending: false })
     if (statusFilter === 'active') piQuery = piQuery.eq('status', 'active')
-    // «Завершённые» = процессы status='completed' И успешно принятые: движок
-    // кодирует приём как status='cancelled' + finish_reason admitted(_conditional),
-    // поэтому без этого условия принятые абитуриентки пропадали из вкладки.
+    // «הסתיימו» = любой НЕ активный приём. Движок кодирует обычное завершение как
+    // status='cancelled' + finish_reason (admitted/rejected/postponed/external_studies),
+    // а досрочное — как 'completed'. Раньше брали только completed + принятые, а
+    // принятые затем уходят в «לימודים» (фильтр ниже) — вкладка была почти всегда пуста.
     else if (statusFilter === 'completed') {
-      piQuery = piQuery.or('status.eq.completed,and(status.eq.cancelled,finish_reason.in.(admitted,admitted_conditional))')
+      piQuery = piQuery.neq('status', 'active')
     }
 
     const { data: pisRaw, error: piErr } = await piQuery
@@ -71,7 +72,10 @@ export async function GET(request: NextRequest) {
     if (scope === 'department') {
       pis = pis.filter(p => {
         const jd = p.journey?.desired_department_id ?? p.journey?.primary_department_id ?? null
-        return jd != null && myDepts.includes(jd)
+        // Без подразделения (обычное состояние абитуриентки) — видна, как и в
+        // карточке (lib/permissions/scope.ts: нет target → доступ есть). Иначе
+        // руководитель с областью «подразделение» видел пустую доску приёма.
+        return jd == null || myDepts.includes(jd)
       })
     }
 
@@ -137,8 +141,7 @@ export async function GET(request: NextRequest) {
     function canSign(requiredRole: string | null, status: string): boolean {
       if (status !== 'active' || !requiredRole) return false
       if (isSuper) return true
-      const roles = requiredRole.split(',').map(r => r.trim()).filter(Boolean)
-      return roles.some(r => session!.roles.includes(r))
+      return signerRoleCodes(requiredRole).some(r => session!.roles.includes(r))
     }
 
     const applicants = pis.map(pi => {

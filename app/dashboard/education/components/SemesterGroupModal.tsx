@@ -7,7 +7,8 @@ import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
-import { yearLevelLabel } from '@/lib/education/year-level'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import YearLevelSelect from './YearLevelSelect'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface StudyTrack { id: string; name_he: string | null; name_ru: string | null; name_en: string | null; department_id: string | null; years_count: number | null }
@@ -72,6 +73,7 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
       : defaults?.year_level != null ? String(defaults.year_level) : '',
   )
   const [trackId, setTrackId] = useState(initial?.study_track_id ?? defaults?.study_track_id ?? '')
+  const [tuition, setTuition] = useState(initial?.tuition_amount != null ? String(initial.tuition_amount) : '')
   const [periodStart, setPeriodStart] = useState(initial?.period_start ?? '')
   const [periodEnd, setPeriodEnd] = useState(initial?.period_end ?? '')
 
@@ -140,7 +142,12 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
     // Подразделение наследуется от маршрута; без него сохранить нельзя.
     const deptId = selectedTrack?.department_id ?? ''
     if (!deptId) { setError(t('semester_groups.track_no_department')); return }
+    await send(deptId, false)
+  }
 
+  // force=true — повторная отправка после подтверждения (сервер вернул 409
+  // semester_exists: семестр с тем же маршрутом + годом + номером уже есть).
+  const send = async (deptId: string, force: boolean) => {
     setSaving(true)
     setError(null)
     try {
@@ -160,11 +167,13 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
         year_level: yearLevel.trim() ? Number(yearLevel) : null,
         study_track_id: trackId || null,
         department_id: deptId,
+        tuition_amount: tuition.trim() ? Number(tuition) : null,
         period_start: periodStart || null,
         period_end: periodEnd || null,
         teachers: teacherPayload,
         student_journey_ids: Array.from(selectedStudents),
       }
+      if (force) payload.force = true
 
       const url = mode === 'create'
         ? '/api/education/semester-groups'
@@ -176,7 +185,13 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
         body: JSON.stringify(payload),
       })
       if (!resp.ok) {
-        const errJson = await resp.json().catch(() => ({}))
+        const errJson = await resp.json().catch(() => ({})) as { error?: string; code?: string }
+        if (!force && resp.status === 409 && errJson.code === 'semester_exists') {
+          const ok = await confirmDialog({
+            message: `${errJson.error ?? ''}\n\n${t(mode === 'create' ? 'common.create_anyway_confirm' : 'common.save_anyway_confirm')}`,
+          })
+          if (ok) { await send(deptId, true); return }
+        }
         setError(errJson.error ?? `${t('common.error_generic')} ${resp.status}`)
         setSaving(false)
         return
@@ -249,10 +264,15 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <div style={{ width: 110 }}>
               <label style={lbl}>{t('semester_groups.year_level_label')} *</label>
-              <select aria-label={t('semester_groups.year_level_label')} value={yearLevel} onChange={e => setYearLevel(e.target.value)} style={inp} disabled={!trackId}>
-                <option value="">—</option>
-                {Array.from({ length: maxYears }, (_, i) => i + 1).map(n => <option key={n} value={n}>{yearLevelLabel(n, lang)}</option>)}
-              </select>
+              <YearLevelSelect
+                ariaLabel={t('semester_groups.year_level_label')}
+                value={yearLevel}
+                onChange={setYearLevel}
+                yearsCount={maxYears}
+                includeEmpty
+                disabled={!trackId}
+                style={inp}
+              />
             </div>
             <div style={{ flex: 1 }}>
               <label style={lbl}>{t('semester_groups.year_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
@@ -320,8 +340,13 @@ export default function SemesterGroupModal({ mode, initial, defaults, onClose, o
             </div>
           </div>
 
-          {/* 7. Плата за обучение (שכר לימוד) задаётся в модуле «Финансы» —
-              не здесь (решение владельца). См. finance/semesters. */}
+          {/* 7. Плата за семестр (שכר לימוד) — что платит студентка. Решение
+              владельца 24.09.2026: поле снова здесь (в финансах тоже можно). */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={lbl}>{t('semester_groups.tuition_label')} <span style={{ fontWeight: 400, color: 'var(--text-faint)' }}>{t('common.optional_suffix')}</span></label>
+            <input type="number" min={0} step="0.01" value={tuition} onChange={e => setTuition(e.target.value)} style={inp} placeholder="0.00" />
+            <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('semester_groups.tuition_hint')}</div>
+          </div>
 
           {/* 8. Период */}
           <div style={{ marginBottom: 12 }}>

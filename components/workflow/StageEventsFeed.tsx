@@ -31,10 +31,14 @@ const MANUAL_TYPES = ['note', 'call', 'meeting', 'message', 'email'] as const
 interface Props {
   stageInstanceId: string
   canManage: boolean
+  // Код шаблона этапа — чтобы исход этапа приёма (например, jewishness)
+  // показывался словами комиссии, а не общим словарём events.finals.
+  stageCode?: string | null
 }
 
-export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
+export default function StageEventsFeed({ stageInstanceId, canManage, stageCode = null }: Props) {
   const t = useTranslations('events')
+  const tEdu = useTranslations('education')
   const tWf = useTranslations('workflow')
   const { lang } = useLang()
 
@@ -127,7 +131,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage }: Props) {
                   )}
                 </div>
                 <div style={{ fontSize: 13, color: isSystem ? 'var(--text-muted)' : 'var(--text)', lineHeight: 1.4, marginInlineStart: isSystem ? 0 : 22 }}>
-                  {isSystem ? translateSystemEvent(ev.content, t) : ev.content}
+                  {isSystem ? translateSystemEvent(ev.content, t, { stageCode, tEducation: tEdu }) : ev.content}
                 </div>
                 {!isSystem && (
                   <div style={{ marginInlineStart: 22, marginTop: 4 }}>

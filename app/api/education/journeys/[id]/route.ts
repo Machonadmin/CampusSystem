@@ -3,6 +3,7 @@ import { requireAuth, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
+import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import {
   requireEducationPrivilege,
   getEducationPrivilegeScope,
@@ -244,6 +245,13 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
         p_actor_id: session.person_id,
       })
       if (gateErr) console.error('[journeys.PATCH] dormitory gating:', gateErr)
+      // Гейтинг включает/пропускает этапы — привести автозадачи в соответствие
+      // (новому этапу — задача подписанту, пропущенному — закрыть). Best-effort.
+      try {
+        await syncAcceptanceTasks(sb, params.id, session.person_id)
+      } catch (taskErr) {
+        console.error('[journeys.PATCH] syncAcceptanceTasks:', taskErr)
+      }
     }
 
     return NextResponse.json(data)

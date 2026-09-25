@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireStaff, errorResponse } from '@/lib/api/handler'
-import { apiError, serverT } from '@/lib/i18n/api-errors'
+import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { getSession } from '@/lib/auth/session'
+import { requireFeaturePrivilege } from '@/lib/auth/feature-privileges'
 
-
-async function requireSuperadmin() {
-  const session = await getSession()
-  if (!session?.roles.includes('superadmin'))
-    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
-  return session
-}
 
 type Block = { questions?: unknown[] }
 type Structure = { blocks?: Block[] }
@@ -56,7 +49,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireSuperadmin()
+    const session = await requireFeaturePrivilege('quality_control', 'templates', 'can_create')
     const sb = createServerClient()
     const body = await request.json() as { name?: string; description?: string; structure?: unknown }
 

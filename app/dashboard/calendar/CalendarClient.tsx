@@ -37,6 +37,7 @@ export default function CalendarClient() {
   const t = useTranslations('calendar')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const tAtt = useTranslations('education.attendance')
   const locale = intlLocale(lang)
 
   const primary = getModuleColor('dashboard', 'primary')
@@ -598,9 +599,10 @@ export default function CalendarClient() {
         />
       )}
 
-      {/* Отметка посещаемости прямо из календаря (по запросу владельца: «נוכחות
-          מתוך היומן»). Панель сама грузит ростер по id урока; POST сервер гейтит
-          по mark_attendance в контексте группы. */}
+      {/* Посещаемость из календаря — ТОЛЬКО просмотр (решение владельца 8,
+          24.09.2026: отмечают только в экране урока у учителя). Панель сама
+          грузит ростер по id урока. Кнопку «נוכחות» по-прежнему видит тот, у кого
+          есть mark_attendance (attendance-capability). */}
       {attendanceLesson && (
         <AttendancePanel
           lesson={{
@@ -614,7 +616,8 @@ export default function CalendarClient() {
             is_cancelled: attendanceLesson.is_cancelled,
             marked_count: 0,
           } as LessonItem}
-          canMarkAttendance
+          canMarkAttendance={false}
+          readOnlyHint={tAtt('marked_on_teacher_screen')}
           accentColor={LESSON_ACCENT}
           onClose={() => setAttendanceLesson(null)}
           onSaved={() => { setAttendanceLesson(null); load() }}

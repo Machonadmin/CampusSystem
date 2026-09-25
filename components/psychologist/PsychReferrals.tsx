@@ -8,6 +8,8 @@ import { useMe } from '@/lib/hooks/useMe'
 
 interface ReferralOrigin {
   from_stage: string
+  // Код этапа-направителя — для перевода названия (education.process.stages.*)
+  from_stage_code?: string | null
   note: string | null
   signer_name: string | null
   completed_at: string | null
@@ -41,6 +43,10 @@ interface Applicant {
 }
 interface Referral {
   stage_instance_id: string
+  // Может ли текущий пользователь подписать этап (роль-подписант или superadmin)
+  can_sign?: boolean
+  // Этап открыт автоматически без направления (гейтинг общежития)
+  auto_reason?: 'dormitory' | null
   activated_at: string | null
   journey_id: string | null
   applicant: Applicant
@@ -124,6 +130,13 @@ function ReferralCard({
 }) {
   const t = useTranslations('psychologist')
   const tCommon = useTranslations('common')
+  const tEdu = useTranslations('education')
+  // Без права подписи — только просмотр (кнопка «צפייה», без блока решения).
+  const canSign = referral.can_sign !== false
+  // Название этапа-направителя: по коду через education.process.stages.*,
+  // иначе — как пришло из БД (name_ru).
+  const stageName = (x: ReferralOrigin) =>
+    x.from_stage_code ? tEdu(`process.stages.${x.from_stage_code}`, x.from_stage) : x.from_stage
   const me = useMe()
   const primary = getModuleColor('psychologist', 'primary')
 
@@ -208,7 +221,7 @@ function ReferralCard({
           <div style={{ fontWeight: 600, color: 'var(--text)' }}>{name}</div>
           {referral.referrals.length > 0 && (
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-              {t('referrals.referred_by')}: {referral.referrals.map(x => x.from_stage).join(', ')}
+              {t('referrals.referred_by')}: {referral.referrals.map(stageName).join(', ')}
             </div>
           )}
         </div>
@@ -216,7 +229,7 @@ function ReferralCard({
           onClick={() => setOpen(o => !o)}
           style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: primary, border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
         >
-          {open ? t('referrals.hide') : t('referrals.open')}
+          {open ? t('referrals.hide') : canSign ? t('referrals.open') : t('referrals.view')}
         </button>
       </div>
 
@@ -225,12 +238,14 @@ function ReferralCard({
           {/* Причина направления */}
           <Section title={t('referrals.reason')}>
             {referral.referrals.length === 0 ? (
-              <div style={muted}>{t('referrals.no_reason')}</div>
+              <div style={muted}>
+                {referral.auto_reason === 'dormitory' ? t('referrals.reason_dormitory') : t('referrals.no_reason')}
+              </div>
             ) : (
               <div style={{ display: 'grid', gap: 8 }}>
                 {referral.referrals.map((x, i) => (
                   <div key={i} style={{ background: 'var(--warn-tint)', border: '1px solid var(--warn)', borderRadius: 8, padding: '8px 10px' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>{x.from_stage}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--warn)' }}>{stageName(x)}</div>
                     <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 2 }}>{x.note || t('referrals.no_reason')}</div>
                     {x.signer_name && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>— {x.signer_name}</div>}
                   </div>
@@ -293,7 +308,12 @@ function ReferralCard({
             )}
           </Section>
 
-          {/* Решение + подпись */}
+          {/* Решение + подпись — только для подписанта; остальным — пометка */}
+          {!canSign ? (
+            <div style={{ ...muted, padding: '8px 10px', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8 }}>
+              {t('referrals.sign_only_role')}
+            </div>
+          ) : (
           <Section title={t('referrals.decision')}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: selectedFinal ? 12 : 0 }}>
               {finals.map(f => (
@@ -339,6 +359,7 @@ function ReferralCard({
               </div>
             )}
           </Section>
+          )}
         </div>
       )}
     </div>

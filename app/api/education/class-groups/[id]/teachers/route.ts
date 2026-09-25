@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/education/class-groups/[id]/teachers
  * Право: manage_class_teachers в подразделении группы.
+ * Группа кафедры кодеша: преподавателя добавляют через предложение на
+ * утверждение рава (teacher-approvals). Напрямую — только superadmin или
+ * обладатель approve_kodesh_teacher (сам рав), иначе 403.
  *
  * Body: { teacher_ids: string[], make_first_primary?: boolean }
  * - Upsert: если преподаватель уже привязан — пропускаем
@@ -36,6 +40,12 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     if (!group) return apiError('group_not_found', 404)
 
     const session = await requireEducationPrivilege('manage_class_teachers', { department_id: group.department_id })
+
+    // Прямое добавление в курс кодеша обходило бы утверждение рава (spec §4.7-4.8).
+    if (group.department_id === KODESH_DEPT_ID
+      && !(await hasEducationPrivilege(session, 'approve_kodesh_teacher', { department_id: KODESH_DEPT_ID }))) {
+      return apiError('kodesh_teacher_via_approval', 403)
+    }
 
     const uniqueIds = Array.from(new Set(teacherIds))
 

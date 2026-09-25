@@ -43,8 +43,9 @@ async function manualChavrutaTeacherIds(sb: SB): Promise<string[]> {
   }
 }
 
-/** Персональные оверрайды доступа к хавруте (не истёкшие). */
-async function chavrutaOverrides(sb: SB): Promise<{ granted: string[]; denied: string[] }> {
+/** Персональные оверрайды доступа к хавруте (не истёкшие). Экспорт — для
+ *  «מאגר מורות» (GET /api/chavruta/teachers): deny прячет мору и оттуда. */
+export async function chavrutaOverrides(sb: SB): Promise<{ granted: string[]; denied: string[] }> {
   try {
     const { data, error } = await sb
       .from('person_privileges')

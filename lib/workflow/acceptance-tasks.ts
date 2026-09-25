@@ -1,5 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
-import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
+import { ACCEPTANCE_PROCESS_CODES, signerRoleCodes } from '@/lib/workflow/acceptance-codes'
 import { createNotifications } from '@/lib/notifications/create'
 import type { NotificationInsert } from '@/types/database'
 import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
@@ -155,7 +155,7 @@ export async function syncAcceptanceTasks(sb: SB, journeyId: string, actorId: st
   const notifRows: NotificationInsert[] = []
 
   for (const stage of toCreate) {
-    const roleCodes = (stage.stage_template!.required_role_code ?? '').split(',').map(r => r.trim()).filter(Boolean)
+    const roleCodes = signerRoleCodes(stage.stage_template!.required_role_code)
     const personIds = await resolveActivePersons(sb, roleCodes)
     if (personIds.length === 0) continue
 

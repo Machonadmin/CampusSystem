@@ -32,6 +32,9 @@ export default function KodeshCoursesClient() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [forbidden, setForbidden] = useState(false)
+  // Кнопка «+ קורס» — только при праве create_kodesh_course (superadmin — всегда);
+  // флаг из launcher-access, зеркало проверки POST semester-groups/[id]/courses.
+  const [canCreate, setCanCreate] = useState(false)
 
   const [createFor, setCreateFor] = useState<string | null>(null) // level id
   const [newName, setNewName] = useState('')
@@ -48,16 +51,18 @@ export default function KodeshCoursesClient() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [gRes, aRes] = await Promise.all([
+      const [gRes, aRes, accRes] = await Promise.all([
         fetch(`/api/education/class-groups?department_id=${KODESH_DEPT_ID}`),
         fetch('/api/education/teacher-approvals'),
+        fetch('/api/education/launcher-access'),
       ])
-      // ForbiddenState только если закрыт сам список курсов. 403 на teacher-approvals
-      // бывает и у законного зрителя (ראש מחלקה видит курсы, но не очередь рава) —
-      // тогда экран показываем, просто без пометок «ממתין».
+      // ForbiddenState только если закрыт сам список курсов. Управляющий кафедрой
+      // кодеша (ראש מחלקה) теперь читает teacher-approvals по курсам кодеша; 403
+      // остаётся у прочих зрителей — тогда экран без пометок «ממתין».
       setForbidden(gRes.status === 403)
       if (gRes.ok) { const b = await gRes.json(); setGroups(b.class_groups ?? []) }
       if (aRes.ok) { const b = await aRes.json(); setApprovals(b.approvals ?? []) }
+      if (accRes.ok) { const b = await accRes.json() as { create_kodesh_course?: boolean }; setCanCreate(b.create_kodesh_course === true) }
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { load() }, [load])
@@ -141,10 +146,12 @@ export default function KodeshCoursesClient() {
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{gname(level)}</span>
               <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('courses_count').replace('{n}', String(courses.length))}</span>
               <div style={{ flex: 1 }} />
-              <button onClick={() => { setCreateFor(createFor === level.id ? null : level.id); setNewName(''); setNewHours('') }} style={linkBtn}>+ {t('add_course')}</button>
+              {canCreate && (
+                <button onClick={() => { setCreateFor(createFor === level.id ? null : level.id); setNewName(''); setNewHours('') }} style={linkBtn}>+ {t('add_course')}</button>
+              )}
             </div>
 
-            {createFor === level.id && (
+            {canCreate && createFor === level.id && (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
                 <input aria-label={t('course_name')} value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('course_name')} dir="rtl" autoFocus style={{ ...inp, flex: 1, minWidth: 160 }} />
                 <input aria-label={t('hours')} value={newHours} onChange={e => setNewHours(e.target.value)} placeholder={t('hours')} type="number" min={0} style={{ ...inp, width: 90 }} />

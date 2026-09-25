@@ -7,13 +7,17 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedName } from '@/lib/i18n/localized-name'
 import { toast } from '@/components/ui/toast'
 import type { PublicFormConfig, BuiltinFieldKey, CustomField, CustomFieldType } from '@/lib/public/form-config'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
-interface Program { id: string; name: string; institution_name: string | null }
+interface Program {
+  id: string; name: string; name_he?: string | null; name_en?: string | null
+  institution_name: string | null; institution_name_he?: string | null; institution_name_en?: string | null
+}
 
 // Маркетинговые тексты, которые можно переопределить (ключи apply.*). Дефолт
 // показываем как подпись/плейсхолдер — редактор правит текущий язык интерфейса.
@@ -258,7 +262,7 @@ export default function RecruitmentFormSettingsPage() {
                     {programs.map(p => (
                       <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, padding: '8px 10px', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer', background: cfg.directions.ids.includes(p.id) ? 'var(--accent-tint)' : 'var(--surface)' }}>
                         <input type="checkbox" checked={cfg.directions.ids.includes(p.id)} onChange={() => toggleDir(p.id)} />
-                        <span style={{ color: 'var(--text)' }}>{p.name}{p.institution_name ? ` · ${p.institution_name}` : ''}</span>
+                        <span style={{ color: 'var(--text)' }}>{localizedName({ name: p.name, name_he: p.name_he, name_en: p.name_en }, lang)}{p.institution_name ? ` · ${localizedName({ name: p.institution_name, name_he: p.institution_name_he, name_en: p.institution_name_en }, lang)}` : ''}</span>
                       </label>
                     ))}
                   </div>

@@ -243,6 +243,7 @@ export default function StudentsTab() {
     setBulkBusy(true); setBulkMsg(null)
     const ids = [...selected]
     let ok = 0, fail = 0
+    const failReasons = new Set<string>()
     if (bulkType === 'class') {
       const res = await fetch(`/api/education/class-groups/${bulkTarget}/enrollments`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -254,11 +255,17 @@ export default function StudentsTab() {
         const url = bulkType === 'track' ? `/api/education/journeys/${jid}/track` : '/api/education/kodesh/assignment'
         const body = bulkType === 'track' ? { track_id: bulkTarget } : { journey_id: jid, group_id: bulkTarget }
         const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-        if (res.ok) ok++; else fail++
+        if (res.ok) { ok++; continue }
+        fail++
+        // Причина отказа (уже переведена сервером), напр. 409 «нет окончательного
+        // одобрения еврейства» — иначе пользователь видит лишь счётчик «נכשלו».
+        const b = await res.json().catch(() => ({})) as { error?: string }
+        if (b.error) failReasons.add(b.error)
       }
     }
     setBulkBusy(false)
-    setBulkMsg(t('students.bulk.result').replace('{ok}', String(ok)).replace('{fail}', String(fail)))
+    const summary = t('students.bulk.result').replace('{ok}', String(ok)).replace('{fail}', String(fail))
+    setBulkMsg(failReasons.size > 0 ? `${summary} — ${[...failReasons].join('; ')}` : summary)
     exitSelect()
     loadStudents(search)
   }

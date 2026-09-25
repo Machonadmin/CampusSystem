@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { serverT } from '@/lib/i18n/api-errors'
+import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import type { PrivilegeModule } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
 
 async function guard() {
@@ -37,49 +36,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT — replace all privileges for a role
-export async function PUT(request: NextRequest) {
+// PUT — БЫВШАЯ правка прав должности. Решение владельца: права редактируются
+// ТОЛЬКО в «אבטחת מידע», а с 17.09 у должностей вообще нет прав (только личные
+// выдачи). Ни один экран этот PUT больше не вызывает; отвечаем 410 Gone, как
+// /api/settings/person-privileges, чтобы старая вкладка/скрипт не писали в обход.
+export async function PUT() {
   try {
-    const session = await guard()
-    const sb = createServerClient()
-    type Scope = 'all' | 'department' | 'own'
-    const { role_id, privileges } = await request.json() as {
-      role_id: string
-      // scope опционален: если передан — используем его (напр. мастер «роль+посадка»
-      // задаёт department для не-access привилегий); иначе сохраняем прежний scope.
-      privileges: { module: string; privilege_code: string; scope?: Scope }[]
-    }
-
-    // Сохраняем существующий scope каждой привилегии: колонка role_privileges.scope
-    // имеет DEFAULT 'all', а старый UI шлёт только {module, privilege_code} без scope.
-    // Без этого delete+insert молча повышал бы scope='department' → 'all' (доступ
-    // ко всему кампусу) при любом сохранении роли — тихая эскалация прав.
-    const { data: existing } = await sb
-      .from('role_privileges')
-      .select('module, privilege_code, scope')
-      .eq('role_id', role_id)
-    const scopeByKey = new Map<string, Scope>(
-      (existing ?? []).map(r => [`${r.module}::${r.privilege_code}`, r.scope as Scope]),
-    )
-
-    const { error: delErr } = await sb.from('role_privileges').delete().eq('role_id', role_id)
-    if (delErr) throw delErr
-
-    if (privileges.length > 0) {
-      const { error } = await sb.from('role_privileges').insert(
-        privileges.map(p => ({
-          role_id,
-          module: p.module as PrivilegeModule,
-          privilege_code: p.privilege_code,
-          granted_by: session.person_id,
-          // явный scope из запроса → прежний scope → 'all'.
-          scope: p.scope ?? scopeByKey.get(`${p.module}::${p.privilege_code}`) ?? ('all' as Scope),
-        }))
-      )
-      if (error) throw error
-    }
-
-    return NextResponse.json({ ok: true })
+    await guard()
+    return apiError('person_privileges_moved', 410, { redirect_to: '/dashboard/data-security' })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)

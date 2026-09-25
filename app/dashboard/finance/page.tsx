@@ -55,6 +55,7 @@ export default function FinancePage() {
   const t = useTranslations('finance')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const tFinAdmin = useTranslations('education.finance_admin')
 
   const [items, setItems] = useState<FinanceStudent[]>([])
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
@@ -70,6 +71,11 @@ export default function FinancePage() {
   const filtersReady = searchReady && sortReady
   const [canCharge, setCanCharge] = useState(false)
   const [canManageAccess, setCanManageAccess] = useState(false)
+  // «כספים והנחות» (утверждение скидок, финансовые дефолты, просрочки) — решение
+  // владельца 4 (24.09.2026): вход из модуля «כספים», а не из «לימודים». Экран
+  // остаётся на прежнем маршруте; гейт тот же, что был у карточки в «לימודים» —
+  // флаг finance_admin из /api/education/launcher-access (fail-closed: ошибка → скрыто).
+  const [canFinanceAdmin, setCanFinanceAdmin] = useState(false)
 
   // ── Массовое начисление (bulk charge) ──
   const [selectMode, setSelectMode] = useState(false)
@@ -113,6 +119,15 @@ export default function FinancePage() {
   }, [t])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    let alive = true
+    fetch('/api/education/launcher-access')
+      .then(r => (r.ok ? r.json() : {}))
+      .then(body => { if (alive) setCanFinanceAdmin(!!(body as { finance_admin?: boolean })?.finance_admin) })
+      .catch(() => { if (alive) setCanFinanceAdmin(false) })
+    return () => { alive = false }
+  }, [])
 
   function toggleSelect(id: string) {
     setSelected(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n })
@@ -212,6 +227,11 @@ export default function FinancePage() {
           {canManageAccess && (
             <Link href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
               {t('access.link_label')}
+            </Link>
+          )}
+          {canFinanceAdmin && (
+            <Link href="/dashboard/education/finance-admin" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
+              {tFinAdmin('title')}
             </Link>
           )}
           <Link href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
