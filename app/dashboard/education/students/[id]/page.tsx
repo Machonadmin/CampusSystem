@@ -7,6 +7,7 @@ import {
   hasEducationPrivilege,
   type EducationPrivilege,
 } from '@/lib/education/permissions'
+import { canRequestTuitionDiscount } from '@/lib/finance/discount-request-access'
 import LeadViewClient, { type LeadViewData } from '../../leads/[id]/LeadViewClient'
 import type { StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 
@@ -101,6 +102,9 @@ export default async function StudentViewPage(props: Props) {
 
   // Право на управление — гейтит вкладку «Учебный цикл» (переходы статуса)
   const canManage = await hasEducationPrivilege(session, pickPrivilege(status, 'manage'), target)
+
+  // Блок «בקשת הנחה» — тем же правилом, что и сервер (POST discount-approvals).
+  const canRequestDiscount = await canRequestTuitionDiscount(session, j.primary_department_id)
 
   // Доп. данные: направления, общины, родственники, история статусов
   const [{ data: interests }, { data: communities }, { data: relatives }, { data: history }] = await Promise.all([
@@ -206,6 +210,7 @@ export default async function StudentViewPage(props: Props) {
       showReport
       showOverview
       routeBase="students"
+      canRequestDiscount={canRequestDiscount}
     />
   )
 }

@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { canManageEducationInAny } from '@/lib/education/permissions'
+import { canRequestTuitionDiscount } from '@/lib/finance/discount-request-access'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { isMissingTable } from '@/lib/supabase/errors'
@@ -15,8 +16,8 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * одобренной скидки к finance_discounts — отдельное действие финмодуля).
  *
  * GET — список (finance view / approve_discount / education-менеджер).
- * POST — запросить скидку для студентки (education manage_enrollments или
- *   finance create_invoice). Право УТВЕРЖДАТЬ — approve_discount (см. [id] PATCH).
+ * POST — запросить скидку для студентки (правило — canRequestTuitionDiscount,
+ *   lib/finance/discount-request-access.ts). Право УТВЕРЖДАТЬ — approve_discount (см. [id] PATCH).
  * Deploy-safe: нет таблицы → пусто.
  */
 
@@ -60,11 +61,18 @@ export async function POST(request: NextRequest) {
     const body = await parseBody(request, requestSchema)
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    const allowed = (await canManageEducationInAny(session, 'manage_enrollments'))
-      || (await hasFinancePrivilege(session, 'create_invoice'))
-    if (!allowed) return apiError('forbidden', 403)
-
     const sb = createServerClient()
+    // Подразделение journey — цель проверки права (см. canRequestTuitionDiscount).
+    const { data: journey, error: jErr } = await sb
+      .from('education_journeys')
+      .select('id, primary_department_id')
+      .eq('id', body.journey_id)
+      .maybeSingle()
+    if (jErr) throw jErr
+    if (!journey) return apiError('not_found', 404)
+    const deptId = (journey as { primary_department_id: string | null }).primary_department_id
+    if (!(await canRequestTuitionDiscount(session, deptId))) return apiError('forbidden', 403)
+
     // Дефолтный % — из finance_settings (deploy-safe fallback 90).
     let pct = body.requested_percent
     if (pct === undefined) {
