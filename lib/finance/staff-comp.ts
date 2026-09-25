@@ -25,6 +25,17 @@ export async function canApprovePayslip(session: SessionPayload | null): Promise
   return hasFinancePrivilege(session, 'approve_payment')
 }
 
+/**
+ * Разделение обязанностей (red-team 2026-09-25): сотрудник финансов НЕ создаёт,
+ * не меняет, не удаляет и не утверждает СОБСТВЕННУЮ зарплату (тарифы, записи,
+ * расчётный лист). Иначе держатель create_invoice/approve_payment мог начислить
+ * и утвердить себе выплату. Исключение — superadmin (владелец системы).
+ */
+export function isSelfCompTarget(session: SessionPayload, personId: string | null | undefined): boolean {
+  if (session.roles.includes('superadmin')) return false
+  return !!personId && personId === session.person_id
+}
+
 /** Границы месяца [from, to] в ISO 'YYYY-MM-DD' (to — включительно, последний день). */
 export function monthRange(year: number, month: number): { from: string; to: string } {
   const p = (n: number) => String(n).padStart(2, '0')

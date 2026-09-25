@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canViewStaffComp, canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
+import { canViewStaffComp, canManageStaffComp, monthRange, isSelfCompTarget } from '@/lib/finance/staff-comp'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -52,6 +52,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ pers
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (!(await canManageStaffComp(session))) return apiError('forbidden', 403)
+    if (isSelfCompTarget(session, params.personId)) return apiError('staff_comp_self_forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as {
       entry_type?: string; entry_date?: string; hours?: number; amount?: number
