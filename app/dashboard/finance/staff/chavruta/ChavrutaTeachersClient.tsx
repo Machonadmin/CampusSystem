@@ -1,17 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
-import { ForbiddenState } from '@/components/ui/ForbiddenState'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-
-// Решение владельца №6 (structure-review, 24.09.2026): моры хавруты и пары
-// управляются ТОЛЬКО в «מרכז חברותא» (/dashboard/education/chavruta). Здесь,
-// рядом с расчётными листами, список — только для просмотра, со ссылкой на хаб.
-// API не менялись (POST/DELETE по-прежнему доступны хабу).
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -22,6 +16,12 @@ interface Teacher {
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
+//
+// Решение владельца #6: «החברותא עצמו מנוהל בחברותא ובכספים מתעסקים בכספים».
+// Список мор хавруты и пары ведутся ТОЛЬКО в «מרכז חברותא»
+// (/dashboard/education/chavruta). Денежных полей на этом экране не было (тарифы
+// живут на карточке сотрудника), поэтому экран стал списком ТОЛЬКО ДЛЯ ЧТЕНИЯ со
+// ссылкой в хаб; добавление/удаление мор отсюда убрано.
 
 export default function ChavrutaTeachersClient() {
   const t = useTranslations('chavruta')
@@ -66,29 +66,23 @@ export default function ChavrutaTeachersClient() {
       ]} />
 
       {/* Header */}
-      <ModuleHeader module="finance" title={t('teachers_title')} subtitle={t('teachers_subtitle')} />
+      <ModuleHeader module="finance" title={t('teachers_title')} subtitle={t('teachers_readonly_subtitle')} />
 
       {!loaded ? (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
       ) : forbidden ? (
-        // Нет права просмотра — общий «אין לך הרשאה» (раньше тут ошибочно
-        // показывалось «עמוד זה מיועד למורות חברותא»).
-        <ForbiddenState />
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('not_a_teacher')}</div>
       ) : featureOff ? (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('feature_not_ready')}</div>
       ) : (
         <>
-          {/* Только просмотр: управление — в хабе (решение №6). */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('managed_in_hub_note')}</span>
-            <Link
-              href="/dashboard/education/chavruta"
-              style={{
-                padding: '8px 14px', fontSize: 13, fontWeight: 600, color: accent,
-                background: 'var(--surface-2)', border: '1px solid var(--border-strong)',
-                borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap',
-              }}
-            >{t('open_hub')}</Link>
+          {/* Управление — только в хабе хавруты */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 220, fontSize: 13, color: 'var(--text-muted)' }}>{t('teachers_readonly_hint')}</div>
+            <Link href="/dashboard/education/chavruta"
+              style={{ padding: '9px 18px', fontSize: 13, fontWeight: 600, background: accent, color: '#fff', borderRadius: 8, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              {t('manage_in_hub_link')}
+            </Link>
           </div>
 
           {/* Teachers table */}

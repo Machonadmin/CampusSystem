@@ -26,6 +26,7 @@
     "label_opened_at": "נפתח",
     "label_charged": "חויב",
     "label_collected": "נגבה",
+    "label_discounts": "הנחות",
     "label_outstanding": "יתרה",
     "label_building": "בניין",
     "label_room": "חדר",
@@ -41,7 +42,14 @@
     "section_documents": "מסמכים",
     "label_doc_total": "מסמכים פעילים",
     "label_doc_expiring": "עומדים לפוג",
-    "label_doc_expired": "פג תוקף"
+    "label_doc_expired": "פג תוקף",
+    "open_now_title": "פתוח עכשיו",
+    "open_now_empty": "אין פריטים פתוחים",
+    "open_now_error": "טעינת הפריטים הפתוחים נכשלה",
+    "open_now_type_alert": "התראה",
+    "open_now_type_absence": "היעדרות",
+    "open_now_type_task": "משימה",
+    "open_now_open": "פתח"
   },
   "common": {
     "actions": "פעולות",
@@ -1225,10 +1233,7 @@
           "type_kodesh": "קבוצת קודש",
           "pick_target": "בחר יעד",
           "apply": "שייך",
-          "result": "{ok} שויכו, {fail} נכשלו",
-          "advance_year": "קדם שנה +1",
-          "advance_confirm": "לקדם {n} תלמידות בשנה אחת (א→ב→ג)?",
-          "advance_result": "{ok} קודמו, {fail} נכשלו"
+          "result": "{ok} שויכו, {fail} נכשלו"
         },
         "empty_none": "אין עדיין תלמידות",
         "empty_search": "לא נמצאו תוצאות",
@@ -1983,7 +1988,11 @@
       "hours_short": "ש׳",
       "schedule": "מערכת שעות",
       "no_data": "אין מורים משובצים",
-      "room": "כיתה"
+      "room": "כיתה",
+      "month_label": "חודש",
+      "col_actual": "בפועל בחודש",
+      "actual_hint": "\"בפועל\" — שיעורים שהמזכירות אישרה (אותו מספר שנכנס לשכר)",
+      "no_end_time_warning": "{n} שיעורים מאושרים ללא שעת סיום — לא נספרו בשעות בפועל"
     },
     "teacher_attendance": {
       "title": "נוכחות מורים",
@@ -1992,7 +2001,7 @@
       "my_lessons_hint": "סמן שהעברת את השיעור. המזכירות תאשר.",
       "my_lessons_empty": "אין שיעורים בטווח התאריכים",
       "pending_title": "ממתין לאישור",
-      "pending_hint": "מורים שסימנו נוכחות — אשר או דחה",
+      "pending_hint": "מורים שסימנו נוכחות — אשר או דחה. רק שיעור מאושר נכנס לשכר.",
       "pending_empty": "אין בקשות לאישור",
       "report": "הייתי בשיעור",
       "re_report": "סמן שוב",
@@ -2000,7 +2009,10 @@
       "reject": "דחה",
       "status_reported": "ממתין",
       "status_approved": "אושר",
-      "status_rejected": "נדחה"
+      "status_rejected": "נדחה",
+      "flag_two_teachers": "שני מורים דיווחו",
+      "flag_via_student_attendance": "דווח דרך נוכחות תלמידות",
+      "flag_substitute": "מילוי מקום"
     },
     "teaching_surveys": {
       "title": "הערכת הוראה",
@@ -2220,7 +2232,11 @@
       "source_contract": "חוזה",
       "source_manual": "ידני",
       "set_quota": "קביעת מכסה",
-      "save": "שמור"
+      "save": "שמור",
+      "planned": "מתוכנן",
+      "actual": "בפועל",
+      "actual_hint": "\"בפועל\" — שיעורים שהמזכירות אישרה בקורסים אלה (כמו בשכר).",
+      "no_end_time_warning": "{n} שיעורים מאושרים ללא שעת סיום — לא נספרו ב\"בפועל\""
     },
     "kodesh_courses": {
       "title": "קורסים",
@@ -2280,7 +2296,8 @@
       "confirm_delete_type": "למחוק את הסוג «{name}»?",
       "type_in_use": "הסוג בשימוש — השבת אותו במקום למחוק",
       "deactivate": "השבת",
-      "activate": "הפעל"
+      "activate": "הפעל",
+      "student_filter_clear": "הצג את כל ההתראות"
     },
     "kodesh_home": {
       "title": "דף הבית של מחלקת היהדות",
@@ -2436,7 +2453,8 @@
       "maintenance_badge": "תחזוקה",
       "maintenance_toggle": "משימת תחזוקה",
       "maintenance_toggle_hint": "מוצגת גם במודול התחזוקה",
-      "maintenance_failed": "לא הצלחנו לעדכן את סימון התחזוקה"
+      "maintenance_failed": "לא הצלחנו לעדכן את סימון התחזוקה",
+      "student_label": "תלמידה קשורה"
     },
     "module": {
       "general": "כללי",
@@ -2544,7 +2562,11 @@
       "preview_yearly": "{day} ב{month} בכל שנה{time}",
       "add_to_calendar": "הוסף גם ליומן שלי",
       "maintenance_label": "זו משימת תחזוקה",
-      "maintenance_hint": "תוצג לו גם במודול התחזוקה, לא רק במשימות"
+      "maintenance_hint": "תוצג לו גם במודול התחזוקה, לא רק במשימות",
+      "student_label": "תלמידה קשורה (לא חובה)",
+      "student_none": "ללא תלמידה",
+      "student_search": "חיפוש תלמידה…",
+      "student_empty": "לא נמצאו תלמידות"
     }
   },
   "staff": {
@@ -3792,7 +3814,24 @@
       "sh_no_events": "אין אירוחים לחודש זה",
       "sh_delete": "מחיקה",
       "sh_confirm_delete": "למחוק את האירוח?",
-      "sh_save": "שמירה"
+      "sh_save": "שמירה",
+      "teaching_no_end_time_warning": "{n} שיעורים מאושרים ללא שעת סיום — לא נכללו בשכר. יש להשלים שעת סיום בשיעור.",
+      "cp_readonly_hint": "הזוגות מנוהלים במרכז החברותא. כל זוג פעיל מזכה בתשלום חברותא פלוס.",
+      "cp_manage_link": "ניהול מורים וזוגות בחברותא"
+    },
+    "discount_request": {
+      "title": "בקשת הנחה",
+      "hint": "אין הנחה אוטומטית. הבקשה נשלחת לאישור ידני של הכספים.",
+      "percent_label": "אחוז הנחה",
+      "percent_range": "אחוז ההנחה חייב להיות בין 0 ל-100",
+      "note_placeholder": "הערה (לא חובה)",
+      "submit": "שליחת בקשה",
+      "sending": "שולח…",
+      "sent": "הבקשה נשלחה לאישור",
+      "exists": "כבר קיימת בקשת הנחה ממתינה לתלמידה זו",
+      "forbidden": "אין לך הרשאה לבקש הנחה לתלמידה זו",
+      "not_migrated": "התכונה אינה זמינה — יש להחיל את מיגרציית מסד הנתונים",
+      "failed": "לא ניתן לשלוח את הבקשה"
     }
   },
   "dormitory": {
@@ -4661,7 +4700,18 @@
     "relation_community_contact": "איש קשר בקהילה",
     "relation_emergency_contact": "איש קשר לחירום",
     "relation_other": "אחר",
-    "clear": "ניקוי"
+    "clear": "ניקוי",
+    "person_link": {
+      "possible_match": "התאמה אפשרית",
+      "confirm": "אשר",
+      "reject": "לא אותו אדם",
+      "linked_to": "מקושר לאדם במאגר",
+      "linked_generic": "מקושר למאגר האנשים",
+      "unlink": "בטל קישור",
+      "pending_filter": "ממתין לאישור",
+      "action_error": "הפעולה נכשלה",
+      "unlink_confirm": "לבטל את הקישור לאדם במאגר?"
+    }
   },
   "calendar": {
     "form_invitees": "משתתפים",
@@ -5024,6 +5074,9 @@
     "specialty_other_department": "ההתמחות שייכת למחלקה אחרת",
     "subject_other_department": "המקצוע שייך למחלקה אחרת",
     "cannot_add_self_relative": "לא ניתן להוסיף את עצמך כקרוב משפחה",
+    "staff_comp_self_forbidden": "לא ניתן לשנות או לאשר את השכר של עצמך",
+    "cannot_edit_own_position": "לא ניתן לשנות את התפקיד של עצמך",
+    "cannot_change_own_privileges": "לא ניתן לשנות את ההרשאות של עצמך",
     "person_or_relative_not_exist": "האדם או קרוב המשפחה אינם קיימים",
     "db_constraint_max_score": "הופר אילוץ במסד הנתונים (בדוק את max_score)",
     "db_constraint_slot": "הופר אילוץ במסד הנתונים (יום בשבוע 1–7, סוף מאוחר מהתחלה)",
@@ -5173,7 +5226,10 @@
     "semester_exists": "כבר קיים סמסטר עם אותו מסלול, שנה ומספר סמסטר: {name}",
     "track_no_department": "למסלול של המקצוע אין מחלקה משויכת — לא ניתן ליצור סמסטר",
     "subject_already_in_semesters": "המקצוע כבר נמצא בסמסטר 1 ובסמסטר 2 של המסלול והשנה שלו",
-    "subject_courses_no_privilege": "המקצוע נוצר, אך אין לך הרשאה ליצור קורסים — המקצוע לא נוסף לסמסטרים"
+    "subject_courses_no_privilege": "המקצוע נוצר, אך אין לך הרשאה ליצור קורסים — המקצוע לא נוסף לסמסטרים",
+    "task_student_tag_invalid": "התלמידה שנבחרה לא נמצאה או אינה תואמת",
+    "task_student_tag_locked": "לא ניתן לשנות תלמידה במשימה אוטומטית של ועדת הקבלה",
+    "payslip_month_approved": "תלוש השכר לחודש זה כבר אושר — לא ניתן לחשב מחדש שעות הוראה"
   },
   "workflow": {
     "error": "שגיאה"
@@ -5305,7 +5361,9 @@
       "students": "תלמידות",
       "collection": "אחוז גבייה"
     },
-    "my_maintenance": "קריאות התחזוקה שלי"
+    "my_maintenance": "קריאות התחזוקה שלי",
+    "my_alerts": "התראות פתוחות",
+    "my_absences": "היעדרויות פתוחות"
   },
   "search": {
     "placeholder": "חיפוש אדם…",
@@ -5414,7 +5472,7 @@
     "hub_subtitle": "מאגר מורות ושיוך תלמידות למורות החברותא",
     "pool_title": "מאגר מורות",
     "assign_title": "שיוך חברותא",
-    "assign_hint": "שייכי מורה לתלמידה למעקב אחר חברותות. השיוך אינו משפיע על שכר.",
+    "assign_hint": "שייכי מורה לתלמידה. כל זוג פעיל מזכה את המורה בתשלום חברותא פלוס (התעריף נקבע בכספים).",
     "assign_pair": "שיוך",
     "select_teacher": "בחר מורה",
     "no_pairs": "עדיין אין שיוכים",
@@ -5428,7 +5486,10 @@
     "error": "אירעה שגיאה",
     "managed_in_hub_note": "מורות וחברותות מנהלים במרכז החברותא",
     "open_hub": "למרכז החברותא",
-    "unpair": "ביטול שיוך"
+    "unpair": "ביטול שיוך",
+    "manage_in_hub_link": "ניהול מורים וזוגות בחברותא",
+    "teachers_readonly_hint": "רשימת מורות החברותא והזוגות מנוהלים במרכז החברותא. כאן — לצפייה בלבד.",
+    "teachers_readonly_subtitle": "מורות החברותא — לצפייה בלבד"
   },
   "impersonation": {
     "viewing_as": "אתה צופה כ־{name}",

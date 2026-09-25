@@ -20,6 +20,8 @@ export async function GET(
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
+    // Настройки процесса — только для штата, не для портального токена.
+    if (session.principal === 'student') return apiError('forbidden', 403)
 
     const sb = createServerClient()
 

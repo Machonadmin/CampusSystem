@@ -9,7 +9,12 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 
 interface Slot { group_name: string; day_of_week: number; start_time: string; end_time: string; room: string | null }
-interface Teacher { person_id: string; name: string; groups_count: number; weekly_hours: number; slots: Slot[] }
+interface Teacher { person_id: string; name: string; groups_count: number; weekly_hours: number; actual_hours?: number; actual_lessons?: number; actual_no_end_time?: number; slots: Slot[] }
+
+function currentMonth(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
 
 // ISO day_of_week (1=Пн..7=Вс) → локализованное имя дня (через Intl, без таблиц).
 function dayName(lang: string, iso: number): string {
@@ -30,16 +35,22 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
+  // Месяц факта (YYYY-MM). Факт = подтверждённые секретариатом уроки — та же
+  // цифра, что пойдёт в зарплату.
+  const [ym, setYm] = useState<string>(currentMonth())
+  const [noEndTime, setNoEndTime] = useState(0)
 
   useEffect(() => {
     let alive = true
-    fetch('/api/education/teachers-hours')
+    const [y, m] = ym.split('-')
+    setLoaded(false); setError(false)
+    fetch(`/api/education/teachers-hours?year=${encodeURIComponent(y ?? '')}&month=${encodeURIComponent(String(Number(m ?? '')))}`)
       .then(r => { if (!r.ok) throw new Error('load'); return r.json() })
-      .then(d => { if (alive) setTeachers(d.teachers ?? []) })
+      .then(d => { if (alive) { setTeachers(d.teachers ?? []); setNoEndTime(Number(d.actual_no_end_time ?? 0)) } })
       .catch(() => { if (alive) setError(true) })
       .finally(() => { if (alive) setLoaded(true) })
     return () => { alive = false }
-  }, [])
+  }, [ym])
 
   const th: React.CSSProperties = { textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5, padding: '10px 14px', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }
   const td: React.CSSProperties = { fontSize: 13, color: 'var(--text)', padding: '11px 14px', borderBottom: '1px solid var(--surface-2)' }
@@ -58,6 +69,20 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
         </>
       )}
 
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--text-muted)' }}>
+          {t('month_label')}
+          <input type="month" value={ym} onChange={e => { if (e.target.value) setYm(e.target.value) }}
+            style={{ fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }} />
+        </label>
+        <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('actual_hint')}</span>
+      </div>
+      {loaded && !error && noEndTime > 0 && (
+        <div style={{ fontSize: 12.5, color: 'var(--warn)', background: 'var(--warn-tint)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px' }}>
+          {t('no_end_time_warning').replace('{n}', String(noEndTime))}
+        </div>
+      )}
+
       {!loaded ? (
         <SkeletonRows />
       ) : error ? (
@@ -72,6 +97,7 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
                 <th style={th}>{t('col_teacher')}</th>
                 <th style={th}>{t('col_groups')}</th>
                 <th style={th}>{t('col_hours')}</th>
+                <th style={th}>{t('col_actual')}</th>
                 <th style={{ ...th, textAlign: 'end' }}></th>
               </tr>
             </thead>
@@ -87,11 +113,18 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
                         <span style={{ fontWeight: 700, color: 'var(--accent-strong)' }}>{tc.weekly_hours}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 3 }}>{t('hours_short')}</span>
                       </td>
+                      <td style={td} data-label={t('col_actual')}>
+                        <span style={{ fontWeight: 700, color: 'var(--text)' }}>{tc.actual_hours ?? 0}</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 3 }}>{t('hours_short')}</span>
+                        {(tc.actual_no_end_time ?? 0) > 0 && (
+                          <span title={t('no_end_time_warning').replace('{n}', String(tc.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 6 }}>⚠ {tc.actual_no_end_time}</span>
+                        )}
+                      </td>
                       <td style={{ ...td, textAlign: 'end', color: 'var(--text-faint)' }} data-label="">{tc.slots.length > 0 ? (open ? '▲' : '▼') : ''}</td>
                     </tr>
                     {open && tc.slots.length > 0 && (
                       <tr>
-                        <td colSpan={4} data-label="" style={{ padding: '0 14px 12px', background: 'var(--surface-2)' }}>
+                        <td colSpan={5} data-label="" style={{ padding: '0 14px 12px', background: 'var(--surface-2)' }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4, padding: '10px 0 6px' }}>{t('schedule')}</div>
                           <div style={{ display: 'grid', gap: 5 }}>
                             {tc.slots.map((s, i) => (

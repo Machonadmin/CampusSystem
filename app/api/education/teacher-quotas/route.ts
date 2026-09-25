@@ -12,6 +12,7 @@ import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { sumAssignedHoursByTeacher, computeRemaining, isOverQuota, type CourseHours } from '@/lib/education/teacher-quota'
 import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
+import { actualTeachingHours } from '@/lib/education/teacher-hours'
 
 /**
  * Часовые квоты преподавателей кодеша (spec §3.6). GET отдаёт по каждому
@@ -22,10 +23,15 @@ import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
  * assigned = сумма class_groups.hours активных курсов кодеша преподавателя.
  * ⚠ Гранулярность по году/семестру приблизительная: assigned берётся по ВСЕМ
  * активным курсам кодеша (курсы не несут year_label напрямую).
+ * actual (решение владельца #5) = ФАКТ: часы подтверждённых секретариатом уроков
+ * тех же активных курсов кодеша (teacher_attendance.status='approved', не
+ * отменённые) за всё время курсов — тот же расчёт, что и в зарплате
+ * (lib/education/teacher-hours.ts). Экран показывает «מתוכנן» и «בפועל» рядом;
+ * remaining/over по-прежнему считаются от запланированного.
  * Deploy-safe: нет таблиц/колонок → пусто/0.
  */
 
-async function loadAssignedHours(sb: ReturnType<typeof createServerClient>): Promise<Map<string, number>> {
+async function loadAssignedHours(sb: ReturnType<typeof createServerClient>): Promise<{ assigned: Map<string, number>; courseIds: string[] }> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: courses, error } = await (sb.from('class_groups') as any)
@@ -34,11 +40,11 @@ async function loadAssignedHours(sb: ReturnType<typeof createServerClient>): Pro
       .eq('is_active', true)
       .not('parent_semester_id', 'is', null)
     if (error) {
-      if (isMissingRelation(error)) return new Map()
+      if (isMissingRelation(error)) return { assigned: new Map(), courseIds: [] }
       throw error
     }
     const rows = (courses ?? []) as Array<{ id: string; hours: number | null }>
-    if (rows.length === 0) return new Map()
+    if (rows.length === 0) return { assigned: new Map(), courseIds: [] }
     const { data: ct, error: ctErr } = await sb
       .from('class_teachers').select('class_group_id, teacher_id').in('class_group_id', rows.map(r => r.id))
     if (ctErr) throw ctErr
@@ -49,9 +55,9 @@ async function loadAssignedHours(sb: ReturnType<typeof createServerClient>): Pro
       teachersByCourse.set(r.class_group_id, arr)
     }
     const courseHours: CourseHours[] = rows.map(r => ({ hours: r.hours, teacherIds: teachersByCourse.get(r.id) ?? [] }))
-    return sumAssignedHoursByTeacher(courseHours)
+    return { assigned: sumAssignedHoursByTeacher(courseHours), courseIds: rows.map(r => r.id) }
   } catch (e) {
-    if (isMissingRelation(e)) return new Map()
+    if (isMissingRelation(e)) return { assigned: new Map(), courseIds: [] }
     throw e
   }
 }
@@ -67,7 +73,9 @@ export async function GET(request: NextRequest) {
     const year = new URL(request.url).searchParams.get('year')?.trim()
     const sb = createServerClient()
 
-    const assigned = await loadAssignedHours(sb)
+    const { assigned, courseIds } = await loadAssignedHours(sb)
+    // Факт по тем же курсам кодеша, за всё время курсов (широкий диапазон дат).
+    const actual = await actualTeachingHours(sb, { from: '2000-01-01', to: '2100-12-31', classGroupIds: courseIds })
 
     let quotas: Array<{ id: string; teacher_id: string; year_label: string; term_number: number | null; approved_hours: number; source: string; note: string | null }> = []
     try {
@@ -82,7 +90,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Множество преподавателей: с квотой ∪ с назначенными часами.
-    const teacherIds = new Set<string>([...quotas.map(q => q.teacher_id), ...assigned.keys()])
+    const teacherIds = new Set<string>([...quotas.map(q => q.teacher_id), ...assigned.keys(), ...actual.byTeacher.keys()])
     const names = new Map<string, string>()
     if (teacherIds.size > 0) {
       const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', [...teacherIds])
@@ -105,12 +113,14 @@ export async function GET(request: NextRequest) {
         term_number: q?.term_number ?? null,
         note: q?.note ?? null,
         assigned_hours: assignedHours,
+        actual_hours: actual.byTeacher.get(tid)?.hours ?? 0,
+        actual_no_end_time: actual.byTeacher.get(tid)?.no_end_time ?? 0,
         remaining: approved !== null ? computeRemaining(approved, assignedHours) : null,
         over: isOverQuota(approved, assignedHours),
       }
     }).sort((a, b) => a.name.localeCompare(b.name, 'he'))
 
-    return NextResponse.json({ quotas: items })
+    return NextResponse.json({ quotas: items, actual_no_end_time: actual.noEndTime })
   } catch (err: unknown) {
     return jsonError(err)
   }

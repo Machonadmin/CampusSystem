@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { ACCEPTANCE_PROCESS_CODES } from '@/lib/workflow/acceptance-codes'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 /**
  * GET /api/education/journeys/[id]/timeline — единая хронология по абитуриентке/
@@ -39,13 +40,14 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     // journey → person + подразделение (для проверки прав) + процессы/этапы приёма.
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('id, person_id, primary_department_id')
+      .select('id, person_id, education_status, primary_department_id, desired_department_id')
       .eq('id', params.id)
       .maybeSingle()
     if (!journey) return apiError('journey_not_found', 404)
     const personId = (journey as { person_id: string }).person_id
-    const dept = (journey as { primary_department_id?: string | null }).primary_department_id ?? null
-    const target = dept ? { department_id: dept } : undefined
+    // Подразделение — как у списков (у лида/абитуриентки desired); без
+    // подразделения — journeyTarget (лид — общий пул, остальные — только 'all').
+    const target = journeyTarget(journey as Parameters<typeof journeyTarget>[0])
 
     const allowed = session.roles.includes('superadmin')
       || (await hasEducationPrivilege(session, 'view_applicants', target))

@@ -10,12 +10,13 @@
 // изменяет ни их файлы, ни их таблицы, ни их поведение.
 
 import { centsToNumber } from '@/lib/finance/money'
-import { isOverdue, PRIORITY_RANK } from '@/lib/maintenance/tickets'
+import { isOverdue, PRIORITY_RANK, statusCounts } from '@/lib/maintenance/tickets'
 import { visitStats, type VisitLike } from '@/lib/doctor/medical'
 import { sessionStats, type SessionLike } from '@/lib/psychologist/counseling'
 import { documentStats, type DocLike } from '@/lib/documents/expiry'
 import { donationStats, type DonationStatLike } from '@/lib/sponsors/donations'
 import { incidentStats } from '@/lib/security/incidents'
+import { isActiveOn as isDormActiveOn } from '@/lib/dormitory/occupancy'
 
 // ─── Студенты: разбивка по статусу обучения ──────────────────────────────────
 
@@ -240,4 +241,111 @@ export function securitySummary(
 ): { active: number; open: number; investigating: number; by_severity: Record<string, number> } {
   const s = incidentStats(incidents)
   return { active: s.active, open: s.open, investigating: s.investigating, by_severity: s.by_severity }
+}
+
+// ─── ЕДИНЫЙ ИСТОЧНИК: чистые агрегаторы для серверных загрузчиков ────────────
+//
+// Используются lib/reports/metrics.ts, который вызывают И «דוחות» (/api/reports/*),
+// И сводки модулей — чтобы одно и то же число было одинаковым на всех экранах.
+
+/**
+ * Финансовые итоги из строк (суммы в КОПЕЙКАХ, целые):
+ *   chargeCentsByJourney   — Σ активных начислений по journey,
+ *   paymentCentsByJourney  — Σ подтверждённых платежей по journey,
+ *   discountCentsByJourney — Σ скидок по активным счетам journey.
+ * Должник = journey с балансом (начислено − скидки − оплачено) > 0.
+ * Возвращает общие суммы (копейки) и число должников.
+ */
+export function financeTotalsFromMaps(
+  chargeCentsByJourney: Map<string, number>,
+  paymentCentsByJourney: Map<string, number>,
+  discountCentsByJourney: Map<string, number>,
+): { chargesCents: number; paymentsCents: number; discountsCents: number; debtorCount: number } {
+  let chargesCents = 0
+  for (const c of chargeCentsByJourney.values()) chargesCents += c
+  let paymentsCents = 0
+  for (const c of paymentCentsByJourney.values()) paymentsCents += c
+  let discountsCents = 0
+  for (const c of discountCentsByJourney.values()) discountsCents += c
+
+  let debtorCount = 0
+  const ids = new Set<string>([...chargeCentsByJourney.keys(), ...paymentCentsByJourney.keys()])
+  for (const jid of ids) {
+    const balance =
+      (chargeCentsByJourney.get(jid) ?? 0) -
+      (discountCentsByJourney.get(jid) ?? 0) -
+      (paymentCentsByJourney.get(jid) ?? 0)
+    if (balance > 0) debtorCount++
+  }
+  return { chargesCents, paymentsCents, discountsCents, debtorCount }
+}
+
+/**
+ * Полная статистика заявок обслуживания из ОДНИХ строк: форма модуля
+ * (status_counts / total_overdue / total) и форма «דוחות» (summary) —
+ * total_overdue и summary.overdue всегда равны (один и тот же isOverdue).
+ */
+export function maintenanceTicketStats(
+  tickets: { status: string; priority: string; reported_at: string }[],
+  nowISO: string,
+): {
+  total: number
+  status_counts: Record<string, number>
+  total_overdue: number
+  summary: { open: number; in_progress: number; overdue: number; by_priority: Record<string, number> }
+} {
+  const status_counts = statusCounts(tickets)
+  const summary = maintenanceSummary(tickets, nowISO)
+  return { total: tickets.length, status_counts, total_overdue: summary.overdue, summary }
+}
+
+export interface BuildingOccupancy {
+  building_id: string
+  rooms_count: number
+  total_capacity: number
+  occupied: number
+  free: number
+}
+
+/**
+ * Занятость по зданиям + общий итог из ОДНИХ строк. Занято = назначения,
+ * активные на todayISO (reuse isActiveOn — то же правило, что dormitory/occupancy).
+ * Комнаты чужих (не переданных) зданий не учитываются. Общий итог = сумма по
+ * зданиям, поэтому сумма плиток зданий всегда равна числу в «דוחות».
+ */
+export function aggregateOccupancy(
+  buildingIds: string[],
+  rooms: { id: string; building_id: string; capacity: number }[],
+  assignmentsByRoom: Map<string, { assigned_from: string; assigned_to: string | null; status: string }[]>,
+  todayISO: string,
+): {
+  buildings: BuildingOccupancy[]
+  total: ReturnType<typeof occupancySummary> & { building_count: number; room_count: number }
+} {
+  const agg = new Map<string, BuildingOccupancy>()
+  for (const id of buildingIds) {
+    agg.set(id, { building_id: id, rooms_count: 0, total_capacity: 0, occupied: 0, free: 0 })
+  }
+  let roomCount = 0
+  for (const r of rooms) {
+    const a = agg.get(r.building_id)
+    if (!a) continue
+    roomCount++
+    a.rooms_count += 1
+    a.total_capacity += r.capacity ?? 0
+    a.occupied += (assignmentsByRoom.get(r.id) ?? []).filter(x => isDormActiveOn(x, todayISO)).length
+  }
+  let cap = 0
+  let occ = 0
+  const buildings = buildingIds.map(id => {
+    const a = agg.get(id)!
+    a.free = Math.max(0, a.total_capacity - a.occupied)
+    cap += a.total_capacity
+    occ += a.occupied
+    return a
+  })
+  return {
+    buildings,
+    total: { ...occupancySummary(cap, occ), building_count: buildingIds.length, room_count: roomCount },
+  }
 }

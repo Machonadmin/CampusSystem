@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireReportsPrivilege, requireReportModule } from '@/lib/reports/permissions'
 import { errorResponse } from '@/lib/reports/http'
-import { pageAll } from '@/lib/reports/paging'
-import { maintenanceSummary } from '@/lib/reports/summaries'
+import { loadMaintenanceTicketStats } from '@/lib/reports/metrics'
 
 /**
  * GET /api/reports/maintenance — READ-ONLY.
@@ -28,17 +27,9 @@ export async function GET() {
     await requireReportModule('maintenance')
     const sb = createServerClient()
 
-    const nowISO = new Date().toISOString()
-    const tickets = await pageAll<{ status: string; priority: string; reported_at: string }>(
-      (from, to) =>
-        sb
-          .from('maintenance_requests')
-          .select('status, priority, reported_at')
-          .order('id', { ascending: true })
-          .range(from, to),
-    )
-
-    return NextResponse.json(maintenanceSummary(tickets, nowISO))
+    // ЕДИНЫЙ источник с модулем (/api/maintenance/stats): loadMaintenanceTicketStats.
+    const { summary } = await loadMaintenanceTicketStats(sb)
+    return NextResponse.json(summary)
   } catch (err: unknown) {
     return errorResponse(err)
   }

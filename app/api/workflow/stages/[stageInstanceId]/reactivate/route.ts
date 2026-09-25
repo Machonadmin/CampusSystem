@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, type EducationPrivilege, type PrivilegeTarget } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 type EduWriteScope = 'view' | 'manage'
 
@@ -48,17 +49,17 @@ export async function POST(
     const journeyId = (si?.process_instance as unknown as { journey_id: string } | null)?.journey_id ?? null
 
     let eduStatus: string | null = null
-    let targetDept: string | null = null
+    let jTarget: PrivilegeTarget | undefined
     if (journeyId) {
       const { data: journey } = await sb
         .from('education_journeys')
-        .select('education_status, primary_department_id')
+        .select('education_status, primary_department_id, desired_department_id')
         .eq('id', journeyId)
         .maybeSingle()
       eduStatus = journey?.education_status ?? null
-      targetDept = journey?.primary_department_id ?? null
+      jTarget = journey ? journeyTarget(journey) : { unassigned: true }
     }
-    const target = targetDept ? { department_id: targetDept } : undefined
+    const target = jTarget
 
     await requireEducationPrivilege(pickPrivilege(eduStatus, 'manage'), target)
 

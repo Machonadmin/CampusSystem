@@ -6,6 +6,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-date'
 import { isMaintenanceTask } from '@/lib/tasks/maintenance-link'
 import type { useTaskDetail, Comment } from './useTaskDetail'
+import StudentChip from './StudentChip'
 
 /**
  * Общее тело карточки задачи (заголовок → метаданные → наблюдатели → действия →
@@ -94,6 +95,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
                 🔧 {t('card.maintenance_badge')}
               </span>
             )}
+            <StudentChip student={task.student} />
           </div>
           {headerExtra}
         </div>

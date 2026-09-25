@@ -6,11 +6,13 @@ import { canDoEducationInAny, hasEducationPrivilege, requireEducationPrivilege }
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { getAlertStudentScope, getAlertManageScope } from '@/lib/education/alert-scope'
 
 /**
  * Оповещения по студенткам (student_alerts, spec §3.8/§4.4).
  *
- * GET — список с фильтрами (state/type_code/severity/student_id) ИЛИ counts=1 +
+ * GET — список с фильтрами (state/type_code/severity/student_id; state=open —
+ *   все незакрытые; handler=1 — только для manage_alerts) ИЛИ counts=1 +
  *   student_ids=a,b — счётчики открытых (state<>'closed') по студенткам.
  *   Чувствительные строки (is_sensitive) видны только с view_sensitive_alerts
  *   (иначе исключаются и из списка, и из счётчиков). Право: view_students.
@@ -32,12 +34,21 @@ export async function GET(request: NextRequest) {
     if (!allowed) return apiError('forbidden', 403)
 
     const url = new URL(request.url)
+    // ?handler=1 — блок «העבודה שלי» на главной показывается ТОЛЬКО тем, кто
+    // обрабатывает оповещения (manage_alerts; решение владельца). Остальным —
+    // 403, и блок прячется, как прочие блоки главной.
+    if (url.searchParams.get('handler') === '1' && !(await hasEducationPrivilege(session, 'manage_alerts'))) {
+      return apiError('forbidden', 403)
+    }
     const sb = createServerClient()
     const seeSensitive = await canSeeSensitive(session)
+    // Только студентки в scope права (подразделение / свои группы); null — все.
+    const studentScope = await getAlertStudentScope(sb, session)
 
     // Режим счётчиков.
     if (url.searchParams.get('counts') === '1') {
       const ids = (url.searchParams.get('student_ids') ?? '').split(',').map(s => s.trim()).filter(Boolean)
+        .filter(id => !studentScope || studentScope.has(id))
       if (ids.length === 0) return NextResponse.json({ counts: {} })
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,14 +71,20 @@ export async function GET(request: NextRequest) {
       let q = (sb.from('student_alerts') as any)
         .select('id, student_id, type_code, source_module, severity, title, body, reported_by, state, handled_by, handled_at, is_sensitive, created_at, student:persons!student_alerts_student_id_fkey(id, full_name, hebrew_name)')
         .order('created_at', { ascending: false })
-      const state = url.searchParams.get('state'); if (state) q = q.eq('state', state)
+      // state=open — «все незакрытые» (state<>'closed'), как в режиме счётчиков.
+      const state = url.searchParams.get('state')
+      if (state === 'open') q = q.neq('state', 'closed')
+      else if (state) q = q.eq('state', state)
       const typeCode = url.searchParams.get('type_code'); if (typeCode) q = q.eq('type_code', typeCode)
       const severity = url.searchParams.get('severity'); if (severity) q = q.eq('severity', severity)
       const studentId = url.searchParams.get('student_id'); if (studentId) q = q.eq('student_id', studentId)
       if (!seeSensitive) q = q.eq('is_sensitive', false)
       const { data, error } = await q
       if (error) throw error
-      return NextResponse.json({ alerts: data ?? [], can_see_sensitive: seeSensitive })
+      const alerts = studentScope
+        ? ((data ?? []) as Array<{ student_id: string }>).filter(a => studentScope.has(a.student_id))
+        : (data ?? [])
+      return NextResponse.json({ alerts, can_see_sensitive: seeSensitive })
     } catch (e) {
       if (isMissingTable(e)) return NextResponse.json({ alerts: [], can_see_sensitive: seeSensitive })
       throw e
@@ -92,6 +109,10 @@ export async function POST(request: NextRequest) {
     const body = await parseBody(request, createSchema)
     const session = await requireEducationPrivilege('manage_alerts')
     const sb = createServerClient()
+
+    // Оповещение можно создать только на студентку в своей зоне (как GET/PATCH).
+    const scope = await getAlertManageScope(sb, session)
+    if (scope && !scope.has(body.student_id)) return apiError('forbidden', 403)
 
     // is_sensitive по умолчанию — из типа.
     let isSensitive = body.is_sensitive

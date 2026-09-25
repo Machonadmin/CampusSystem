@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { requireStaff, errorResponse } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireFeaturePrivilege } from '@/lib/auth/feature-privileges'
@@ -16,7 +16,7 @@ function countQuestions(structure: Structure): number {
 
 export async function GET() {
   try {
-    await requireAuth()
+    await requireStaff()
     const sb = createServerClient()
 
     const { data, error } = await sb

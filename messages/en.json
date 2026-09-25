@@ -26,6 +26,7 @@
     "label_opened_at": "Opened",
     "label_charged": "Charged",
     "label_collected": "Collected",
+    "label_discounts": "Discounts",
     "label_outstanding": "Outstanding",
     "label_building": "Building",
     "label_room": "Room",
@@ -41,7 +42,14 @@
     "section_documents": "Documents",
     "label_doc_total": "Active",
     "label_doc_expiring": "Expiring soon",
-    "label_doc_expired": "Expired"
+    "label_doc_expired": "Expired",
+    "open_now_title": "Open now",
+    "open_now_empty": "No open items",
+    "open_now_error": "Failed to load open items",
+    "open_now_type_alert": "Alert",
+    "open_now_type_absence": "Absence",
+    "open_now_type_task": "Task",
+    "open_now_open": "Open"
   },
   "common": {
     "actions": "Actions",
@@ -1225,10 +1233,7 @@
           "type_kodesh": "Kodesh group",
           "pick_target": "Pick target",
           "apply": "Assign",
-          "result": "{ok} assigned, {fail} failed",
-          "advance_year": "Advance year +1",
-          "advance_confirm": "Advance {n} students by one year (1→2→3)?",
-          "advance_result": "{ok} advanced, {fail} failed"
+          "result": "{ok} assigned, {fail} failed"
         },
         "empty_none": "No students yet",
         "empty_search": "Nothing found",
@@ -1983,7 +1988,11 @@
       "hours_short": "h",
       "schedule": "Schedule",
       "no_data": "No teachers assigned",
-      "room": "Room"
+      "room": "Room",
+      "month_label": "Month",
+      "col_actual": "Actual this month",
+      "actual_hint": "\"Actual\" — lessons approved by the secretariat (the same number that goes into pay)",
+      "no_end_time_warning": "{n} approved lessons have no end time — not counted in actual hours"
     },
     "teacher_attendance": {
       "title": "Teacher attendance",
@@ -1992,7 +2001,7 @@
       "my_lessons_hint": "Mark that you taught the lesson. The secretariat will approve.",
       "my_lessons_empty": "No lessons in the date range",
       "pending_title": "Awaiting approval",
-      "pending_hint": "Teachers who marked attendance — approve or reject",
+      "pending_hint": "Teachers who marked attendance — approve or reject. Only approved lessons are paid.",
       "pending_empty": "No requests to approve",
       "report": "I was there",
       "re_report": "Mark again",
@@ -2000,7 +2009,10 @@
       "reject": "Reject",
       "status_reported": "Pending",
       "status_approved": "Approved",
-      "status_rejected": "Rejected"
+      "status_rejected": "Rejected",
+      "flag_two_teachers": "Two teachers reported",
+      "flag_via_student_attendance": "Reported via student attendance",
+      "flag_substitute": "Substitute"
     },
     "teaching_surveys": {
       "title": "Teaching evaluation",
@@ -2220,7 +2232,11 @@
       "source_contract": "Contract",
       "source_manual": "Manual",
       "set_quota": "Set quota",
-      "save": "Save"
+      "save": "Save",
+      "planned": "Planned",
+      "actual": "Actual",
+      "actual_hint": "\"Actual\" — lessons in these courses approved by the secretariat (as in pay).",
+      "no_end_time_warning": "{n} approved lessons have no end time — not counted in \"Actual\""
     },
     "kodesh_courses": {
       "title": "Kodesh courses",
@@ -2280,7 +2296,8 @@
       "confirm_delete_type": "Delete type “{name}”?",
       "type_in_use": "Type is in use — deactivate instead",
       "deactivate": "Deactivate",
-      "activate": "Activate"
+      "activate": "Activate",
+      "student_filter_clear": "Show all alerts"
     },
     "kodesh_home": {
       "title": "Judaism department home",
@@ -2436,7 +2453,8 @@
       "maintenance_badge": "Maintenance",
       "maintenance_toggle": "Maintenance task",
       "maintenance_toggle_hint": "Also shown in the Maintenance module",
-      "maintenance_failed": "Could not update the maintenance flag"
+      "maintenance_failed": "Could not update the maintenance flag",
+      "student_label": "Related student"
     },
     "module": {
       "general": "General",
@@ -2544,7 +2562,11 @@
       "preview_yearly": "{month} {day} every year{time}",
       "add_to_calendar": "Also add to my calendar",
       "maintenance_label": "This is a maintenance task",
-      "maintenance_hint": "It will also show in the Maintenance module, not only in Tasks"
+      "maintenance_hint": "It will also show in the Maintenance module, not only in Tasks",
+      "student_label": "Related student (optional)",
+      "student_none": "No student",
+      "student_search": "Search student…",
+      "student_empty": "No students found"
     }
   },
   "staff": {
@@ -3792,7 +3814,24 @@
       "sh_no_events": "No events this month",
       "sh_delete": "Delete",
       "sh_confirm_delete": "Delete this event?",
-      "sh_save": "Save"
+      "sh_save": "Save",
+      "teaching_no_end_time_warning": "{n} approved lessons have no end time — not included in pay. Add an end time to the lesson.",
+      "cp_readonly_hint": "Pairs are managed in the Chavruta hub. Every active pair earns chavruta-plus pay.",
+      "cp_manage_link": "Manage chavruta teachers and pairs"
+    },
+    "discount_request": {
+      "title": "Discount request",
+      "hint": "There is no automatic discount. The request goes to finance for manual approval.",
+      "percent_label": "Discount percent",
+      "percent_range": "Discount percent must be between 0 and 100",
+      "note_placeholder": "Note (optional)",
+      "submit": "Send request",
+      "sending": "Sending…",
+      "sent": "Request sent for approval",
+      "exists": "A pending discount request already exists for this student",
+      "forbidden": "You are not allowed to request a discount for this student",
+      "not_migrated": "Feature unavailable — the database migration must be applied",
+      "failed": "Could not send the request"
     }
   },
   "dormitory": {
@@ -4661,7 +4700,18 @@
     "relation_community_contact": "Community contact",
     "relation_emergency_contact": "Emergency contact",
     "relation_other": "Other",
-    "clear": "Clear"
+    "clear": "Clear",
+    "person_link": {
+      "possible_match": "Possible match",
+      "confirm": "Confirm",
+      "reject": "Not the same person",
+      "linked_to": "Linked to person",
+      "linked_generic": "Linked to the people database",
+      "unlink": "Unlink",
+      "pending_filter": "Pending confirmation",
+      "action_error": "Action failed",
+      "unlink_confirm": "Remove the link to the person in the database?"
+    }
   },
   "calendar": {
     "form_invitees": "Participants",
@@ -5024,6 +5074,9 @@
     "specialty_other_department": "The specialty belongs to a different department",
     "subject_other_department": "The subject belongs to a different department",
     "cannot_add_self_relative": "You cannot add yourself as a relative",
+    "staff_comp_self_forbidden": "You cannot change or approve your own pay",
+    "cannot_edit_own_position": "You cannot change your own position",
+    "cannot_change_own_privileges": "You cannot change your own permissions",
     "person_or_relative_not_exist": "Person or relative does not exist",
     "db_constraint_max_score": "Database constraint violated (check max_score)",
     "db_constraint_slot": "Database constraint violated (day of week 1–7, end later than start)",
@@ -5173,7 +5226,10 @@
     "semester_exists": "A semester with the same track, year and semester number already exists: {name}",
     "track_no_department": "The subject's track has no department — cannot create a semester",
     "subject_already_in_semesters": "The subject is already in semester 1 and semester 2 of its track and year",
-    "subject_courses_no_privilege": "Subject created, but you are not allowed to create courses — it was not added to semesters"
+    "subject_courses_no_privilege": "Subject created, but you are not allowed to create courses — it was not added to semesters",
+    "task_student_tag_invalid": "The selected student was not found or does not match",
+    "task_student_tag_locked": "The student of an automatic admission task cannot be changed",
+    "payslip_month_approved": "The payslip for this month is already approved — teaching hours cannot be recalculated"
   },
   "workflow": {
     "error": "Error"
@@ -5305,7 +5361,9 @@
       "students": "Students",
       "collection": "Collection"
     },
-    "my_maintenance": "My maintenance requests"
+    "my_maintenance": "My maintenance requests",
+    "my_alerts": "Open alerts",
+    "my_absences": "Open absences"
   },
   "search": {
     "placeholder": "Search a person…",
@@ -5414,7 +5472,7 @@
     "hub_subtitle": "Teacher pool and teacher–student chavruta pairing",
     "pool_title": "Teacher pool",
     "assign_title": "Chavruta pairing",
-    "assign_hint": "Pair a teacher with a student to track chavrutas. The pairing does not affect pay.",
+    "assign_hint": "Pair a teacher with a student. Every active pair earns the teacher chavruta-plus pay (the rate is set in Finance).",
     "assign_pair": "Pair",
     "select_teacher": "Select teacher",
     "no_pairs": "No pairings yet",
@@ -5428,7 +5486,10 @@
     "error": "An error occurred",
     "managed_in_hub_note": "Chavruta teachers and pairings are managed in the Chavruta hub",
     "open_hub": "Go to the Chavruta hub",
-    "unpair": "Unpair"
+    "unpair": "Unpair",
+    "manage_in_hub_link": "Manage chavruta teachers and pairs",
+    "teachers_readonly_hint": "The chavruta teacher list and pairs are managed in the Chavruta hub. View only here.",
+    "teachers_readonly_subtitle": "Chavruta teachers — view only"
   },
   "impersonation": {
     "viewing_as": "Viewing as {name}",

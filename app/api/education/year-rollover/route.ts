@@ -3,7 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, canDoEducationInAny } from '@/lib/education/permissions'
-import { getRolloverSettings, runYearRollover } from '@/lib/education/year-rollover'
+import { getRolloverSettings, runYearRollover, ROLLOVER_FROZEN } from '@/lib/education/year-rollover'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -64,6 +64,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'save') {
+      // Заморожено: настройки не меняем и на сервере (не только в UI).
+      if (ROLLOVER_FROZEN) {
+        const settings = await getRolloverSettings(sb)
+        return NextResponse.json({ settings, frozen: true })
+      }
       const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
       if (typeof body.rollover_month === 'number') {
         if (body.rollover_month < 1 || body.rollover_month > 12) return apiError('invalid_input', 400)

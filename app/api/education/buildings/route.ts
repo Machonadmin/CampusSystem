@@ -16,6 +16,8 @@ export async function GET() {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
+    // Токен портала студентки — не сотрудник, каталог зданий ему не нужен.
+    if (session.principal === 'student') return apiError('forbidden', 403)
     const sb = createServerClient()
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

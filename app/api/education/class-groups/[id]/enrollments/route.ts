@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { journeyTarget } from '@/lib/education/journey-target'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     if (gErr) throw gErr
     if (!group) return apiError('study_group_not_found', 404)
 
-    await requireEducationPrivilege('manage_enrollments', { department_id: group.department_id })
+    const session = await requireEducationPrivilege('manage_enrollments', { department_id: group.department_id })
 
     // Проверить, что все journeys существуют и имеют status='student'
     const { data: journeys, error: jErr } = await sb
@@ -101,6 +102,28 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const nonStudents = (journeys ?? []).filter(j => j.education_status !== 'student')
     if (nonStudents.length > 0) {
       return apiError('enroll_only_students', 400)
+    }
+
+    // Записывать можно только студенток, которых пользователь видит (red-team
+    // 2026-09-25: менеджер юнита записывал в свою группу студенток ЧУЖИХ юнитов и
+    // затем читал их данные через группу). Видна: view_students в подразделении
+    // journey (у главы кодеша — 'all'), либо у journey есть членство
+    // (journey_structures) в подразделениях пользователя — как в списке студенток.
+    if (!session.roles.includes('superadmin')
+      && (await getEducationPrivilegeScope(session, 'view_students')) !== 'all') {
+      const { data: full, error: fErr } = await sb
+        .from('education_journeys')
+        .select('id, education_status, primary_department_id, desired_department_id')
+        .in('id', uniqueIds)
+      if (fErr) throw fErr
+      const myDepts = await getUserDepartmentIds(session.person_id)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const msRes = myDepts.length > 0 ? await (sb as any).from('journey_structures').select('journey_id').in('journey_id', uniqueIds).in('department_id', myDepts) : { data: [], error: null }
+      const viaMembership = new Set<string>(msRes.error ? [] : ((msRes.data ?? []) as Array<{ journey_id: string }>).map(r => r.journey_id))
+      for (const j of (full ?? []) as Array<{ id: string; education_status: string | null; primary_department_id: string | null; desired_department_id: string | null }>) {
+        if (viaMembership.has(j.id)) continue
+        if (!(await hasEducationPrivilege(session, 'view_students', journeyTarget(j)))) return apiError('forbidden', 403)
+      }
     }
 
     // Уже записанные

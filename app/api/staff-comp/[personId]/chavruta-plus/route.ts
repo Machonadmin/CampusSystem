@@ -2,17 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canViewStaffComp, canManageStaffComp } from '@/lib/finance/staff-comp'
+import { canViewStaffComp, canAccessStaffCompPerson } from '@/lib/finance/staff-comp'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
- * Хеврута-плюс: постоянные пары мора↔ученица (менторство).
- *   GET  → { assignments: [{ id, student_journey_id, student_name, is_active }],
- *           rate, basis } (право view).
- *   POST → добавить пару { student_journey_id } (право manage).
- * Тариф/базис (за ученицу-месяц или за час) — из staff_compensation. Начисление
- * делает generate-chavruta-plus. Деплой-безопасно (42P01).
+ * Хеврута-плюс: пары мора↔ученица этого сотрудника — ТОЛЬКО ЧТЕНИЕ.
+ *   GET → { assignments: [{ id, student_journey_id, student_name, is_active }],
+ *          rate, basis } (право view).
+ *
+ * Решение владельца #6: «החברותא עצמו מנוהל בחברותא ובכספים מתעסקים בכספים».
+ * Пары ведутся ТОЛЬКО в «מרכז חברותא» (/dashboard/education/chavruta, таблица
+ * chavruta_pairs); каждая активная пара оплачивается как хеврута-плюс. Финансы
+ * здесь только показывают пары и тариф — добавление/снятие пар (POST/DELETE)
+ * удалено. Старая таблица chavruta_plus_assignments больше не читается (не
+ * тронута). Тариф/базис — из staff_compensation. Начисление — generate-chavruta-plus.
+ * Деплой-безопасно (42P01).
  */
 
 export async function GET(_request: NextRequest, props: { params: Promise<{ personId: string }> }) {
@@ -21,6 +26,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ pers
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (!(await canViewStaffComp(session))) return apiError('forbidden', 403)
+    if (!(await canAccessStaffCompPerson(session, params.personId, 'view'))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
 
@@ -37,8 +43,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ pers
     // Пары.
     let rows: Array<{ id: string; student_journey_id: string; is_active: boolean }> = []
     try {
-      const { data, error } = await sb.from('chavruta_plus_assignments')
+      const { data, error } = await sb.from('chavruta_pairs')
         .select('id, student_journey_id, is_active').eq('teacher_person_id', params.personId)
+        .eq('is_active', true)
         .order('created_at', { ascending: true })
       if (error) throw error
       rows = (data ?? []) as typeof rows
@@ -66,42 +73,6 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ pers
       is_active: r.is_active,
     }))
     return NextResponse.json({ assignments, rate, basis })
-  } catch (err: unknown) {
-    const e = err as { status?: number; message?: string }
-    return errorResponse(e)
-  }
-}
-
-export async function POST(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
-  const params = await props.params
-  try {
-    const session = await getSession()
-    if (!session) return apiError('unauthorized', 401)
-    if (!(await canManageStaffComp(session))) return apiError('forbidden', 403)
-
-    const body = await request.json().catch(() => ({})) as { student_journey_id?: string }
-    const journeyId = (body.student_journey_id ?? '').trim()
-    if (!journeyId) return apiError('invalid_reference', 400)
-
-    const sb = createServerClient()
-    const { data, error } = await sb.from('chavruta_plus_assignments')
-      .insert({ teacher_person_id: params.personId, student_journey_id: journeyId, is_active: true, created_by: session.person_id })
-      .select('id, student_journey_id, is_active')
-      .single()
-    if (error) {
-      const code = (error as { code?: string }).code
-      if (isMissingTable(code)) return apiError('feature_not_migrated', 503)
-      if (code === '23505') { // пара уже есть — реактивируем
-        const { data: re, error: reErr } = await sb.from('chavruta_plus_assignments')
-          .update({ is_active: true }).eq('teacher_person_id', params.personId).eq('student_journey_id', journeyId)
-          .select('id, student_journey_id, is_active').single()
-        if (reErr) throw reErr
-        return NextResponse.json({ assignment: re }, { status: 200 })
-      }
-      if (code === '23503') return apiError('invalid_reference', 400)
-      throw error
-    }
-    return NextResponse.json({ assignment: data }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)

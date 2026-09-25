@@ -40,3 +40,14 @@ export function redactSensitivePerson<T extends Record<string, unknown>>(
   }
   return redacted as T
 }
+
+/**
+ * Маскированный телефон для показа кандидата «возможное совпадение» (решение
+ * №11): видны только последние 3 цифры, остальное — звёздочки (не больше 7).
+ * Номер короче 4 цифр или пустой → null (показывать нечего / небезопасно).
+ */
+export function maskPhone(phone: string | null | undefined): string | null {
+  const d = (phone ?? '').replace(/\D/g, '')
+  if (d.length < 4) return null
+  return `${'*'.repeat(Math.min(d.length - 3, 7))}${d.slice(-3)}`
+}

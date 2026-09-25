@@ -3,14 +3,16 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 import { getSession } from '@/lib/auth/session'
-import { canManageStaffComp, monthRange } from '@/lib/finance/staff-comp'
+import { canManageStaffComp, monthRange, isSelfCompTarget, canAccessStaffCompPerson } from '@/lib/finance/staff-comp'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
  * POST /api/staff-comp/[personId]/generate-chavruta-plus?year&month
  *
  * Начисляет менторство (хеврута-плюс) за месяц по базису сотрудника:
- *   • per_student_month — по одной записи на каждую АКТИВНУЮ пару, amount =
+ *   • per_student_month — по одной записи на каждую АКТИВНУЮ пару из «מרכז
+ *     חברותא» (chavruta_pairs, решение владельца #6: каждая пара хаба
+ *     оплачивается, флага «платная» нет), amount =
  *     chavruta_plus_rate, дата = 1-е число месяца. Идемпотентно (пропускает, если
  *     запись за эту ученицу в этом месяце уже есть).
  *   • per_hour — ничего не начисляет автоматически (часы вносятся вручную как
@@ -24,6 +26,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ pers
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (!(await canManageStaffComp(session))) return apiError('forbidden', 403)
+    if (!(await canAccessStaffCompPerson(session, params.personId, 'create_invoice'))) return apiError('forbidden', 403)
+    if (isSelfCompTarget(session, params.personId)) return apiError('staff_comp_self_forbidden', 403)
 
     const sp = request.nextUrl.searchParams
     const year = Number(sp.get('year')), month = Number(sp.get('month'))
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ pers
     // Активные пары.
     let assignments: Array<{ student_journey_id: string }> = []
     try {
-      const { data, error } = await sb.from('chavruta_plus_assignments')
+      const { data, error } = await sb.from('chavruta_pairs')
         .select('student_journey_id').eq('teacher_person_id', params.personId).eq('is_active', true)
       if (error) throw error
       assignments = (data ?? []) as typeof assignments

@@ -11,10 +11,11 @@ import { hasDoctorPrivilege } from '@/lib/doctor/permissions'
 import { hasPsychologistPrivilege } from '@/lib/psychologist/permissions'
 import { hasDocumentsPrivilege } from '@/lib/documents/permissions'
 import { pageAll } from '@/lib/reports/paging'
-import { toCents, centsToNumber } from '@/lib/finance/money'
+import { loadFinanceTotals } from '@/lib/reports/metrics'
 import { isActiveOn as isDormActiveOn } from '@/lib/dormitory/occupancy'
 import { isActiveOn as isFoodActiveOn } from '@/lib/food/enrollment'
 import { documentStats } from '@/lib/documents/expiry'
+import { journeyTarget } from '@/lib/education/journey-target'
 import {
   visibleSections,
   pickCurrentActive,
@@ -43,37 +44,19 @@ function mapDbError(error: { code?: string; message?: string }): { status: numbe
 // Каждый возвращает данные секции или null, если у студента нет данных в модуле.
 // Ошибки БД пробрасываются и маппятся в catch роута.
 
-/** Финансы: Σ active charges − Σ approved payments, суммы в целых копейках. */
+/**
+ * Финансы: единый загрузчик (lib/reports/metrics.loadFinanceTotals), по правилу
+ * баланса ledger-роута: outstanding = Σ active charges − Σ скидок по ним −
+ * Σ approved payments (раньше скидки здесь не вычитались — баг). Суммы в копейках.
+ */
 async function loadFinance(sb: Sb, journeyId: string): Promise<OverviewFinance | null> {
-  const chargeRows = await pageAll<{ amount: number | string }>((from, to) =>
-    sb
-      .from('finance_charges')
-      .select('amount')
-      .eq('journey_id', journeyId)
-      .eq('status', 'active')
-      .order('id', { ascending: true })
-      .range(from, to),
-  )
-  const payRows = await pageAll<{ amount: number | string }>((from, to) =>
-    sb
-      .from('finance_payments')
-      .select('amount')
-      .eq('journey_id', journeyId)
-      .eq('status', 'approved')
-      .order('id', { ascending: true })
-      .range(from, to),
-  )
-  if (chargeRows.length === 0 && payRows.length === 0) return null
-
-  let chargedCents = 0
-  for (const r of chargeRows) chargedCents += toCents(r.amount)
-  let collectedCents = 0
-  for (const r of payRows) collectedCents += toCents(r.amount)
-
+  const { summary, row_count } = await loadFinanceTotals(sb, { scope: { journeyIds: [journeyId] } })
+  if (row_count === 0) return null
   return {
-    charged: centsToNumber(chargedCents),
-    collected: centsToNumber(collectedCents),
-    outstanding: centsToNumber(chargedCents - collectedCents),
+    charged: summary.charged,
+    discounts: summary.discounts,
+    collected: summary.collected,
+    outstanding: summary.outstanding,
   }
 }
 
@@ -224,7 +207,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const { data: journeyRow, error: jErr } = await sb
       .from('education_journeys')
       .select(`
-        id, primary_department_id, education_status, opened_at, application_date,
+        id, primary_department_id, desired_department_id, education_status, opened_at, application_date,
         person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, email, phones, photo_url),
         primary_department:departments!education_journeys_primary_department_id_fkey(name),
         specialty:specialties!education_journeys_specialty_id_fkey(name, code)
@@ -237,6 +220,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const journey = journeyRow as unknown as {
       id: string
       primary_department_id: string | null
+      desired_department_id: string | null
       education_status: string | null
       opened_at: string | null
       application_date: string | null
@@ -252,9 +236,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // 2. Верхний гейт — как карточка студента: view_students в его подразделении.
-    const eduGate = await hasEducationPrivilege(session, 'view_students', {
-      department_id: journey.primary_department_id ?? undefined,
-    })
+    const eduGate = await hasEducationPrivilege(session, 'view_students', journeyTarget(journey))
     if (!eduGate) return apiError('forbidden', 403)
 
     // 3. Привилегии 'view' по чувствительным модулям.

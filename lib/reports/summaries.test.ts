@@ -7,6 +7,9 @@ import {
   clinicSummary,
   counselingSummary,
   foodSummary,
+  financeTotalsFromMaps,
+  maintenanceTicketStats,
+  aggregateOccupancy,
 } from './summaries'
 
 const TODAY = '2026-07-07'
@@ -345,5 +348,88 @@ describe('securitySummary', () => {
   })
   it('пустой список → нули и {}', () => {
     expect(securitySummary([])).toEqual({ active: 0, open: 0, investigating: 0, by_severity: {} })
+  })
+})
+
+// ─── Единый источник: чистые агрегаторы для lib/reports/metrics ─────────────
+
+describe('financeTotalsFromMaps', () => {
+  it('пусто → нули', () => {
+    expect(financeTotalsFromMaps(new Map(), new Map(), new Map())).toEqual({
+      chargesCents: 0, paymentsCents: 0, discountsCents: 0, debtorCount: 0,
+    })
+  })
+
+  it('суммы и должники с учётом скидок; переплата и «только платёж» — не должники', () => {
+    const charges = new Map([['a', 10000], ['b', 5000], ['c', 3000]])
+    const pays = new Map([['a', 4000], ['b', 6000], ['d', 1000]])
+    const discounts = new Map([['c', 3000]]) // скидка обнуляет долг c
+    const r = financeTotalsFromMaps(charges, pays, discounts)
+    expect(r.chargesCents).toBe(18000)
+    expect(r.paymentsCents).toBe(11000)
+    expect(r.discountsCents).toBe(3000)
+    expect(r.debtorCount).toBe(1) // только a (10000 − 4000 > 0)
+  })
+
+  it('вместе с financeSummary: outstanding может быть отрицательным (переплата)', () => {
+    const t = financeTotalsFromMaps(new Map([['a', 1000]]), new Map([['a', 1500]]), new Map())
+    const s = financeSummary(t.chargesCents, t.paymentsCents, t.debtorCount, t.discountsCents)
+    expect(s.outstanding).toBe(-5)
+    expect(s.debtor_count).toBe(0)
+  })
+})
+
+describe('maintenanceTicketStats', () => {
+  const NOW = '2026-07-07T12:00:00.000Z'
+  it('status_counts / total / total_overdue согласованы с summary', () => {
+    const tickets = [
+      { status: 'open', priority: 'urgent', reported_at: '2026-07-07T00:00:00.000Z' }, // 12ч > 4ч → просрочена
+      { status: 'in_progress', priority: 'low', reported_at: '2026-07-07T00:00:00.000Z' },
+      { status: 'closed', priority: 'urgent', reported_at: '2026-01-01T00:00:00.000Z' },
+    ]
+    const r = maintenanceTicketStats(tickets, NOW)
+    expect(r.total).toBe(3)
+    expect(r.status_counts).toEqual({ open: 1, in_progress: 1, closed: 1 })
+    expect(r.total_overdue).toBe(1)
+    expect(r.summary.overdue).toBe(r.total_overdue)
+    expect(r.summary.open).toBe(1)
+    expect(r.summary.in_progress).toBe(1)
+  })
+})
+
+describe('aggregateOccupancy', () => {
+  it('по зданиям + итог = сумма зданий; комнаты чужих зданий игнорируются', () => {
+    const rooms = [
+      { id: 'r1', building_id: 'b1', capacity: 2 },
+      { id: 'r2', building_id: 'b1', capacity: 3 },
+      { id: 'r3', building_id: 'b2', capacity: 1 },
+      { id: 'rx', building_id: 'gone', capacity: 10 },
+    ]
+    const asg = new Map([
+      ['r1', [
+        { assigned_from: '2026-01-01', assigned_to: null, status: 'active' },
+        { assigned_from: '2026-01-01', assigned_to: '2026-02-01', status: 'active' }, // закончилось
+      ]],
+      ['r3', [
+        { assigned_from: '2026-07-01', assigned_to: null, status: 'active' },
+        { assigned_from: '2026-07-01', assigned_to: null, status: 'active' }, // переполнение
+      ]],
+      ['rx', [{ assigned_from: '2026-01-01', assigned_to: null, status: 'active' }]],
+    ])
+    const r = aggregateOccupancy(['b1', 'b2', 'b3'], rooms, asg, TODAY)
+    expect(r.buildings).toEqual([
+      { building_id: 'b1', rooms_count: 2, total_capacity: 5, occupied: 1, free: 4 },
+      { building_id: 'b2', rooms_count: 1, total_capacity: 1, occupied: 2, free: 0 },
+      { building_id: 'b3', rooms_count: 0, total_capacity: 0, occupied: 0, free: 0 },
+    ])
+    expect(r.total).toEqual({
+      capacity: 6, occupied: 3, free: 3, occupancy_percent: 50, building_count: 3, room_count: 3,
+    })
+  })
+
+  it('нет зданий → нули', () => {
+    expect(aggregateOccupancy([], [], new Map(), TODAY).total).toEqual({
+      capacity: 0, occupied: 0, free: 0, occupancy_percent: 0, building_count: 0, room_count: 0,
+    })
   })
 })

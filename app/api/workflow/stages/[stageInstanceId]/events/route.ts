@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 type Params = { params: Promise<{ stageInstanceId: string }> }
 
@@ -18,10 +19,10 @@ async function getJourneyFromStage(sb: ReturnType<typeof createServerClient>, st
 
   const { data: journey } = await sb
     .from('education_journeys')
-    .select('education_status, primary_department_id')
+    .select('education_status, primary_department_id, desired_department_id')
     .eq('id', journeyId)
     .maybeSingle()
-  return journey as { education_status: string; primary_department_id: string | null } | null
+  return journey as { education_status: string; primary_department_id: string | null; desired_department_id: string | null } | null
 }
 
 function viewPrivilegeFor(status: string): 'view_leads' | 'view_applicants' | 'view_students' {
@@ -49,9 +50,7 @@ export async function GET(_req: NextRequest, props: Params) {
     const journey = await getJourneyFromStage(sb, params.stageInstanceId)
     if (!journey) return apiError('substage_not_found', 404)
 
-    const canView = await hasEducationPrivilege(session, viewPrivilegeFor(journey.education_status), {
-      department_id: journey.primary_department_id ?? undefined,
-    })
+    const canView = await hasEducationPrivilege(session, viewPrivilegeFor(journey.education_status), journeyTarget(journey))
     if (!canView) return apiError('forbidden', 403)
 
     const { data, error } = await sb
@@ -110,9 +109,7 @@ export async function POST(req: NextRequest, props: Params) {
     const journey = await getJourneyFromStage(sb, params.stageInstanceId)
     if (!journey) return apiError('substage_not_found', 404)
 
-    const canManage = await hasEducationPrivilege(session, managePrivilegeFor(journey.education_status), {
-      department_id: journey.primary_department_id ?? undefined,
-    })
+    const canManage = await hasEducationPrivilege(session, managePrivilegeFor(journey.education_status), journeyTarget(journey))
     if (!canManage) return apiError('forbidden', 403)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

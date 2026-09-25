@@ -7,6 +7,8 @@ import { getTaskAccess } from '@/lib/tasks/access'
 import { createNotifications } from '@/lib/notifications/create'
 import { canBeMaintenanceTask, isMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
+import { extractStudentTag, isAcceptanceTask, withStudentTag, type StudentTag } from '@/lib/tasks/student-tag'
+import { attachStudentRefs, verifyStudentTag } from '@/lib/tasks/student-tag-server'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
 
@@ -71,8 +73,11 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 
     if (cErr ?? wErr ?? hErr) throw cErr ?? wErr ?? hErr
 
+    // Имя תלמידה для чипа (если у задачи есть метка «תלמידה קשורה»).
+    const [taskWithStudent] = await attachStudentRefs(sb, [task])
+
     return NextResponse.json({
-      task,
+      task: taskWithStudent,
       comments: comments ?? [],
       watchers: watchers ?? [],
       history: history ?? [],
@@ -107,6 +112,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       assignee_type?: 'person' | 'department'
       department_id?: string | null
       is_maintenance?: boolean
+      // Метка «תלמידה קשורה»: объект — поставить/сменить, null — снять.
+      student_tag?: { student_person_id?: string; journey_id?: string } | null
     }
 
     const { data: task, error: tErr } = await sb
@@ -123,7 +130,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const update: TaskUpdate = {}
 
     // ─── Поля, требующие canEdit ───────────────────────────────────────────────
-    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'assignee_id', 'assignee_type', 'department_id', 'is_maintenance'] as const
+    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'assignee_id', 'assignee_type', 'department_id', 'is_maintenance', 'student_tag'] as const
     const hasEditFields = EDIT_KEYS.some(k => k in body)
 
     if (hasEditFields) {
@@ -177,6 +184,26 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
             ) as TaskUpdate['metadata']
           }
         }
+      }
+
+      // ─── Метка «תלמידה קשורה» ───────────────────────────────────────────────
+      // Правится только автором (canEdit, как прочие поля). Пара проверяется так
+      // же, как при создании (см. POST /api/tasks). Поверх уже посчитанной выше
+      // metadata — чтобы не затереть одновременную правку метки эксплуатации.
+      if (body.student_tag !== undefined) {
+        const currentMeta = (task as { metadata?: unknown }).metadata
+        // У автозадачи приёмной комиссии journey_id — служебная ссылка, по
+        // которой её находит и закрывает workflow; менять её нельзя.
+        if (isAcceptanceTask(currentMeta)) return apiError('task_student_tag_locked', 400)
+
+        let tag: StudentTag | null = null
+        if (body.student_tag !== null) {
+          tag = extractStudentTag(body.student_tag)
+          if (!tag) return apiError('task_student_tag_invalid', 400)
+          if (!(await verifyStudentTag(sb, tag))) return apiError('task_student_tag_invalid', 400)
+        }
+        const base = update.metadata !== undefined ? update.metadata : currentMeta
+        update.metadata = withStudentTag(base, tag) as TaskUpdate['metadata']
       }
     }
 

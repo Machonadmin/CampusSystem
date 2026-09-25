@@ -27,6 +27,20 @@ describe('sanitizeUiPrefs', () => {
     expect([...p.widgets.order].sort()).toEqual([...WIDGET_IDS].sort())
   })
 
+  it('раскладка, сохранённая до появления my_alerts/my_absences, получает их в конце и видимыми', () => {
+    const saved = ['stalled', 'agenda', 'pending_signatures', 'my_tasks', 'my_maintenance', 'my_lessons', 'recent_leads']
+    const p = sanitizeUiPrefs({ widgets: { order: saved, hidden: ['agenda'] } })
+    expect(p.widgets.order).toEqual([...saved, 'my_alerts', 'my_absences'])
+    expect(visibleWidgets(p)).toContain('my_alerts')
+    expect(visibleWidgets(p)).toContain('my_absences')
+  })
+
+  it('my_alerts/my_absences — известные блоки: сохраняются в порядке и в скрытых', () => {
+    const p = sanitizeUiPrefs({ widgets: { order: ['my_absences', 'my_alerts'], hidden: ['my_alerts'] } })
+    expect(p.widgets.order.slice(0, 2)).toEqual(['my_absences', 'my_alerts'])
+    expect(p.widgets.hidden).toEqual(['my_alerts'])
+  })
+
   it('ограничивает длину списков', () => {
     const many = Array.from({ length: 200 }, (_, i) => `m${i}`)
     expect(sanitizeUiPrefs({ hidden: many }).hidden.length).toBe(60)

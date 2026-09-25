@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, type EducationPrivilege, type PrivilegeTarget } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import { ACCEPTANCE_PROCESS_CODES, ACCEPTANCE_EARLY_CLOSE_BLOCKED } from '@/lib/workflow/acceptance-codes'
 import { flattenPhones } from '@/lib/persons/phone'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 interface CloseProcessEarlyResult {
   process_instance_id: string
@@ -26,9 +27,9 @@ interface CloseProcessEarlyResult {
  *
  * Право: по education_status журнея (как /stages/[id]/reactivate и кнопка в
  *        карточке): лид → manage_leads, абитуриентка → manage_applicants,
- *        иначе manage_students. Раньше всегда требовался manage_leads, а кнопка
- *        показывалась по manage_applicants — у кого было одно без другого,
- *        получал ошибку. Для финала convert_to_applicant дополнительно convert_lead.
+ *        иначе manage_students; подразделение — journeyTarget (для лида/
+ *        абитуриентки desired_department_id). Для финала convert_to_applicant
+ *        дополнительно convert_lead.
  */
 function managePrivilege(status: string | null): EducationPrivilege {
   if (status === 'lead') return 'manage_leads'
@@ -69,19 +70,17 @@ export async function POST(
       return apiError('acceptance_early_close_admit_blocked', 400)
     }
 
-    let targetDept: string | null = null
+    let target: PrivilegeTarget | undefined
     let eduStatus: string | null = null
     if (journeyId) {
       const { data: journey } = await sb
         .from('education_journeys')
-        .select('primary_department_id, education_status')
+        .select('education_status, primary_department_id, desired_department_id')
         .eq('id', journeyId)
         .maybeSingle()
-      targetDept = journey?.primary_department_id ?? null
+      target = journey ? journeyTarget(journey) : { unassigned: true }
       eduStatus = journey?.education_status ?? null
     }
-
-    const target = targetDept ? { department_id: targetDept } : undefined
 
     await requireEducationPrivilege(journeyId ? managePrivilege(eduStatus) : 'manage_leads', target)
     if (body.final_code === 'convert_to_applicant') {

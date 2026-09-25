@@ -22,5 +22,10 @@ export async function requireCalendarUser(): Promise<SessionPayload> {
   if (!session) {
     throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   }
+  // Календарь — штатный: у студентки свой календарь в портале (/api/portal/*).
+  // Портальный токен сюда не пускаем (red-team 2026-09-25).
+  if (session.principal === 'student') {
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
+  }
   return session
 }

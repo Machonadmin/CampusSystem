@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+import { hasEducationPrivilege, type EducationPrivilege, type PrivilegeTarget } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { stageSignerAuthority } from '@/lib/workflow/stage-access'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyScopeDepartment, journeyTarget } from '@/lib/education/journey-target'
 
 /** Привилегия просмотра по education_status journey. */
 function pickViewPrivilege(status: string | null): EducationPrivilege {
@@ -42,17 +43,19 @@ export async function GET(
 
     // Загружаем education_status + primary_department_id для проверки прав
     let targetDept: string | null = null
+    let jTarget: PrivilegeTarget | undefined
     let eduStatus: string | null = null
     if (journeyId) {
       const { data: journey } = await sb
         .from('education_journeys')
-        .select('education_status, primary_department_id')
+        .select('education_status, primary_department_id, desired_department_id')
         .eq('id', journeyId)
         .maybeSingle()
-      targetDept = journey?.primary_department_id ?? null
+      targetDept = journey ? journeyScopeDepartment(journey) : null
+      jTarget = journey ? journeyTarget(journey) : { unassigned: true }
       eduStatus = journey?.education_status ?? null
     }
-    const target = targetDept ? { department_id: targetDept } : undefined
+    const target = jTarget
 
     const tmpl = stage.stage_template as unknown as { required_role_code: string | null; requires_signature: boolean } | null
     const stageCtx = {
@@ -63,6 +66,7 @@ export async function GET(
       requiresSignature: !!tmpl?.requires_signature,
       journeyId,
       departmentId: targetDept,
+      target: jTarget,
     }
 
     const TASK_COLS = 'id, title, status, priority, assignee_type, due_date, completed_at, created_at'

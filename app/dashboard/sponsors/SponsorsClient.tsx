@@ -16,6 +16,7 @@ import { isValidEmail } from '@/lib/contacts/directory'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { formatMoney } from '@/lib/finance/money'
+import type { PersonLinkView } from '@/lib/persons/record-link'
 
 interface Sponsor {
   id: string
@@ -28,6 +29,8 @@ interface Sponsor {
   notes: string | null
   is_active: boolean
   total_received: number
+  // Решение №11: связь с центральной персоной (null — миграция не применена).
+  person_link?: PersonLinkView | null
 }
 
 interface FormState {
@@ -51,6 +54,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
   const t = useTranslations('sponsors')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
+  const tPersons = useTranslations('persons')
 
   const primary = getModuleColor('sponsors', 'primary')
   const light = getModuleColor('sponsors', 'light')
@@ -61,6 +65,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
+  const [pendingOnly, setPendingOnly] = useState(false)
 
   // create form: false — закрыт; true — открыт (список — только создание,
   // правка донора живёт в карточке донора).
@@ -93,9 +98,15 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
   const filtered = useMemo(() => {
     let list = sponsors
     if (typeFilter) list = list.filter(s => s.sponsor_type === typeFilter)
+    if (pendingOnly) list = list.filter(s => s.person_link?.status === 'suggested')
     if (search.trim()) list = list.filter(s => matchesSponsorSearch(s, search))
     return list
-  }, [sponsors, search, typeFilter])
+  }, [sponsors, search, typeFilter, pendingOnly])
+
+  const pendingCount = useMemo(
+    () => sponsors.filter(s => s.person_link?.status === 'suggested').length,
+    [sponsors],
+  )
 
   function openNew() {
     setForm(EMPTY_FORM)
@@ -134,7 +145,14 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         const b = await res.json().catch(() => ({}))
         setFormError(b.error ?? t('errors.save')); return
       }
+      const created = await res.json().catch(() => ({})) as { id?: string; person_link?: PersonLinkView | null }
       closeForm()
+      // Решение №11: неуверенное совпадение с персоной — сразу в карточку
+      // донора, где ответственный подтверждает / отклоняет.
+      if (created.id && created.person_link?.status === 'suggested') {
+        router.push(`/dashboard/sponsors/${created.id}`)
+        return
+      }
       await load()
     } catch {
       setFormError(t('errors.save'))
@@ -213,6 +231,19 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
             <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
           ))}
         </select>
+        <button
+          type="button"
+          aria-pressed={pendingOnly}
+          onClick={() => setPendingOnly(v => !v)}
+          style={{
+            fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+            border: `1px solid ${pendingOnly ? primary : 'var(--border-strong)'}`,
+            background: pendingOnly ? light : 'var(--surface)',
+            color: pendingOnly ? primary : 'var(--text)',
+          }}
+        >
+          {tPersons('person_link.pending_filter')} · {pendingCount}
+        </button>
         <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ marginInlineStart: 'auto' }}>
           <DownloadIcon /> {tCommon('export_csv')}
         </Button>
@@ -299,6 +330,11 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
                     <td style={td} data-label={t('list.name')}>
                       <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.name}</div>
                       {s.contact_person && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.contact_person}</div>}
+                      {s.person_link?.status === 'suggested' && (
+                        <span style={{ fontSize: 10.5, fontWeight: 600, padding: '1px 8px', borderRadius: 999, background: 'var(--surface-2)', color: 'var(--warn)' }}>
+                          {tPersons('person_link.pending_filter')}
+                        </span>
+                      )}
                     </td>
                     <td style={td} data-label={t('list.type')}>
                       <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 999, background: light, color: 'var(--warn)' }}>

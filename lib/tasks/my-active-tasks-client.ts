@@ -18,6 +18,8 @@ export interface MyActiveTask {
   due_time?: string | null
   due_all_day?: boolean | null
   priority?: 'urgent' | 'high' | 'normal' | 'low'
+  /** Метка «תלמידה קשורה» (API добавляет имя; null — метки нет). */
+  student?: { person_id: string; journey_id: string; name: string } | null
 }
 
 const TTL_MS = 5000

@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireContactsPrivilege } from '@/lib/contacts/permissions'
+import { requireContactsPrivilege, hasContactsPrivilege } from '@/lib/contacts/permissions'
 import { mapDbError } from '@/lib/contacts/http'
 import { isContactType, isContactCategory } from '@/lib/contacts/validation'
 import { isValidEmail, matchesSearch, contactStats } from '@/lib/contacts/directory'
 import type { ContactRow, ContactInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { isMissingColumn } from '@/lib/supabase/errors'
+import {
+  PERSON_LINK_COLS, attachPersonLinks, autoLinkRecordToPerson, canViewPersonsSafe,
+  type RawLinkCols,
+} from '@/lib/persons/record-link'
 
 /**
  * GET  /api/contacts — справочник контактов (view). Фильтры ?search (app-side,
@@ -25,7 +30,7 @@ const PAGE = 1000
 
 export async function GET(request: NextRequest) {
   try {
-    await requireContactsPrivilege('view')
+    const session = await requireContactsPrivilege('view')
 
     const params = request.nextUrl.searchParams
     const category = params.get('category')
@@ -45,16 +50,20 @@ export async function GET(request: NextRequest) {
 
     // Весь справочник постранично: stats считается по всем контактам,
     // фильтры применяются app-side поверх той же выборки.
-    const all: ContactRow[] = []
+    // Решение №11: колонки связи с persons читаем вместе со строкой; пока
+    // миграция не применена (42703/PGRST204) — откат к базовым колонкам.
+    const all: Array<ContactRow & RawLinkCols> = []
     let offset = 0
+    let linkMigrated = true
     for (;;) {
       const { data, error } = await sb
         .from('contacts')
-        .select(CONTACT_COLS)
+        .select(linkMigrated ? `${CONTACT_COLS}, ${PERSON_LINK_COLS}` : CONTACT_COLS)
         .order('name', { ascending: true })
         .range(offset, offset + PAGE - 1)
+      if (error && linkMigrated && isMissingColumn(error)) { linkMigrated = false; all.length = 0; offset = 0; continue }
       if (error) throw error
-      const batch = (data ?? []) as unknown as ContactRow[]
+      const batch = (data ?? []) as unknown as Array<ContactRow & RawLinkCols>
       all.push(...batch)
       if (batch.length < PAGE) break
       offset += PAGE
@@ -74,7 +83,11 @@ export async function GET(request: NextRequest) {
       contacts = contacts.filter(c => matchesSearch(c, search))
     }
 
-    return NextResponse.json({ contacts, stats })
+    const canManage = await hasContactsPrivilege(session, 'manage')
+    const canViewPersons = await canViewPersonsSafe(session)
+    const withLinks = await attachPersonLinks(sb, contacts, { canManage, canViewPersons }, linkMigrated)
+
+    return NextResponse.json({ contacts: withLinks, stats })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {
@@ -165,7 +178,13 @@ export async function POST(request: NextRequest) {
       return errorResponse(m)
     }
 
-    return NextResponse.json(data, { status: 201 })
+    // Решение №11: связь с центральной персоной — best-effort ПОСЛЕ записи,
+    // никогда не ломает сохранение (до миграции — молча 'skipped').
+    const person_link = await autoLinkRecordToPerson(sb, 'contacts', (data as { id: string }).id, {
+      canViewPersons: await canViewPersonsSafe(session),
+    })
+
+    return NextResponse.json({ ...(data as object), person_link }, { status: 201 })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
     if (e.code) {

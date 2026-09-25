@@ -21,24 +21,44 @@ export function journeyScopeDepartment(row: {
 }
 
 /**
+ * Цель проверки прав для СУЩЕСТВУЮЩЕЙ journey (чистая функция).
+ *   • есть подразделение → { department_id }
+ *   • лид без подразделения → {} — общий пул набора (решение владельца
+ *     2026-09-25: лиды не фильтруются по מחלקה, их видят все сотрудники набора)
+ *   • абитуриентка/студентка без подразделения → { unassigned: true } —
+ *     department-ограниченный сотрудник доступа не получает, только scope='all'.
+ */
+export function journeyTarget(row: {
+  education_status?: string | null
+  primary_department_id?: string | null
+  desired_department_id?: string | null
+}): PrivilegeTarget {
+  const dept = journeyScopeDepartment(row)
+  if (dept) return { department_id: dept }
+  if (row.education_status === 'lead') return {}
+  return { unassigned: true }
+}
+
+/**
  * Цель проверки прав для одной journey: её подразделение (journeyScopeDepartment).
  *
  * Для scope='all' target ничего не меняет (доступ всегда), для scope='department'
- * ограничивает доступ подразделением journey. Возвращает undefined, если у
- * journey нет подразделения (тогда department-scope трактуется как общий пул —
- * прежнее поведение). Используется, чтобы single-journey эндпоинты не давали
+ * ограничивает доступ подразделением journey. Без подразделения — см. journeyTarget
+ * (лид — общий пул, остальные — только scope='all'). Используется, чтобы single-journey эндпоинты не давали
  * department-ограниченному пользователю доступ к чужим подразделениям.
  */
 export async function journeyDeptTarget(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sb: SupabaseClient<any, any, any>,
   journeyId: string,
-): Promise<PrivilegeTarget | undefined> {
+): Promise<PrivilegeTarget> {
   const { data } = await sb
     .from('education_journeys')
     .select('education_status, primary_department_id, desired_department_id')
     .eq('id', journeyId)
     .maybeSingle()
-  const dept = data ? journeyScopeDepartment(data as Parameters<typeof journeyScopeDepartment>[0]) : null
-  return dept ? { department_id: dept } : undefined
+  // Нет такой journey → «unassigned»: department-scope не проходит (раньше —
+  // undefined, т.е. пропуск для любого department-сотрудника).
+  if (!data) return { unassigned: true }
+  return journeyTarget(data as Parameters<typeof journeyTarget>[0])
 }

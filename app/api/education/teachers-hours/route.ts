@@ -1,9 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canManageEducationInAny, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { monthRange } from '@/lib/finance/staff-comp'
+import { actualTeachingHours } from '@/lib/education/teacher-hours'
 
 /**
  * GET /api/education/teachers-hours — «מורים ושעות» для אחראי לимודим.
@@ -11,6 +13,10 @@ import { errorResponse } from '@/lib/api/handler'
  * По каждому преподавателю (class_teachers): его группы + недельные слоты
  * (class_schedule_slots) → суммарные недельные часы (Σ(end−start)). Возвращает
  * список, отсортированный по имени, с разбивкой по слотам (для «расписания»).
+ * Плюс ФАКТ за выбранный месяц (?year&month, по умолчанию текущий): часы по
+ * подтверждённым секретариатом отметкам (решение владельца #5) — тот же расчёт,
+ * что и при начислении зарплаты (lib/education/teacher-hours.ts). Замещающая,
+ * у которой есть факт по урокам групп в области видимости, тоже попадает в список.
  * Право: view_students где-либо ИЛИ superadmin. Деплой-безопасно.
  */
 
@@ -19,7 +25,7 @@ function toMin(t: string): number {
   return m ? Number(m[1]) * 60 + Number(m[2]) : 0
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -32,17 +38,25 @@ export async function GET() {
       || await canManageEducationInAny(session, 'manage_class_groups')
     if (!allowed) return apiError('forbidden', 403)
 
+    // Месяц факта (?year&month), по умолчанию — текущий.
+    const sp = request.nextUrl.searchParams
+    const now = new Date()
+    let year = Number(sp.get('year')), month = Number(sp.get('month'))
+    if (!Number.isInteger(year) || year < 2000 || year > 2100) year = now.getFullYear()
+    if (!Number.isInteger(month) || month < 1 || month > 12) month = now.getMonth() + 1
+    const period = { year, month }
+
     // Область по подразделению (как структурные списки): scope='department' →
     // только преподаватели групп своих подразделений (кодеш и т.п.), 'all' → все.
     const myDepts = await getEducationStructureDeptFilter(session)
-    if (myDepts && myDepts.length === 0) return NextResponse.json({ teachers: [] })
+    if (myDepts && myDepts.length === 0) return NextResponse.json({ teachers: [], period, actual_no_end_time: 0 })
 
     const sb = createServerClient()
 
     // 1. Пары преподаватель↔группа.
     const { data: ct } = await sb.from('class_teachers').select('teacher_id, class_group_id')
     let links = (ct ?? []) as Array<{ teacher_id: string; class_group_id: string }>
-    if (links.length === 0) return NextResponse.json({ teachers: [] })
+    if (links.length === 0) return NextResponse.json({ teachers: [], period, actual_no_end_time: 0 })
 
     let groupIds = [...new Set(links.map(l => l.class_group_id))]
 
@@ -60,7 +74,7 @@ export async function GET() {
       }
       if (allowedGroups) {
         links = links.filter(l => allowedGroups.has(l.class_group_id))
-        if (links.length === 0) return NextResponse.json({ teachers: [] })
+        if (links.length === 0) return NextResponse.json({ teachers: [], period, actual_no_end_time: 0 })
         groupIds = [...new Set(links.map(l => l.class_group_id))]
       }
     }
@@ -114,9 +128,35 @@ export async function GET() {
         if (!teacherIds.includes(sl.teacher_id)) slotOnlyTeachers.add(sl.teacher_id)
       }
     }
-    const allTeacherIds = [...teacherIds, ...slotOnlyTeachers]
-    if (slotOnlyTeachers.size > 0) {
-      const { data } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', [...slotOnlyTeachers])
+    // 6. Факт за месяц (все подтверждённые уроки преподавателя — та же цифра,
+    // что пойдёт в зарплату). Замещающие без class_teachers добавляются, если
+    // у них есть факт по урокам групп в области видимости экрана.
+    const { from, to } = monthRange(year, month)
+    const actual = await actualTeachingHours(sb, { from, to })
+    const actualOnlyTeachers = new Set<string>()
+    {
+      const known = new Set<string>([...teacherIds, ...slotOnlyTeachers])
+      const candidateGroups = new Set<string>()
+      for (const [tid, a] of actual.byTeacher) {
+        if (known.has(tid)) continue
+        for (const it of a.items) if (it.class_group_id) candidateGroups.add(it.class_group_id)
+      }
+      let inScope: Set<string> | null = null
+      if (myDepts && candidateGroups.size > 0) {
+        const { data } = await sb.from('class_groups').select('id, department_id').in('id', [...candidateGroups])
+        inScope = new Set(((data ?? []) as Array<{ id: string; department_id: string | null }>)
+          .filter(g => g.department_id != null && myDepts.includes(g.department_id)).map(g => g.id))
+      }
+      for (const [tid, a] of actual.byTeacher) {
+        if (known.has(tid)) continue
+        if (a.items.some(it => it.class_group_id && (!inScope || inScope.has(it.class_group_id)))) actualOnlyTeachers.add(tid)
+      }
+    }
+
+    const allTeacherIds = [...teacherIds, ...slotOnlyTeachers, ...actualOnlyTeachers]
+    const extraNames = [...slotOnlyTeachers, ...actualOnlyTeachers]
+    if (extraNames.length > 0) {
+      const { data } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', extraNames)
       for (const p of (data ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
         nameById.set(p.id, (p.hebrew_name || p.full_name || '').trim())
       }
@@ -140,11 +180,15 @@ export async function GET() {
         name: nameById.get(tid) ?? '',
         groups_count: gids.length,
         weekly_hours: Math.round((weeklyMinutes / 60) * 10) / 10,
+        actual_hours: actual.byTeacher.get(tid)?.hours ?? 0,
+        actual_lessons: actual.byTeacher.get(tid)?.lessons ?? 0,
+        actual_no_end_time: actual.byTeacher.get(tid)?.no_end_time ?? 0,
         slots,
       }
     }).sort((a, b) => b.weekly_hours - a.weekly_hours || a.name.localeCompare(b.name, 'he'))
 
-    return NextResponse.json({ teachers })
+    const actualNoEndTime = teachers.reduce((n, tc) => n + tc.actual_no_end_time, 0)
+    return NextResponse.json({ teachers, period, actual_no_end_time: actualNoEndTime })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)

@@ -7,6 +7,7 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { getModuleColor } from '@/lib/module-colors'
 import type { StudentOverview } from '@/lib/students/overview'
 import { formatMoney } from '@/lib/finance/money'
+import StudentOpenItemsPanel from './StudentOpenItemsPanel'
 
 interface Props {
   journeyId: string
@@ -80,6 +81,9 @@ export default function StudentOverviewTab({ journeyId }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* «פתוח עכשיו» — открытые оповещения / отсутствия / задачи по תלמידה */}
+      <StudentOpenItemsPanel journeyId={journeyId} />
+
       {/* Контактная строка (имя/фото — в шапке карточки) */}
       {contactBits.length > 0 && (
         <div style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -114,6 +118,7 @@ export default function StudentOverviewTab({ journeyId }: Props) {
               return (
                 <>
                   <Row label={t('label_charged')} value={formatMoney(f.charged)} />
+                  {(f.discounts ?? 0) > 0.005 && <Row label={t('label_discounts')} value={`−${formatMoney(f.discounts ?? 0)}`} />}
                   <Row label={t('label_collected')} value={formatMoney(f.collected)} />
                   <Row label={t('label_outstanding')} value={formatMoney(f.outstanding)} strong />
                 </>
