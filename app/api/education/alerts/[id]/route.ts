@@ -5,7 +5,7 @@ import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/educatio
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { isMissingTable } from '@/lib/supabase/errors'
-import { getAlertStudentScope } from '@/lib/education/alert-scope'
+import { getAlertManageScope } from '@/lib/education/alert-scope'
 
 /**
  * PATCH /api/education/alerts/[id] — изменить состояние оповещения (и, при
@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     if (row.is_sensitive && !(await hasEducationPrivilege(session, 'view_sensitive_alerts'))) {
       return apiError('forbidden', 403)
     }
-    const studentScope = await getAlertStudentScope(sb, session)
+    const studentScope = await getAlertManageScope(sb, session)
     if (studentScope && !studentScope.has(row.student_id)) return apiError('forbidden', 403)
 
     const patch: Record<string, unknown> = {}

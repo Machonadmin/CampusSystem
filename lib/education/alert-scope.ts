@@ -19,16 +19,30 @@ type Sb = SupabaseClient<any, any, any>
  *     и/или его групп (scope 'own'). Пустой Set — ничего.
  */
 export async function getAlertStudentScope(sb: Sb, session: SessionPayload): Promise<Set<string> | null> {
+  return buildAlertScope(sb, session, ['view_students', 'manage_alerts'])
+}
+
+/**
+ * Зона для ИЗМЕНЕНИЙ оповещений (создание, правка, закрытие): только по
+ * manage_alerts. view_students='all' даёт видеть всех, но не создавать/закрывать
+ * оповещения вне своей зоны manage_alerts (red-team 2026-09-25, round 3).
+ */
+export async function getAlertManageScope(sb: Sb, session: SessionPayload): Promise<Set<string> | null> {
+  return buildAlertScope(sb, session, ['manage_alerts'])
+}
+
+async function buildAlertScope(
+  sb: Sb,
+  session: SessionPayload,
+  privs: Array<'view_students' | 'manage_alerts'>,
+): Promise<Set<string> | null> {
   if (session.principal === 'student') return new Set()
   if (session.roles.includes('superadmin')) return null
-  const [viewScope, manageScope] = await Promise.all([
-    getEducationPrivilegeScope(session, 'view_students'),
-    getEducationPrivilegeScope(session, 'manage_alerts'),
-  ])
-  if (viewScope === 'all' || manageScope === 'all') return null
+  const scopes = await Promise.all(privs.map(p => getEducationPrivilegeScope(session, p)))
+  if (scopes.includes('all')) return null
 
   const out = new Set<string>()
-  if (viewScope === 'department' || manageScope === 'department') {
+  if (scopes.includes('department')) {
     const depts = await getUserDepartmentIds(session.person_id)
     if (depts.length > 0) {
       const orFilter = `primary_department_id.in.(${depts.join(',')}),desired_department_id.in.(${depts.join(',')})`
@@ -61,7 +75,7 @@ export async function getAlertStudentScope(sb: Sb, session: SessionPayload): Pro
       }
     }
   }
-  if (viewScope === 'own' || manageScope === 'own') {
+  if (scopes.includes('own')) {
     const { data: ct } = await sb.from('class_teachers').select('class_group_id').eq('teacher_id', session.person_id)
     const groupIds = [...new Set((ct ?? []).map((r: { class_group_id: string }) => r.class_group_id))]
     if (groupIds.length > 0) {

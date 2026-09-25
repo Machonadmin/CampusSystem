@@ -124,32 +124,59 @@ export async function hasPrivilege(
 }
 
 /**
- * Входит ли человек personId в зону department-ограниченного пользователя:
- *   • активная штатная позиция в одном из моих подразделений, или
- *   • journey, проходящая по journeyTarget (лид без подразделения — общий пул);
- *   • человек без позиций и без journeys (родственник, только что созданный) —
- *     не привязан ни к какому подразделению, считаем допустимым (как лид).
+ * Прямо ли человек привязан к одному из подразделений depts:
+ *   • активная штатная позиция в одном из них, или
+ *   • journey, чьё подразделение (journeyScopeDepartment) — одно из них.
+ * Лид/абитуриентка без подразделения НЕ считается: изменения над ними — только
+ * scope='all' (как правило F3 для лидов без подразделения).
+ * Ошибка чтения → исключение (fail-closed), а не «нет связей».
  */
-async function personInMyDepartments(session: SessionPayload, personId: string): Promise<boolean> {
+async function personsLinkedToDepts(personIds: string[], depts: string[]): Promise<boolean> {
+  if (personIds.length === 0 || depts.length === 0) return false
   const sb = createServerClient()
-  const myDepts = await getUserDepartmentIds(session.person_id)
   const today = new Date().toISOString().split('T')[0]
-  const [{ data: positions }, { data: journeys }] = await Promise.all([
-    sb.from('staff_positions').select('department_id, end_date').eq('person_id', personId),
+  const [pos, jrn] = await Promise.all([
+    sb.from('staff_positions').select('department_id, end_date').in('person_id', personIds),
     sb.from('education_journeys')
       .select('education_status, primary_department_id, desired_department_id')
-      .eq('person_id', personId),
+      .in('person_id', personIds),
   ])
-  const active = (positions ?? []).filter(
-    (r: { end_date: string | null }) => r.end_date === null || r.end_date > today,
-  ) as { department_id: string | null }[]
-  if (active.some(r => r.department_id && myDepts.includes(r.department_id))) return true
-  for (const j of journeys ?? []) {
+  if (pos.error) throw pos.error
+  if (jrn.error) throw jrn.error
+  const positions = (pos.data ?? []) as { department_id: string | null; end_date: string | null }[]
+  if (positions.some(r => (r.end_date === null || r.end_date > today)
+    && r.department_id && depts.includes(r.department_id))) return true
+  return (jrn.data ?? []).some(j => {
     const t = journeyTarget(j)
-    if (t.unassigned) continue
-    if (!t.department_id || myDepts.includes(t.department_id)) return true
-  }
-  return active.length === 0 && (journeys ?? []).length === 0
+    return !!t.department_id && depts.includes(t.department_id)
+  })
+}
+
+/**
+ * Входит ли человек personId в зону department-ограниченного пользователя
+ * (для ИЗМЕНЕНИЙ — edit/delete):
+ *   • сам привязан к моему подразделению (personsLinkedToDepts), или
+ *   • он родственник/контакт человека, привязанного к моему подразделению
+ *     (один шаг по person_relatives — родители студентки моей מחלקה).
+ * Всё остальное (бывшие сотрудники, люди без связей, лиды без подразделения) —
+ * только scope='all' (red-team 2026-09-25, round 3).
+ */
+async function personInMyDepartments(session: SessionPayload, personId: string): Promise<boolean> {
+  const myDepts = await getUserDepartmentIds(session.person_id)
+  if (myDepts.length === 0) return false
+  if (await personsLinkedToDepts([personId], myDepts)) return true
+  const sb = createServerClient()
+  const [a, b] = await Promise.all([
+    sb.from('person_relatives').select('person_id').eq('relative_id', personId),
+    sb.from('person_relatives').select('relative_id').eq('person_id', personId),
+  ])
+  if (a.error) throw a.error
+  if (b.error) throw b.error
+  const related = [
+    ...((a.data ?? []) as { person_id: string }[]).map(r => r.person_id),
+    ...((b.data ?? []) as { relative_id: string }[]).map(r => r.relative_id),
+  ].filter(id => id !== personId)
+  return personsLinkedToDepts([...new Set(related)], myDepts)
 }
 
 /**

@@ -6,7 +6,7 @@ import { canDoEducationInAny, hasEducationPrivilege, requireEducationPrivilege }
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { isMissingTable } from '@/lib/supabase/errors'
-import { getAlertStudentScope } from '@/lib/education/alert-scope'
+import { getAlertStudentScope, getAlertManageScope } from '@/lib/education/alert-scope'
 
 /**
  * Оповещения по студенткам (student_alerts, spec §3.8/§4.4).
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     const sb = createServerClient()
 
     // Оповещение можно создать только на студентку в своей зоне (как GET/PATCH).
-    const scope = await getAlertStudentScope(sb, session)
+    const scope = await getAlertManageScope(sb, session)
     if (scope && !scope.has(body.student_id)) return apiError('forbidden', 403)
 
     // is_sensitive по умолчанию — из типа.
