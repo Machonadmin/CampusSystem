@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { journeyScopeDepartment } from '@/lib/education/journey-target'
+import { isStudentStatus } from '@/lib/education/journey-status'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Sb = SupabaseClient<any, any, any>
@@ -35,9 +36,28 @@ export async function getAlertStudentScope(sb: Sb, session: SessionPayload): Pro
         .select('person_id, education_status, primary_department_id, desired_department_id')
         .or(orFilter)
       if (error) throw error
-      for (const j of (data ?? []) as Array<{ person_id: string; education_status: string | null; primary_department_id: string | null; desired_department_id: string | null }>) {
-        const d = journeyScopeDepartment(j)
-        if (d && depts.includes(d)) out.add(j.person_id)
+      type J = { person_id: string; education_status: string | null; primary_department_id: string | null; desired_department_id: string | null }
+      const candidates = [...new Set(((data ?? []) as J[]).map(j => j.person_id))]
+      if (candidates.length > 0) {
+        // Решаем по ВСЕМ journeys человека: если у него есть учебная (студенческая)
+        // journey, видимость определяют только они — лид/абитуриентская journey в
+        // моём подразделении не открывает оповещения студентки чужого
+        // подразделения (red-team 2026-09-25, round 2).
+        const { data: all, error: allErr } = await sb.from('education_journeys')
+          .select('person_id, education_status, primary_department_id, desired_department_id')
+          .in('person_id', candidates)
+        if (allErr) throw allErr
+        const byPerson = new Map<string, J[]>()
+        for (const j of (all ?? []) as J[]) {
+          const list = byPerson.get(j.person_id) ?? []
+          list.push(j)
+          byPerson.set(j.person_id, list)
+        }
+        for (const [pid, js] of byPerson) {
+          const studentJs = js.filter(j => isStudentStatus(j.education_status))
+          const considered = studentJs.length > 0 ? studentJs : js
+          if (considered.some(j => { const d = journeyScopeDepartment(j); return !!d && depts.includes(d) })) out.add(pid)
+        }
       }
     }
   }

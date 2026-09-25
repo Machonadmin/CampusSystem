@@ -66,6 +66,7 @@ export async function GET(
       requiresSignature: !!tmpl?.requires_signature,
       journeyId,
       departmentId: targetDept,
+      target: jTarget,
     }
 
     const [{ data: tasks }, { data: finals }, manageLeads, viewPriv, can_convert, signature_method, signerAuthority] = await Promise.all([

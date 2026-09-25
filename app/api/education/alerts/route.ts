@@ -110,6 +110,10 @@ export async function POST(request: NextRequest) {
     const session = await requireEducationPrivilege('manage_alerts')
     const sb = createServerClient()
 
+    // Оповещение можно создать только на студентку в своей зоне (как GET/PATCH).
+    const scope = await getAlertStudentScope(sb, session)
+    if (scope && !scope.has(body.student_id)) return apiError('forbidden', 403)
+
     // is_sensitive по умолчанию — из типа.
     let isSensitive = body.is_sensitive
     if (isSensitive === undefined && body.type_code) {

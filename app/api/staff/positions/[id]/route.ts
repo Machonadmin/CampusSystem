@@ -19,7 +19,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     if (!current) return apiError('not_found', 404)
     const cur = current as { person_id: string; department_id: string | null; end_date: string | null }
     // Право — в подразделении ЭТОЙ позиции (а не «где-нибудь»).
-    const session = await requirePrivilege('persons', 'edit', { department_id: cur.department_id ?? undefined })
+    const session = await requirePrivilege('persons', 'edit', (cur.department_id ? { department_id: cur.department_id } : { unassigned: true }))
     const isSuper = session.roles.includes('superadmin')
     // Свою позицию не меняют (red-team 2026-09-25: сотрудник HR назначал себя
     // главой юнита через is_head и затем выдавал себе права).
@@ -62,7 +62,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
     // Дата окончания = увольнение с позиции → persons.delete в подразделении позиции.
     if (body.end_date !== undefined && (body.end_date ?? null) !== cur.end_date) {
-      await requirePrivilege('persons', 'delete', { department_id: cur.department_id ?? undefined })
+      await requirePrivilege('persons', 'delete', (cur.department_id ? { department_id: cur.department_id } : { unassigned: true }))
       update.end_date = body.end_date
     }
     if (Object.keys(update).length === 0) return apiError('no_changes', 400)

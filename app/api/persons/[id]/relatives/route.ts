@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
-import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { requirePersonPrivilege } from '@/lib/auth/module-privileges'
 import { parseBody, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { hasPersonsPrivilege } from '@/lib/persons/permissions'
@@ -104,7 +104,7 @@ const relativeSchema = z.object({
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requirePrivilege('persons', 'edit')
+    await requirePersonPrivilege('persons', 'edit', params.id)
     const body = await parseBody(request, relativeSchema)
 
     if (body.relative_id === params.id) {

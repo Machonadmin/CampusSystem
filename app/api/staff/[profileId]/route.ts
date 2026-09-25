@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { requirePrivilege, requirePersonPrivilege } from '@/lib/auth/module-privileges'
 import { jsonError } from '@/lib/api/handler'
 
 /**
@@ -24,6 +24,8 @@ export async function DELETE(_request: NextRequest, props: { params: Promise<{ p
     if (profileErr || !profile) {
       return apiError('employee_not_found', 404)
     }
+    // Право — над ЭТИМ сотрудником (department-scope: только свои подразделения).
+    await requirePersonPrivilege('persons', 'delete', profile.person_id)
 
     const today = new Date().toISOString().split('T')[0]
     const { error: updateErr } = await sb

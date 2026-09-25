@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from './session'
 import { getUserDepartmentIds } from '@/lib/education/permissions'
+import { journeyTarget } from '@/lib/education/journey-target'
 import { reduceScopes, applyPersonGrants } from '@/lib/permissions/scope'
 import { loadPersonModuleGrants } from '@/lib/permissions/person-grants'
 import type { SessionPayload } from './jwt'
@@ -38,6 +39,12 @@ export type PrivilegeScope = 'all' | 'department' | 'own'
 
 export interface PrivilegeTarget {
   department_id?: string
+  /**
+   * Существующий объект без подразделения (например, позиция без
+   * department_id). department-scope его НЕ покрывает — только 'all'
+   * (симметрично с AccessTarget.unassigned в lib/permissions/scope.ts).
+   */
+  unassigned?: boolean
 }
 
 async function loadScope(
@@ -104,6 +111,8 @@ export async function hasPrivilege(
   if (scope === 'department') {
     // Объект ещё не привязан к конкретному подразделению — считаем допустимым
     // (симметрично с hasEducationPrivilege в lib/education/permissions.ts).
+    // Но существующий объект без подразделения (unassigned) — только для 'all'.
+    if (target?.unassigned) return false
     if (!target?.department_id) return true
     const myDepts = await getUserDepartmentIds(session.person_id)
     return myDepts.includes(target.department_id)
@@ -112,6 +121,63 @@ export async function hasPrivilege(
   // 'own' пока не используется ни одним call site для persons/documents —
   // явные семантики владения появятся вместе с конкретной задачей.
   return false
+}
+
+/**
+ * Входит ли человек personId в зону department-ограниченного пользователя:
+ *   • активная штатная позиция в одном из моих подразделений, или
+ *   • journey, проходящая по journeyTarget (лид без подразделения — общий пул);
+ *   • человек без позиций и без journeys (родственник, только что созданный) —
+ *     не привязан ни к какому подразделению, считаем допустимым (как лид).
+ */
+async function personInMyDepartments(session: SessionPayload, personId: string): Promise<boolean> {
+  const sb = createServerClient()
+  const myDepts = await getUserDepartmentIds(session.person_id)
+  const today = new Date().toISOString().split('T')[0]
+  const [{ data: positions }, { data: journeys }] = await Promise.all([
+    sb.from('staff_positions').select('department_id, end_date').eq('person_id', personId),
+    sb.from('education_journeys')
+      .select('education_status, primary_department_id, desired_department_id')
+      .eq('person_id', personId),
+  ])
+  const active = (positions ?? []).filter(
+    (r: { end_date: string | null }) => r.end_date === null || r.end_date > today,
+  ) as { department_id: string | null }[]
+  if (active.some(r => r.department_id && myDepts.includes(r.department_id))) return true
+  for (const j of journeys ?? []) {
+    const t = journeyTarget(j)
+    if (t.unassigned) continue
+    if (!t.department_id || myDepts.includes(t.department_id)) return true
+  }
+  return active.length === 0 && (journeys ?? []).length === 0
+}
+
+/**
+ * Проверка module.code над КОНКРЕТНЫМ человеком (red-team 2026-09-25: маршруты
+ * persons/[id]/* проверяли persons.edit без цели, и department-ограниченный
+ * руководитель правил любого человека в системе). 'all' — любой человек,
+ * 'department' — см. personInMyDepartments.
+ */
+export async function requirePersonPrivilege(
+  module: PrivilegeModule,
+  code: string,
+  personId: string,
+): Promise<SessionPayload> {
+  const session = await getSession()
+  if (!session) {
+    throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
+  }
+  let ok = false
+  if (session.principal !== 'student' && session.roles.includes('superadmin')) ok = true
+  else {
+    const scope = await loadScope(session, module, code)
+    if (scope === 'all') ok = true
+    else if (scope === 'department') ok = await personInMyDepartments(session, personId)
+  }
+  if (!ok) {
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
+  }
+  return session
 }
 
 /** Throws 401/403 — использовать в route handlers вместо голого getSession(). */

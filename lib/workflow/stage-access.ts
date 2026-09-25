@@ -17,9 +17,10 @@ export interface StageContext {
   /**
    * Цель проверки прав по journey (journeyTarget): лид без подразделения — общий
    * пул, абитуриентка/студентка без подразделения — только scope='all'.
-   * Не задан — этап без journey (прежнее поведение: по departmentId).
+   * undefined — этап без journey (прежнее поведение: по departmentId).
+   * Поле ОБЯЗАТЕЛЬНОЕ: забытый target у journey открывал доступ (ревью red-team).
    */
-  target?:           PrivilegeTarget
+  target:            PrivilegeTarget | undefined
 }
 
 /** Цель проверки прав этапа: ctx.target, иначе — по departmentId (прежнее поведение). */
