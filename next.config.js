@@ -1,5 +1,32 @@
 const { withSentryConfig } = require('@sentry/nextjs')
 
+// Content-Security-Policy в режиме «только записывать» (Report-Only): браузер
+// НИЧЕГО не блокирует, а сообщает в /api/public/csp-report, что было бы
+// заблокировано (сводка: lib/security/csp-report.ts). Цель — через неделю-две
+// убедиться, что система не грузит ничего лишнего, и включить политику
+// по-настоящему: тогда внедрённый чужой <script src=...>, отправка данных на
+// чужой сервер (fetch/форма) и т.п. будут отрезаны браузером.
+// 'unsafe-inline' для скриптов пока нужен: Next.js вставляет свои inline-скрипты.
+const isDev = process.env.NODE_ENV !== 'production'
+const CSP_REPORT_ONLY = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://vercel.live`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://*.sentry.io https://*.supabase.co https://vercel.live",
+  "media-src 'self' blob: https:",
+  "frame-src 'self' https://vercel.live",
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
+  "form-action 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  // report-uri, а не report-to: его понимают все браузеры, и отчёт уходит
+  // сразу (report-to Chrome копит и шлёт пачками с задержкой).
+  'report-uri /api/public/csp-report',
+].join('; ')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -18,6 +45,7 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: 'Content-Security-Policy-Report-Only', value: CSP_REPORT_ONLY },
         ],
       },
       {
