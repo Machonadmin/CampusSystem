@@ -8,6 +8,7 @@ import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/ove
 import { subjectsBelow } from '@/lib/org/hierarchy'
 import type { AppointmentUpdate } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { canLinkJourney } from '@/lib/calendar/journey-link'
 
 /**
  * PATCH  /api/calendar/appointments/[id] — правка встречи / смена статуса
@@ -40,7 +41,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     // Существующая встреча — строго СВОЯ.
     const { data: existing, error: exErr } = await sb
       .from('appointments')
-      .select('id, provider_id, starts_at, ends_at, status')
+      .select('id, provider_id, journey_id, starts_at, ends_at, status')
       .eq('id', params.id)
       .eq('provider_id', session.person_id)
       .maybeSingle()
@@ -97,7 +98,13 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       }
     }
 
-    if (body.journey_id !== undefined) update.journey_id = body.journey_id?.trim() || null
+    if (body.journey_id !== undefined) {
+      const jid = body.journey_id?.trim() || null
+      // Проверяем только СМЕНУ привязки: сохранение формы с прежней студенткой не ломаем.
+      if (jid && jid !== existing.journey_id
+        && !(await canLinkJourney(sb, session, jid))) return apiError('forbidden', 403)
+      update.journey_id = jid
+    }
     if (body.reason !== undefined) update.reason = body.reason?.trim() || null
     if (body.notes !== undefined) update.notes = body.notes?.trim() || null
 

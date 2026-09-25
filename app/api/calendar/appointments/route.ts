@@ -8,6 +8,7 @@ import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/ove
 import { subjectsBelow } from '@/lib/org/hierarchy'
 import type { AppointmentInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { canLinkJourney } from '@/lib/calendar/journey-link'
 
 /**
  * ЛИЧНЫЙ календарь + СИНХРОНИЗАЦИЯ. GET отдаёт две группы встреч:
@@ -236,6 +237,9 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
 
+    const journeyId = body.journey_id?.trim() || null
+    if (journeyId && !(await canLinkJourney(sb, session, journeyId))) return apiError('forbidden', 403)
+
     // Защита от двойного бронирования: 409 при пересечении со СВОЕЙ scheduled.
     const overlap = await hasOverlappingAppointment(sb, session.person_id, body.starts_at, body.ends_at)
     if (overlap) {
@@ -249,7 +253,7 @@ export async function POST(request: NextRequest) {
 
     const insert: AppointmentInsert = {
       provider_id: session.person_id,
-      journey_id: body.journey_id?.trim() || null,
+      journey_id: journeyId,
       title,
       reason: body.reason?.trim() || null,
       starts_at: body.starts_at,

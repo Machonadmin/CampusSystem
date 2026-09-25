@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { requireStaff, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -15,7 +15,7 @@ async function requireSuperadmin() {
 // GET /api/workflow/process-templates?active_only=true|false&code=...
 export async function GET(request: NextRequest) {
   try {
-    await requireAuth()
+    await requireStaff()
     const sb = createServerClient()
     const params = request.nextUrl.searchParams
     const activeOnly = params.get('active_only') !== 'false'
