@@ -66,6 +66,8 @@ const EDU_PRIV_MODULES = ['education', 'recruitment', 'admission', 'studies'] as
 export interface PrivilegeTarget {
   department_id?: string
   teacher_ids?: string[]
+  /** См. AccessTarget.unassigned в lib/permissions/scope.ts. */
+  unassigned?: boolean
 }
 
 // ─── In-memory кэш ────────────────────────────────────────────────────────────

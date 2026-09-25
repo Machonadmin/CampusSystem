@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, type PrivilegeTarget } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 interface CloseProcessEarlyResult {
   process_instance_id: string
@@ -22,7 +23,7 @@ interface CloseProcessEarlyResult {
  * (см. migrations/20260702230000_*.sql). Раньше это были ~8 последовательных
  * update без отката (см. docs/workflow-transaction-risk-analysis.md, §4).
  *
- * Право: manage_leads (по primary_department_id журнея).
+ * Право: manage_leads (по подразделению journey — journeyTarget).
  *        Для финала convert_to_applicant дополнительно convert_lead.
  */
 export async function POST(
@@ -50,17 +51,15 @@ export async function POST(
 
     const journeyId = pi?.journey_id ?? null
 
-    let targetDept: string | null = null
+    let target: PrivilegeTarget | undefined
     if (journeyId) {
       const { data: journey } = await sb
         .from('education_journeys')
-        .select('primary_department_id')
+        .select('education_status, primary_department_id, desired_department_id')
         .eq('id', journeyId)
         .maybeSingle()
-      targetDept = journey?.primary_department_id ?? null
+      target = journey ? journeyTarget(journey) : { unassigned: true }
     }
-
-    const target = targetDept ? { department_id: targetDept } : undefined
 
     await requireEducationPrivilege('manage_leads', target)
     if (body.final_code === 'convert_to_applicant') {

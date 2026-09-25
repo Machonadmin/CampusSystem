@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege, getEducationPrivilegeScope, type EducationPrivilege } from '@/lib/education/permissions'
 import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyScopeDepartment } from '@/lib/education/journey-target'
 
 /**
  * Привилегия управления по education_status journey. Правка карточки (person +
@@ -33,7 +34,7 @@ export async function DELETE(_request: NextRequest, props: { params: Promise<{ i
 
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('id, person_id, education_status, primary_department_id, is_deleted')
+      .select('id, person_id, education_status, primary_department_id, desired_department_id, is_deleted')
       .eq('id', params.id)
       .maybeSingle()
 
@@ -42,7 +43,8 @@ export async function DELETE(_request: NextRequest, props: { params: Promise<{ i
       return apiError('lead_already_deleted', 409)
     }
 
-    const leadDept = (journey as unknown as { primary_department_id: string | null }).primary_department_id
+    // Подразделение — как у списков (journeyScopeDepartment): у лида — desired.
+    const leadDept = journeyScopeDepartment(journey as unknown as Parameters<typeof journeyScopeDepartment>[0])
     await requireEducationPrivilege('manage_leads', {
       department_id: leadDept ?? undefined,
     })
@@ -200,22 +202,23 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('id, person_id, education_status, primary_department_id')
+      .select('id, person_id, education_status, primary_department_id, desired_department_id')
       .eq('id', params.id)
       .maybeSingle()
     if (!journey) return apiError('journey_not_found', 404)
+    const journeyDept = journeyScopeDepartment(journey)
 
     // Правка доступна на любом этапе (лид/абитуриент/студент) — по запросу
     // владельца «редактировать данные ученицы и когда она уже ученица, а не
     // только в гиюсе». Гейтим привилегией по статусу (см. pickManagePrivilege).
     const managePriv = pickManagePrivilege(journey.education_status)
     await requireEducationPrivilege(managePriv, {
-      department_id: journey.primary_department_id ?? undefined,
+      department_id: journeyDept ?? undefined,
     })
 
     // F3: правка СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less) разрешена
     // только при scope='all' (см. DELETE выше). На создание не распространяется.
-    if (journey.primary_department_id == null) {
+    if (journeyDept == null) {
       const scope = await getEducationPrivilegeScope(session, managePriv)
       if (scope !== 'all') {
         return apiError('forbidden', 403)

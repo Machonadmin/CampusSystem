@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny, getUserDepartmentIds } from '@/lib/education/permissions'
+import { getAbsencePrivilegeScope, canSeeAbsence, journeyDepartments } from '@/lib/education/absence-access'
 import { notifyDepartmentAbsence } from '@/lib/education/absence-cases'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
@@ -28,10 +28,9 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       if (!row) return apiError('substage_not_found', 404)
       const caseRow = row as { id: string; journey_id: string; assigned_department_id: string | null; note: string | null; status: string }
 
-      const isManager = session.roles.includes('superadmin') || (await canDoEducationInAny(session, 'manage_students'))
-      const myDepts = isManager ? [] : await getUserDepartmentIds(session.person_id)
-      const canAct = isManager || (!!caseRow.assigned_department_id && myDepts.includes(caseRow.assigned_department_id))
-      if (!canAct) return apiError('forbidden', 403)
+      const access = await getAbsencePrivilegeScope(session)
+      const jDept = access.all || !access.deptManager ? null : (await journeyDepartments(sb, [caseRow.journey_id])).get(caseRow.journey_id)
+      if (!canSeeAbsence(access, caseRow, jDept)) return apiError('forbidden', 403)
 
       const body = await request.json().catch(() => ({})) as { department_id?: string; status?: string; resolution?: string }
       const patch: Database['public']['Tables']['absence_cases']['Update'] = { updated_at: new Date().toISOString() }

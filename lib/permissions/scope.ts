@@ -54,6 +54,13 @@ export function applyPersonGrants<P extends string>(
 export interface AccessTarget {
   department_id?: string
   teacher_ids?: string[]
+  /**
+   * Существующий объект, который ДОЛЖЕН иметь подразделение, но его нет
+   * (абитуриентка/студентка без מחלקה). Для scope='department' → запрет:
+   * такой объект видит только scope='all'. Отличается от «нет цели» (создание,
+   * лиды — общий пул по решению владельца, 2026-09-25), где доступ остаётся.
+   */
+  unassigned?: boolean
 }
 
 /** Контекст пользователя: его подразделения и его person_id. */
@@ -67,8 +74,10 @@ export interface AccessContext {
  * без изменения поведения:
  *   - нет scope        → нет доступа
  *   - all              → доступ всегда
- *   - department       → без target.department_id доступ разрешён (общий пул);
- *                        иначе подразделение должно быть у пользователя
+ *   - department       → target.unassigned → нет доступа (объект без подразделения
+ *                        видит только 'all'); без target.department_id доступ
+ *                        разрешён (создание / общий пул лидов); иначе подразделение
+ *                        должно быть у пользователя
  *   - own              → нужен непустой teacher_ids, и в нём должен быть personId
  */
 export function grantsAccess(
@@ -79,6 +88,7 @@ export function grantsAccess(
   if (!scope) return false
   if (scope === 'all') return true
   if (scope === 'department') {
+    if (target?.unassigned) return false
     if (!target?.department_id) return true
     return ctx.departmentIds.includes(target.department_id)
   }

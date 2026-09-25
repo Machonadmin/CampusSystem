@@ -9,6 +9,7 @@ import {
   type EducationPrivilege,
 } from '@/lib/education/permissions'
 import type { EducationJourneyUpdate, JourneyStatus } from '@/types/database'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 
 type EduWriteScope = 'view' | 'manage'
@@ -72,10 +73,6 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       primary_department_id: string | null
       desired_department_id: string | null
     }
-    const checkDept = isStudentStatus(j.education_status)
-      ? j.primary_department_id
-      : j.desired_department_id
-
     const priv = pickPrivilege(j.education_status, 'view')
     // scope='own' (преподаватель): карточка доступна, только если студентка
     // учится в ОДНОЙ ИЗ ЕГО групп (class_teachers → class_enrollments). Раньше
@@ -93,7 +90,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       }
       if (!allowed) return apiError('forbidden', 403)
     } else {
-      await requireEducationPrivilege(priv, { department_id: checkDept ?? undefined })
+      await requireEducationPrivilege(priv, journeyTarget(j))
     }
 
     // Extra data for edit form

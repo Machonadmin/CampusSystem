@@ -111,6 +111,14 @@ describe('grantsAccess', () => {
       expect(grantsAccess('department', {}, ctx)).toBe(true)
     })
 
+    it('объект без подразделения (unassigned) → нет доступа', () => {
+      expect(grantsAccess('department', { unassigned: true }, ctx)).toBe(false)
+    })
+
+    it('unassigned не мешает scope=all', () => {
+      expect(grantsAccess('all', { unassigned: true }, ctx)).toBe(true)
+    })
+
     it('цель в моих подразделениях → доступ', () => {
       expect(grantsAccess('department', { department_id: 'dep-1' }, ctx)).toBe(true)
     })

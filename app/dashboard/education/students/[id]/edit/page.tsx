@@ -6,6 +6,7 @@ import ruMessages from '@/messages/ru.json'
 import heMessages from '@/messages/he.json'
 import enMessages from '@/messages/en.json'
 import StudentEditClient from './StudentEditClient'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 const messagesByLocale = { ru: ruMessages, he: heMessages, en: enMessages }
 
@@ -36,7 +37,7 @@ export default async function StudentEditPage(props: Props) {
   if (!journey) notFound()
 
   const status = (journey as unknown as { education_status: string | null }).education_status
-  const deptId = (journey as unknown as { primary_department_id: string | null }).primary_department_id
+  const target = journeyTarget(journey as unknown as { education_status: string | null; primary_department_id: string | null })
 
   // Не студентка (лид/абитуриент) — правится через карточку гиюса.
   if (!status || !STUDENT_LIFECYCLE.includes(status)) {
@@ -44,9 +45,7 @@ export default async function StudentEditPage(props: Props) {
   }
 
   // Право на управление студенткой (бросает 403, если нет).
-  await requireEducationPrivilege(pickManagePrivilege(status), {
-    department_id: deptId ?? undefined,
-  })
+  await requireEducationPrivilege(pickManagePrivilege(status), target)
 
   const person = (journey.person as unknown) as { full_name: string | null } | null
   const personName = person?.full_name ?? messagesByLocale[getCookieLocale()].education.card.status.student

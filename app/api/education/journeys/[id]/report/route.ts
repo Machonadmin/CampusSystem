@@ -6,6 +6,7 @@ import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { isOwnStudentJourney } from '@/lib/education/portal-access'
 import { round1, attendancePercent } from '@/lib/education/metrics'
 import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exceptions'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -61,7 +62,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     // 1. Journey существует?
     const { data: journey, error: jErr } = await sb
       .from('education_journeys')
-      .select('id, primary_department_id')
+      .select('id, education_status, primary_department_id, desired_department_id')
       .eq('id', params.id)
       .maybeSingle()
     if (jErr) throw jErr
@@ -109,9 +110,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     } else {
       // Верхний гейт (как карточка студента). Он же прогревает кэш прав,
       // поэтому дальнейшие пофильтровые проверки — попадания в кэш.
-      const deptGate = await hasEducationPrivilege(session, 'view_students', {
-        department_id: journey.primary_department_id ?? undefined,
-      })
+      const deptGate = await hasEducationPrivilege(session, 'view_students', journeyTarget(journey))
 
       // Пофильтр по группам: строку видно, если есть право view_students на target группы.
       for (const g of enrolledGroups) {

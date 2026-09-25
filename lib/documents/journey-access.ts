@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import { hasDocumentsPrivilege } from '@/lib/documents/permissions'
 import { hasEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
-import { journeyScopeDepartment } from '@/lib/education/journey-target'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 /**
  * Комбинированная проверка доступа к документам, привязанным к journey.
@@ -11,8 +11,8 @@ import { journeyScopeDepartment } from '@/lib/education/journey-target'
  * (прежнее поведение — НЕ ослабляется), ЛИБО авторизован в «Образовании» на
  * этой journey: superadmin, либо education-привилегия по статусу journey
  * (lead→manage/view_leads, applicant→…_applicants, иначе …_students) в её
- * подразделении (journeyScopeDepartment: у студентки primary, у лида и
- * абитуриентки desired).
+ * подразделении (journeyTarget: у студентки primary, у лида и абитуриентки
+ * desired; без подразделения — лид общий пул, остальные только scope='all').
  *
  * Студентка (principal='student') НИКОГДА не проходит эту проверку.
  *
@@ -55,9 +55,10 @@ async function canDoJourneyDocs(
   if (!data) return false
 
   const row = data as { education_status: string | null; primary_department_id: string | null; desired_department_id: string | null }
-  return hasEducationPrivilege(session, pickPrivilege(row.education_status, scope), {
-    department_id: journeyScopeDepartment(row) ?? undefined,
-  })
+  // journeyTarget: абитуриентка/студентка без подразделения → только scope='all'
+  // (red-team 2026-09-25: department-сотрудник скачивал и удалял паспорта/
+  // медицинские сканы «ничьих» journeys всего института).
+  return hasEducationPrivilege(session, pickPrivilege(row.education_status, scope), journeyTarget(row))
 }
 
 /** Может ли пользователь ДОБАВЛЯТЬ/УДАЛЯТЬ документы этой journey. */

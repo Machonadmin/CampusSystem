@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 /**
  * POST /api/workflow/journeys/[journeyId]/start — запустить процесс для journey.
@@ -34,13 +35,12 @@ export async function POST(request: NextRequest, props: { params: Promise<{ jour
 
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('id, primary_department_id')
+      .select('id, education_status, primary_department_id, desired_department_id')
       .eq('id', params.journeyId)
       .maybeSingle()
     if (!journey) return apiError('journey_not_found', 404)
 
-    const dept = (journey as { primary_department_id: string | null }).primary_department_id
-    await requireEducationPrivilege('manage_leads', dept ? { department_id: dept } : undefined)
+    await requireEducationPrivilege('manage_leads', journeyTarget(journey))
 
     const body = await request.json().catch(() => ({})) as { process_code?: string }
     const processCode = body.process_code?.trim() || 'recruitment'

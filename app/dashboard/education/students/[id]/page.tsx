@@ -9,6 +9,7 @@ import {
 } from '@/lib/education/permissions'
 import LeadViewClient, { type LeadViewData } from '../../leads/[id]/LeadViewClient'
 import type { StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -94,7 +95,7 @@ export default async function StudentViewPage(props: Props) {
     redirect(`/dashboard/education/leads/${j.id}`)
   }
 
-  const target = { department_id: j.primary_department_id ?? undefined }
+  const target = journeyTarget(j)
 
   // Право на просмотр студента (бросает 403, если нет)
   await requireEducationPrivilege(pickPrivilege(status, 'view'), target)

@@ -33,7 +33,7 @@ async function requireManage(sb: ReturnType<typeof createServerClient>, journeyI
   if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
   const target = await journeyDeptTarget(sb, journeyId)
   const allowed = session.roles.includes('superadmin')
-    || (target
+    || (target.department_id
       ? await hasEducationPrivilege(session, 'manage_students', target)
       : (await getEducationPrivilegeScope(session, 'manage_students')) === 'all')
   if (!allowed) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })

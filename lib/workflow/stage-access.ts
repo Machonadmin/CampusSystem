@@ -1,6 +1,7 @@
 import type { SessionPayload } from '@/lib/auth/jwt'
 import { createServerClient } from '@/lib/supabase/server'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { hasEducationPrivilege, type PrivilegeTarget } from '@/lib/education/permissions'
+import { journeyScopeDepartment, journeyTarget } from '@/lib/education/journey-target'
 import { hasJewishnessAccess } from '@/lib/jewishness/permissions'
 
 // ─── Контекст этапа + композиция прав на завершение/подпись ──────────────────
@@ -13,6 +14,18 @@ export interface StageContext {
   requiresSignature: boolean
   journeyId:         string | null
   departmentId:      string | null
+  /**
+   * Цель проверки прав по journey (journeyTarget): лид без подразделения — общий
+   * пул, абитуриентка/студентка без подразделения — только scope='all'.
+   * Не задан — этап без journey (прежнее поведение: по departmentId).
+   */
+  target?:           PrivilegeTarget
+}
+
+/** Цель проверки прав этапа: ctx.target, иначе — по departmentId (прежнее поведение). */
+export function stageTarget(ctx: StageContext): PrivilegeTarget | undefined {
+  if (ctx.target) return ctx.target
+  return ctx.departmentId ? { department_id: ctx.departmentId } : undefined
 }
 
 /** Загружает шаблон этапа (роль/подпись) + journey/подразделение для проверки прав. */
@@ -34,13 +47,18 @@ export async function loadStageContext(stageInstanceId: string): Promise<StageCo
   const journeyId = (si.process_instance as unknown as { journey_id: string } | null)?.journey_id ?? null
 
   let departmentId: string | null = null
+  let target: PrivilegeTarget | undefined
   if (journeyId) {
+    // Подразделение — как у списков (journeyScopeDepartment): у лида/абитуриентки
+    // desired, у студентки primary. Раньше бралось только primary (у лида пусто),
+    // и department-сотрудник любого юнита проходил к этапам ЛЮБОГО лида.
     const { data: j } = await sb
       .from('education_journeys')
-      .select('primary_department_id')
+      .select('education_status, primary_department_id, desired_department_id')
       .eq('id', journeyId)
       .maybeSingle()
-    departmentId = j?.primary_department_id ?? null
+    departmentId = j ? journeyScopeDepartment(j) : null
+    target = j ? journeyTarget(j) : { unassigned: true }
   }
 
   return {
@@ -51,6 +69,7 @@ export async function loadStageContext(stageInstanceId: string): Promise<StageCo
     requiresSignature: !!tmpl?.requires_signature,
     journeyId,
     departmentId,
+    target,
   }
 }
 
@@ -89,7 +108,6 @@ export async function stageSignerAuthority(
     return null
   }
   // Не-ролевой этап (набор): прежнее поведение — нужен manage_leads.
-  const target = ctx.departmentId ? { department_id: ctx.departmentId } : undefined
-  const hasManage = await hasEducationPrivilege(session, 'manage_leads', target)
+  const hasManage = await hasEducationPrivilege(session, 'manage_leads', stageTarget(ctx))
   return hasManage ? 'role' : null
 }
