@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
+    // Штатный справочник — не для портального токена студентки.
+    if (session.principal === 'student') return apiError('forbidden', 403)
 
     const directionId = request.nextUrl.searchParams.get('direction_id')
     if (!directionId) {

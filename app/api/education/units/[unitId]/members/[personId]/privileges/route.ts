@@ -60,6 +60,12 @@ export async function PUT(
     const isSuper = session.roles.includes('superadmin')
     const isHead = isSuper || (await getHeadedUnitIds(session.person_id)).includes(params.unitId)
     if (!isHead) {
+      // Делегат не меняет права ни одного ГЛАВЫ юнита (red-team 2026-09-25: глава выдавал
+      // сообщнику delegate_privileges, и тот возвращал главе любое право —
+      // обход запрета self-grant в два шага).
+      if ((await getHeadedUnitIds(params.personId)).length > 0) {
+        return apiError('forbidden', 403)
+      }
       for (const code of toGrant) {
         if (code === 'delegate_privileges') return apiError('delegate_no_redelegate', 403)
         const holds = await hasEducationPrivilege(session, code as EducationPrivilege, { department_id: params.unitId })

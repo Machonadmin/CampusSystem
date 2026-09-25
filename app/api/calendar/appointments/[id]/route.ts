@@ -5,10 +5,9 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isAppointmentStatus, isIsoDateTime } from '@/lib/calendar/validation'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
-import { subjectsBelow } from '@/lib/org/hierarchy'
 import type { AppointmentUpdate } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
-import { canLinkJourney } from '@/lib/calendar/journey-link'
+import { canLinkJourney, forbiddenAttendees, attendeesAbove } from '@/lib/calendar/journey-link'
 
 /**
  * PATCH  /api/calendar/appointments/[id] — правка встречи / смена статуса
@@ -120,10 +119,12 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
         const existingIds = new Set<string>(((exRes.data ?? []) as Array<{ person_id: string }>).map(r => r.person_id))
         const toAdd = [...wanted].filter(id => !existingIds.has(id))
         const toRemove = [...existingIds].filter(id => !wanted.has(id))
+        // Новых участников проверяем так же, как при создании (forbiddenAttendees).
+        if ((await forbiddenAttendees(sb, session, toAdd)).length > 0) return apiError('forbidden', 403)
         if (toAdd.length > 0) {
           // Иерархия — одним пакетом, и один batched insert (было ~4 запроса и
           // отдельный insert на каждого добавляемого участника).
-          const above = await subjectsBelow(session.person_id, toAdd)
+          const above = await attendeesAbove(session.person_id, toAdd)
           const rows = toAdd.map(pid => ({
             appointment_id: params.id, person_id: pid,
             requires_approval: above.has(pid), status: above.has(pid) ? 'pending_approval' : 'invited',

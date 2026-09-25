@@ -14,10 +14,10 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     await requirePrivilege('persons', 'edit')
     const sb = createServerClient()
     const { data: current, error: curErr } = await sb.from('staff_positions')
-      .select('person_id, department_id').eq('id', params.id).maybeSingle()
+      .select('person_id, department_id, end_date').eq('id', params.id).maybeSingle()
     if (curErr) throw curErr
     if (!current) return apiError('not_found', 404)
-    const cur = current as { person_id: string; department_id: string | null }
+    const cur = current as { person_id: string; department_id: string | null; end_date: string | null }
     // Право — в подразделении ЭТОЙ позиции (а не «где-нибудь»).
     const session = await requirePrivilege('persons', 'edit', { department_id: cur.department_id ?? undefined })
     const isSuper = session.roles.includes('superadmin')
@@ -61,7 +61,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       update.is_head = body.is_head === true
     }
     // Дата окончания = увольнение с позиции → persons.delete в подразделении позиции.
-    if (body.end_date !== undefined) {
+    if (body.end_date !== undefined && (body.end_date ?? null) !== cur.end_date) {
       await requirePrivilege('persons', 'delete', { department_id: cur.department_id ?? undefined })
       update.end_date = body.end_date
     }
