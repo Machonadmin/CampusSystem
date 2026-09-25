@@ -156,8 +156,9 @@ async function personsLinkedToDepts(personIds: string[], depts: string[]): Promi
  * Входит ли человек personId в зону department-ограниченного пользователя
  * (для ИЗМЕНЕНИЙ — edit/delete):
  *   • сам привязан к моему подразделению (personsLinkedToDepts), или
- *   • он родственник/контакт человека, привязанного к моему подразделению
- *     (один шаг по person_relatives — родители студентки моей מחלקה).
+ *   • у него нет своего следа (ни позиций, ни journeys) и он родственник/контакт
+ *     человека, привязанного к моему подразделению (один шаг по person_relatives —
+ *     родители студентки моей מחלקה).
  * Всё остальное (бывшие сотрудники, люди без связей, лиды без подразделения) —
  * только scope='all' (red-team 2026-09-25, round 3).
  */
@@ -166,6 +167,18 @@ async function personInMyDepartments(session: SessionPayload, personId: string):
   if (myDepts.length === 0) return false
   if (await personsLinkedToDepts([personId], myDepts)) return true
   const sb = createServerClient()
+  // Шаг через родственника — ТОЛЬКО для человека без собственного следа в системе
+  // (ни одной позиции, даже прошлой, ни одной journey): это родитель/контакт.
+  // Иначе связь «родственник», созданную самим пользователем, можно было бы
+  // использовать, чтобы дотянуться до сотрудника или студентки чужого
+  // подразделения (red-team 2026-09-25, round 4).
+  const [anyPos, anyJrn] = await Promise.all([
+    sb.from('staff_positions').select('id').eq('person_id', personId).limit(1),
+    sb.from('education_journeys').select('id').eq('person_id', personId).limit(1),
+  ])
+  if (anyPos.error) throw anyPos.error
+  if (anyJrn.error) throw anyJrn.error
+  if ((anyPos.data ?? []).length > 0 || (anyJrn.data ?? []).length > 0) return false
   const [a, b] = await Promise.all([
     sb.from('person_relatives').select('person_id').eq('relative_id', personId),
     sb.from('person_relatives').select('relative_id').eq('person_id', personId),
