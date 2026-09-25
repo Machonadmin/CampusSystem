@@ -30,6 +30,7 @@ import JourneyDocumentsPanel from '@/components/education/JourneyDocumentsPanel'
 import LeadCommunicationPanel from '@/components/education/LeadCommunicationPanel'
 import StudentLifecyclePanel, { type StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 import StudentFinancePanel from '@/components/finance/StudentFinancePanel'
+import DiscountRequestPanel from '@/components/finance/DiscountRequestPanel'
 import StudentReportTab from '@/app/dashboard/education/components/StudentReportTab'
 import StudentOverviewTab from '@/app/dashboard/education/components/StudentOverviewTab'
 import { PhoneLink } from '@/components/ui/PhoneLink'
@@ -117,6 +118,12 @@ interface Props {
    * Используется для редактируемой панели профиля выпускника.
    */
   extraPanel?: React.ReactNode
+  /**
+   * Может ли текущий сотрудник запросить скидку на обучение (решает сервер —
+   * canRequestTuitionDiscount). Когда true — в группе «ניהול וכספים» показывается
+   * блок «בקשת הנחה».
+   */
+  canRequestDiscount?: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -189,7 +196,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, showOverview, routeBase = 'leads', navContext, extraPanel }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, showOverview, routeBase = 'leads', navContext, extraPanel, canRequestDiscount = false }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const t = useTranslations('education')
@@ -504,6 +511,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               {canManage && <PortalCredentialsPanel journeyId={data.journeyId} />}
               {canManage && <StaffStudentMessagesPanel journeyId={data.journeyId} canManage={canManage} />}
               <StudentFinancePanel journeyId={data.journeyId} />
+              {canRequestDiscount && <DiscountRequestPanel journeyId={data.journeyId} />}
             </PanelGroup>
           )}
           <JourneyTimeline journeyId={data.journeyId} />

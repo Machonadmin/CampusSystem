@@ -3801,6 +3801,20 @@
       "teaching_no_end_time_warning": "{n} approved lessons have no end time — not included in pay. Add an end time to the lesson.",
       "cp_readonly_hint": "Pairs are managed in the Chavruta hub. Every active pair earns chavruta-plus pay.",
       "cp_manage_link": "Manage chavruta teachers and pairs"
+    },
+    "discount_request": {
+      "title": "Discount request",
+      "hint": "There is no automatic discount. The request goes to finance for manual approval.",
+      "percent_label": "Discount percent",
+      "percent_range": "Discount percent must be between 0 and 100",
+      "note_placeholder": "Note (optional)",
+      "submit": "Send request",
+      "sending": "Sending…",
+      "sent": "Request sent for approval",
+      "exists": "A pending discount request already exists for this student",
+      "forbidden": "You are not allowed to request a discount for this student",
+      "not_migrated": "Feature unavailable — the database migration must be applied",
+      "failed": "Could not send the request"
     }
   },
   "dormitory": {
