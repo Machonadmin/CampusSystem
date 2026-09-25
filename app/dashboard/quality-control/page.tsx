@@ -92,6 +92,11 @@ export default function QualityControlPage() {
   const canViewHistory   = hasFeatureAccess(featureAccess, 'quality_control', 'history',   'can_view')
   const canViewTemplates = hasFeatureAccess(featureAccess, 'quality_control', 'templates', 'can_view')
   const canCreateCheck   = hasFeatureAccess(featureAccess, 'quality_control', 'planned',   'can_create')
+  // Права на строку — как на сервере (/api/quality-control/[id]): завершённая
+  // проверка относится к «history», остальные — к «planned».
+  const rowFeature = (status: string) => (status === 'completed' ? 'history' : 'planned')
+  const canEditRow   = (status: string) => hasFeatureAccess(featureAccess, 'quality_control', rowFeature(status), 'can_edit')
+  const canDeleteRow = (status: string) => hasFeatureAccess(featureAccess, 'quality_control', rowFeature(status), 'can_delete')
 
   const templatePerms: FeaturePerms = featureAccess?.quality_control?.templates ?? NO_PERMS
   // Шаблоны из URL — только тем, кому вкладка видна.
@@ -126,8 +131,16 @@ export default function QualityControlPage() {
     if (!(await confirmDialog({ message: t('list.confirm_delete', 'Delete check from {date}?').replace('{date}', date), tone: 'danger' }))) return
     setDeletingId(id)
     try {
-      await fetch(`/api/quality-control/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/quality-control/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        // Ошибку сервера (напр. 403) показываем, а не молча перерисовываем список.
+        const body = await res.json().catch(() => ({}))
+        toast(body.error ?? t('list.delete_failed'), 'error')
+        return
+      }
       setRefresh(r => r + 1)
+    } catch {
+      toast(t('list.delete_failed'), 'error')
     } finally {
       setDeletingId(null)
     }
@@ -247,13 +260,17 @@ export default function QualityControlPage() {
                                 color: c.status === 'completed' ? 'var(--text)' : 'var(--info)',
                               }}
                             >
-                              {c.status === 'completed' ? t('list.action_view') : t('list.action_fill')}
+                              {/* «מילוי» — только тем, кто может править; иначе «צפייה». */}
+                              {c.status === 'completed' || !canEditRow(c.status) ? t('list.action_view') : t('list.action_fill')}
                             </Link>
-                            <RowActionsMenu
-                              actions={[
-                                { key: 'delete', label: tCommon('delete'), onClick: () => handleDelete(c.id, formatDate(c.lesson_date)), disabled: deletingId === c.id, danger: true },
-                              ]}
-                            />
+                            {/* Удаление — только при праве can_delete (иначе сервер вернёт 403). */}
+                            {canDeleteRow(c.status) && (
+                              <RowActionsMenu
+                                actions={[
+                                  { key: 'delete', label: tCommon('delete'), onClick: () => handleDelete(c.id, formatDate(c.lesson_date)), disabled: deletingId === c.id, danger: true },
+                                ]}
+                              />
+                            )}
                           </div>
                         </td>
                       </tr>

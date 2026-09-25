@@ -8,6 +8,8 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useSidebar } from '@/lib/sidebar/SidebarContext'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateLong } from '@/lib/i18n/format-date'
+import { hasFeatureAccess, type FeatureAccess } from '@/lib/permissions'
+import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -193,6 +195,10 @@ export default function FillCheckPage() {
   const [tmpl, setTmpl] = useState<TData | null>(null)
   const [templateError, setTemplateError] = useState(false)
   const [loading, setLoading] = useState(true)
+  // Почему проверка не загрузилась: 403 → «нет доступа», 404 → «не найдена»,
+  // остальное → общая ошибка загрузки (раньше всё показывалось как «не найдена»).
+  const [loadFailure, setLoadFailure] = useState<'forbidden' | 'not_found' | 'error' | null>(null)
+  const [featureAccess, setFeatureAccess] = useState<FeatureAccess>({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [errs, setErrs] = useState<Record<string, boolean>>({})
@@ -213,8 +219,20 @@ export default function FillCheckPage() {
   useEffect(() => {
     ;(async () => {
       try {
-        const res = await fetch(`/api/quality-control/${id}`)
-        if (!res.ok) return
+        // Права (feature_access) грузим вместе с проверкой: от них зависит,
+        // показывать ли форму для правки и кнопки сохранения.
+        const [res, fa] = await Promise.all([
+          fetch(`/api/quality-control/${id}`),
+          fetch('/api/auth/me')
+            .then(r => (r.ok ? r.json() : {}))
+            .then((d: { feature_access?: FeatureAccess }) => d.feature_access ?? {})
+            .catch(() => ({} as FeatureAccess)),
+        ])
+        setFeatureAccess(fa)
+        if (!res.ok) {
+          setLoadFailure(res.status === 403 ? 'forbidden' : res.status === 404 ? 'not_found' : 'error')
+          return
+        }
         const c: CheckFull = await res.json()
         setCheck(c)
         setAnswers((c.answers ?? {}) as Answers)
@@ -232,13 +250,18 @@ export default function FillCheckPage() {
           if (tr.ok) setTmpl(await tr.json())
           else setTemplateError(true)
         }
+      } catch {
+        setLoadFailure('error')
       } finally {
         setLoading(false)
       }
     })()
   }, [id])
 
-  const isRO = check?.status === 'completed'
+  // Только просмотр: завершённая проверка, или нет права can_edit на
+  // «planned» (сервер PUT всё равно вернул бы 403).
+  const canEdit = hasFeatureAccess(featureAccess, 'quality_control', 'planned', 'can_edit')
+  const isRO = check?.status === 'completed' || !canEdit
 
   // ── Answer helpers ──
   function getEntry(q: TQ): AEntry {
@@ -322,7 +345,10 @@ export default function FillCheckPage() {
         return
       }
       if (complete) {
-        router.push('/dashboard/quality-control')
+        // Завершённая проверка уходит во вкладку «היסטוריית בדיקות» — туда и
+        // возвращаемся, чтобы она не «исчезала» из списка.
+        const toHistory = hasFeatureAccess(featureAccess, 'quality_control', 'history', 'can_view')
+        router.push(toHistory ? '/dashboard/quality-control?tab=history' : '/dashboard/quality-control')
       } else {
         setCheck(prev => prev ? { ...prev, status: 'in_progress' } : prev)
         setSaveError('')
@@ -337,7 +363,12 @@ export default function FillCheckPage() {
     return <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
   }
   if (!check) {
-    return <div style={{ padding: 48, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>{t('fill.not_found')}</div>
+    if (loadFailure === 'forbidden') return <ForbiddenState />
+    return (
+      <div style={{ padding: 48, textAlign: 'center', color: 'var(--danger)', fontSize: 13 }}>
+        {loadFailure === 'error' ? tCommon('load_error') : t('fill.not_found')}
+      </div>
+    )
   }
 
   const blocks = tmpl?.structure.blocks ?? []

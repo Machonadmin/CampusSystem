@@ -272,7 +272,7 @@ const he: typeof ru = {
     kitchen_staff: 'עובד מטבח',
     technical_staff: 'צוות טכני',
     applicant: 'מועמד',
-    alumni: 'בוגר',
+    alumni: 'בוגרת',
     sponsor: 'תורם',
     head_of_studies: 'אחראי לימודים',
     studies_manager: 'מנהל לימודים',

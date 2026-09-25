@@ -2986,7 +2986,8 @@
       "action_view": "Просмотр",
       "action_fill": "Заполнить",
       "confirm_delete": "Удалить проверку от {date}?",
-      "table_status": "Статус"
+      "table_status": "Статус",
+      "delete_failed": "Не удалось удалить"
     },
     "fill": {
       "breadcrumb_title": "Проверка урока",

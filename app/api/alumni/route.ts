@@ -16,6 +16,7 @@ import { errorResponse } from '@/lib/api/handler'
  *
  * Фильтры:
  *   ?search=...  — app-side по persons.full_name/hebrew_name/email/phones
+ *                  и подразделению/направлению (как фильтр на экране)
  *
  * Ответ: { alumni: AlumniListItem[] }
  */
@@ -146,7 +147,9 @@ export async function GET(request: NextRequest) {
         a.full_name.toLowerCase().includes(search) ||
         (a.hebrew_name ?? '').toLowerCase().includes(search) ||
         (a.email ?? '').toLowerCase().includes(search) ||
-        a.phones.join(' ').toLowerCase().includes(search)
+        a.phones.join(' ').toLowerCase().includes(search) ||
+        (a.institution ?? '').toLowerCase().includes(search) ||
+        (a.direction ?? '').toLowerCase().includes(search)
       )
     }
 

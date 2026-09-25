@@ -119,6 +119,21 @@ function blockTypeLabel(t: Tr, type: string): string {
   return t(`templates.block_type_${type}`, type)
 }
 
+// Поле «סיכום הבדיקה», куда попадает ответ (maps_to): показываем подпись поля
+// из формы заполнения, а не внутренний код (strengths и т.п.).
+const MAPS_TO_LABEL_KEY: Record<string, string> = {
+  strengths: 'fill.strengths_label',
+  areas_for_improvement: 'fill.areas_label',
+  action_item: 'fill.action_item_label',
+  overall_rating: 'fill.overall_rating_label',
+  teacher_feedback: 'fill.feedback_label',
+}
+
+function mapsToLabel(t: Tr, code: string): string {
+  const key = MAPS_TO_LABEL_KEY[code]
+  return key ? t(key, code) : code
+}
+
 // ── View modal ────────────────────────────────────────────────────────────────
 
 function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => void }) {
@@ -228,7 +243,7 @@ function ViewModal({ tmpl, onClose }: { tmpl: TemplateDetail; onClose: () => voi
                             </span>
                             {q.maps_to && (
                               <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 5, background: 'var(--warn-tint)', color: 'var(--warn)', whiteSpace: 'nowrap' }}>
-                                → {q.maps_to}
+                                → {mapsToLabel(t, q.maps_to)}
                               </span>
                             )}
                           </div>
@@ -475,7 +490,7 @@ function TemplateBuilder({
 
                           {q.maps_to && (
                             <span style={{ fontSize: 10, padding: '2px 5px', borderRadius: 4, background: 'var(--warn-tint)', color: 'var(--warn)', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                              → {q.maps_to}
+                              → {mapsToLabel(t, q.maps_to)}
                             </span>
                           )}
 

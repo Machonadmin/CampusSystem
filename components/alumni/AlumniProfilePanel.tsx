@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { getModuleColor } from '@/lib/module-colors'
 
 export interface AlumniProfileData {
   id: string
@@ -159,12 +160,13 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
           </div>
           {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <div style={{ display: 'flex', gap: 8 }}>
+            {/* Цвет кнопки — цвет модуля «בוגרות», а не жёстко заданный. */}
             <button
               onClick={save}
               disabled={saving}
               style={{
                 padding: '7px 16px', fontSize: 13, fontWeight: 500,
-                background: '#DB2777', color: '#fff', border: 'none', borderRadius: 8,
+                background: getModuleColor('alumni', 'primary'), color: '#fff', border: 'none', borderRadius: 8,
                 cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1,
               }}
             >

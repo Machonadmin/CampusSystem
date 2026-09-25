@@ -2986,7 +2986,8 @@
       "action_view": "View",
       "action_fill": "Fill In",
       "confirm_delete": "Delete the check from {date}?",
-      "table_status": "Status"
+      "table_status": "Status",
+      "delete_failed": "Delete failed"
     },
     "fill": {
       "breadcrumb_title": "Lesson Check",

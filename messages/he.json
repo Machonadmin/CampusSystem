@@ -742,7 +742,7 @@
         "lead": "ליד",
         "applicant": "מועמדת",
         "student": "תלמידה",
-        "graduated": "בוגר",
+        "graduated": "בוגרת",
         "expelled": "הופסקו לימודיה",
         "on_leave": "חופשת לימודים"
       },
@@ -750,7 +750,7 @@
         "lead": "כרטיס ליד",
         "applicant": "כרטיס מועמדת",
         "student": "כרטיס תלמידה",
-        "graduated": "כרטיס בוגר",
+        "graduated": "כרטיס בוגרת",
         "expelled": "כרטיס מורחק",
         "on_leave": "כרטיס תלמידה בחופשת לימודים"
       },
@@ -2986,7 +2986,8 @@
       "action_view": "צפייה",
       "action_fill": "מילוי",
       "confirm_delete": "למחוק את הבדיקה מתאריך {date}?",
-      "table_status": "סטטוס"
+      "table_status": "סטטוס",
+      "delete_failed": "המחיקה נכשלה"
     },
     "fill": {
       "breadcrumb_title": "בדיקת שיעור",
@@ -3468,7 +3469,7 @@
   },
   "alumni": {
     "list": {
-      "subtitle": "מאגר בוגרי הקמפוס",
+      "subtitle": "מאגר בוגרות הקמפוס",
       "search_placeholder": "חיפוש לפי שם, אימייל, מוסד…",
       "count": "סך הכול",
       "empty": "לא נמצאו בוגרות",
@@ -3485,9 +3486,9 @@
       "open_card": "פתח כרטיס"
     },
     "card": {
-      "section": "בוגר",
-      "profile_title": "פרופיל בוגר",
-      "no_profile": "פרופיל הבוגר טרם נוצר",
+      "section": "בוגרת",
+      "profile_title": "פרופיל בוגרת",
+      "no_profile": "פרופיל הבוגרת טרם נוצר",
       "graduation_year": "שנת סיום",
       "institution": "מוסד",
       "direction": "תוכנית",
@@ -4307,9 +4308,9 @@
         "applicant": "מועמדת",
         "student": "תלמידה",
         "on_leave": "חופשת לימודים",
-        "graduated": "בוגר",
+        "graduated": "בוגרת",
         "expelled": "הופסקו לימודיה",
-        "alumni": "בוגר בארכיון",
+        "alumni": "בוגרת בארכיון",
         "lost": "לא רלוונטית"
       },
       "priority": {
@@ -4842,7 +4843,7 @@
     "charge_not_found": "החיוב לא נמצא",
     "payment_not_found": "התשלום לא נמצא",
     "application_not_found": "הבקשה לא נמצאה",
-    "alumni_profile_not_found": "פרופיל הבוגר לא נמצא",
+    "alumni_profile_not_found": "פרופיל הבוגרת לא נמצא",
     "person_not_found": "האדם לא נמצא",
     "employee_not_found": "העובד לא נמצא",
     "institution_not_found": "המוסד לא נמצא",
