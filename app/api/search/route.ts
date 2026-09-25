@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege } from '@/lib/education/permissions'
+import { hasEducationPrivilege, getEducationPrivilegeScope, type EducationPrivilege } from '@/lib/education/permissions'
+import { hasPersonsPrivilege, getPersonsPrivilegeScope } from '@/lib/persons/permissions'
+import { journeyTarget } from '@/lib/education/journey-target'
 import { sanitizeOrSearch } from '@/lib/search/sanitize'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -15,6 +17,14 @@ import { errorResponse } from '@/lib/api/handler'
  */
 
 const STATUS_TO_STAGE = new Set(['lead', 'applicant'])
+// Кандидатов берём с запасом: часть отсеется проверкой прав по объекту.
+const CANDIDATES = 60
+
+function viewPrivilegeFor(status: string | null): EducationPrivilege {
+  if (status === 'lead') return 'view_leads'
+  if (status === 'applicant') return 'view_applicants'
+  return 'view_students'
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,7 +57,7 @@ export async function GET(request: NextRequest) {
       const PAGE = 1000
       let from = 0
       // Кап в 5 страниц — защита от неограниченного скана на больших базах.
-      while (list.length < 12 && from < PAGE * 5) {
+      while (list.length < CANDIDATES && from < PAGE * 5) {
         const { data, error } = await sb
           .from('persons')
           .select('id, full_name, hebrew_name, email, phones')
@@ -63,7 +73,7 @@ export async function GET(request: NextRequest) {
           })
           if (hit) {
             list.push({ id: p.id, full_name: p.full_name, hebrew_name: p.hebrew_name, email: p.email })
-            if (list.length >= 12) break
+            if (list.length >= CANDIDATES) break
           }
         }
         if (rows.length < PAGE) break
@@ -75,21 +85,51 @@ export async function GET(request: NextRequest) {
         .from('persons')
         .select('id, full_name, hebrew_name, email')
         .or(`full_name.ilike.${pattern},hebrew_name.ilike.${pattern},email.ilike.${pattern}`)
-        .limit(12)
+        .limit(CANDIDATES)
       if (error) throw error
       list = (persons ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null; email: string | null }>
     }
     if (list.length === 0) return NextResponse.json({ results: [] })
 
     // Статус в образовании (для типа + ссылки).
+    type JRow = { id: string; person_id: string; education_status: string | null; primary_department_id: string | null; desired_department_id: string | null }
     const { data: journeys } = await sb
       .from('education_journeys')
-      .select('id, person_id, education_status')
+      .select('id, person_id, education_status, primary_department_id, desired_department_id')
       .in('person_id', list.map(p => p.id))
-    const journeyByPerson = new Map<string, { id: string; education_status: string | null }>()
-    for (const j of (journeys ?? []) as Array<{ id: string; person_id: string; education_status: string | null }>) {
-      if (!journeyByPerson.has(j.person_id)) journeyByPerson.set(j.person_id, { id: j.id, education_status: j.education_status })
+    const journeysByPerson = new Map<string, JRow[]>()
+    for (const j of (journeys ?? []) as JRow[]) {
+      const arr = journeysByPerson.get(j.person_id) ?? []
+      arr.push(j)
+      journeysByPerson.set(j.person_id, arr)
     }
+
+    // Проверка по ОБЪЕКТУ (red-team 2026-09-25): раньше право просмотра в одном
+    // юните давало поиск (в т.ч. обратный по телефону) по ВСЕМУ институту.
+    // Человек виден, если: persons.view='all' / superadmin; либо видна хотя бы
+    // одна его journey (право по статусу в её подразделении, journeyTarget);
+    // человек без journey (сотрудник) — только с правом persons.view.
+    const unrestricted = session.roles.includes('superadmin')
+      || (await getPersonsPrivilegeScope(session, 'view')) === 'all'
+    const canViewPersons = unrestricted || await hasPersonsPrivilege(session, 'view')
+    const journeyByPerson = new Map<string, { id: string; education_status: string | null }>()
+    const visible: typeof list = []
+    for (const p of list) {
+      const js = journeysByPerson.get(p.id) ?? []
+      let shown: JRow | null = null
+      for (const j of js) {
+        if (unrestricted) { shown = j; break }
+        const priv = viewPrivilegeFor(j.education_status)
+        const scope = await getEducationPrivilegeScope(session, priv)
+        if (scope === 'own') continue
+        if (await hasEducationPrivilege(session, priv, journeyTarget(j))) { shown = j; break }
+      }
+      if (shown) journeyByPerson.set(p.id, { id: shown.id, education_status: shown.education_status })
+      if (shown || (js.length === 0 && canViewPersons)) visible.push(p)
+      if (visible.length >= 12) break
+    }
+    list = visible
+    if (list.length === 0) return NextResponse.json({ results: [] })
 
     const results = list.map(p => {
       const j = journeyByPerson.get(p.id)

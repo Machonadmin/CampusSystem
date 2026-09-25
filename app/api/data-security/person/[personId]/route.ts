@@ -66,6 +66,11 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
     const sb = createServerClient({ actorPersonId: session.person_id })
     const personId = params.personId
     if (!personId) return apiError('invalid_reference', 400)
+    // Держатель data_security.grant не выдаёт права САМОМУ СЕБЕ — это делает
+    // другой администратор или superadmin (разделение обязанностей).
+    if (!session.roles.includes('superadmin') && personId === session.person_id) {
+      return apiError('cannot_change_own_privileges', 403)
+    }
 
     const { overrides } = await request.json() as { overrides?: Override[] }
     if (!Array.isArray(overrides)) return apiError('invalid_reference', 400)
@@ -149,6 +154,8 @@ async function putAsHead(
   try {
     if (!personId) return apiError('invalid_reference', 400)
     if (!ctx.scope.personIds.has(personId)) return apiError('forbidden', 403)
+    // Глава отдела не меняет СВОИ права (red-team 2026-09-25: self-grant).
+    if (personId === ctx.session.person_id) return apiError('cannot_change_own_privileges', 403)
 
     const { overrides } = await request.json() as { overrides?: SubmittedOverride[] }
     if (!Array.isArray(overrides)) return apiError('invalid_reference', 400)

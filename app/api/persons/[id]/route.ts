@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requirePrivilege } from '@/lib/auth/module-privileges'
+import { requirePersonPrivilege } from '@/lib/auth/module-privileges'
 import { hasPersonsPrivilege } from '@/lib/persons/permissions'
 import { redactSensitivePerson } from '@/lib/persons/redact'
 import { getSession } from '@/lib/auth/session'
@@ -87,7 +87,7 @@ const patchSchema = z.object({
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    const session = await requirePrivilege('persons', 'edit')
+    const session = await requirePersonPrivilege('persons', 'edit', params.id)
 
     const raw = await request.json().catch(() => ({}))
     const parsed = patchSchema.safeParse(raw)

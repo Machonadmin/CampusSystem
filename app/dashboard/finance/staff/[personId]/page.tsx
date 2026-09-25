@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
 import { createServerClient } from '@/lib/supabase/server'
-import { canViewStaffComp, canManageStaffComp, canApprovePayslip } from '@/lib/finance/staff-comp'
+import { canViewStaffComp, canManageStaffComp, canApprovePayslip, canAccessStaffCompPerson, isSelfCompTarget } from '@/lib/finance/staff-comp'
 import PayslipClient from './PayslipClient'
 
 interface Props {
@@ -18,10 +18,13 @@ export default async function StaffPayslipPage(props: Props) {
   const session = await getSession()
   if (!session) redirect('/login')
   if (!(await canViewStaffComp(session))) redirect('/dashboard')
+  if (!(await canAccessStaffCompPerson(session, params.personId, 'view'))) redirect('/dashboard/finance/staff')
 
+  // Кнопки — только если API их пропустит: не своя зарплата и сотрудник в scope права.
+  const self = isSelfCompTarget(session, params.personId)
   const [canManage, canApprove] = await Promise.all([
-    canManageStaffComp(session),
-    canApprovePayslip(session),
+    (async () => !self && await canManageStaffComp(session) && await canAccessStaffCompPerson(session, params.personId, 'create_invoice'))(),
+    (async () => !self && await canApprovePayslip(session) && await canAccessStaffCompPerson(session, params.personId, 'approve_payment'))(),
   ])
 
   // Имя сотрудника — читаем напрямую (клиентские API расчётного листа его не

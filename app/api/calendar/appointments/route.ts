@@ -5,9 +5,9 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { mapDbError } from '@/lib/calendar/http'
 import { isIsoDate, isIsoDateTime } from '@/lib/calendar/validation'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
-import { subjectsBelow } from '@/lib/org/hierarchy'
 import type { AppointmentInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { canLinkJourney, forbiddenAttendees, attendeesAbove } from '@/lib/calendar/journey-link'
 
 /**
  * ЛИЧНЫЙ календарь + СИНХРОНИЗАЦИЯ. GET отдаёт две группы встреч:
@@ -236,6 +236,12 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
 
+    const journeyId = body.journey_id?.trim() || null
+    if (journeyId && !(await canLinkJourney(sb, session, journeyId))) return apiError('forbidden', 403)
+    const attendeeIds = Array.from(new Set((body.attendee_person_ids ?? [])
+      .map(x => (x ?? '').trim()).filter(Boolean).filter(id => id !== session.person_id)))
+    if ((await forbiddenAttendees(sb, session, attendeeIds)).length > 0) return apiError('forbidden', 403)
+
     // Защита от двойного бронирования: 409 при пересечении со СВОЕЙ scheduled.
     const overlap = await hasOverlappingAppointment(sb, session.person_id, body.starts_at, body.ends_at)
     if (overlap) {
@@ -249,7 +255,7 @@ export async function POST(request: NextRequest) {
 
     const insert: AppointmentInsert = {
       provider_id: session.person_id,
-      journey_id: body.journey_id?.trim() || null,
+      journey_id: journeyId,
       title,
       reason: body.reason?.trim() || null,
       starts_at: body.starts_at,
@@ -272,13 +278,11 @@ export async function POST(request: NextRequest) {
     // иерархии — его участие требует подтверждения (pending_approval). Деплой-
     // безопасно: если таблицы ещё нет (42P01) — встреча всё равно создана.
     const appointmentId = (data as { id: string }).id
-    const attendeeIds = Array.from(new Set((body.attendee_person_ids ?? [])
-      .map(x => (x ?? '').trim()).filter(Boolean).filter(id => id !== session.person_id)))
     let pendingApprovalCount = 0
     if (attendeeIds.length > 0) {
       // Кто из приглашённых ВЫШЕ создателя — одним пакетом (было ~4 запроса и
       // полный скан departments на каждого участника).
-      const above = await subjectsBelow(session.person_id, attendeeIds)
+      const above = await attendeesAbove(session.person_id, attendeeIds)
       const rows: Array<Record<string, unknown>> = []
       for (const pid of attendeeIds) {
         const needsApproval = above.has(pid)

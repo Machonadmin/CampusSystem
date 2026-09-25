@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { monthRange, lessonHours, sumEntries } from './staff-comp'
+import { monthRange, lessonHours, sumEntries, isSelfCompTarget } from './staff-comp'
+import type { SessionPayload } from '@/lib/auth/jwt'
 
 describe('monthRange', () => {
   it('обычный месяц', () => {
@@ -48,5 +49,21 @@ describe('sumEntries (целые копейки, без float-дрейфа)', ()
   })
   it('пусто → 0', () => {
     expect(sumEntries([])).toBe(0)
+  })
+})
+
+describe('isSelfCompTarget (разделение обязанностей в зарплатах)', () => {
+  const s = (roles: string[]) => ({ person_id: 'me', roles } as unknown as SessionPayload)
+  it('сотрудник финансов не трогает свою зарплату', () => {
+    expect(isSelfCompTarget(s(['accountant']), 'me')).toBe(true)
+  })
+  it('чужая зарплата — можно', () => {
+    expect(isSelfCompTarget(s(['accountant']), 'other')).toBe(false)
+  })
+  it('superadmin — исключение', () => {
+    expect(isSelfCompTarget(s(['superadmin']), 'me')).toBe(false)
+  })
+  it('пустой personId — не self', () => {
+    expect(isSelfCompTarget(s(['accountant']), null)).toBe(false)
   })
 })

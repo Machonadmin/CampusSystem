@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { requireStaff, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, canDoEducationInAny } from '@/lib/education/permissions'
@@ -24,7 +24,7 @@ function mapDbError(error: { code?: string; message?: string }) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireAuth()
+    const session = await requireStaff()
     const sb = createServerClient()
     const params = request.nextUrl.searchParams
 

@@ -1,5 +1,8 @@
 import type { SessionPayload } from '@/lib/auth/jwt'
-import { hasFinancePrivilege } from './permissions'
+import { hasFinancePrivilege, getFinancePrivilegeScope, type FinancePrivilege } from './permissions'
+import { createServerClient } from '@/lib/supabase/server'
+import { getUserDepartmentIds } from '@/lib/education/permissions'
+import { todayISO } from '@/lib/dates'
 import { toCents, centsToNumber } from './money'
 
 /**
@@ -23,6 +26,47 @@ export async function canApprovePayslip(session: SessionPayload | null): Promise
   if (!session) return false
   if (session.roles.includes('superadmin')) return true
   return hasFinancePrivilege(session, 'approve_payment')
+}
+
+/**
+ * Разделение обязанностей (red-team 2026-09-25): сотрудник финансов НЕ создаёт,
+ * не меняет, не удаляет и не утверждает СОБСТВЕННУЮ зарплату (тарифы, записи,
+ * расчётный лист). Иначе держатель create_invoice/approve_payment мог начислить
+ * и утвердить себе выплату. Исключение — superadmin (владелец системы).
+ */
+export function isSelfCompTarget(session: SessionPayload, personId: string | null | undefined): boolean {
+  if (session.roles.includes('superadmin')) return false
+  return !!personId && personId === session.person_id
+}
+
+/**
+ * Проверка ПО СОТРУДНИКУ (red-team 2026-09-25): раньше хватало иметь право
+ * finance.* где угодно, и можно было читать/менять зарплату любого personId.
+ * Теперь scope права сравнивается с подразделениями сотрудника:
+ *   • superadmin / scope='all' → любой сотрудник;
+ *   • scope='department' → у сотрудника есть действующая позиция в одном из
+ *     подразделений проверяющего (включая под-единицы);
+ *   • иначе / сотрудник без позиций → нет.
+ */
+export async function canAccessStaffCompPerson(
+  session: SessionPayload,
+  personId: string,
+  privilege: FinancePrivilege,
+): Promise<boolean> {
+  if (session.principal === 'student') return false
+  if (session.roles.includes('superadmin')) return true
+  const scope = await getFinancePrivilegeScope(session, privilege)
+  if (scope === 'all') return true
+  if (scope !== 'department') return false
+  const myDepts = await getUserDepartmentIds(session.person_id)
+  if (myDepts.length === 0) return false
+  const sb = createServerClient()
+  const { data, error } = await sb.from('staff_positions')
+    .select('department_id, end_date').eq('person_id', personId)
+  if (error || !data) return false
+  const today = todayISO()
+  return data.some(r => (r.end_date === null || r.end_date > today)
+    && !!r.department_id && myDepts.includes(r.department_id))
 }
 
 /** Границы месяца [from, to] в ISO 'YYYY-MM-DD' (to — включительно, последний день). */

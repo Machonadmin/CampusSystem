@@ -8,6 +8,7 @@ import { revokeSessionsBefore } from '@/lib/auth/live-session'
 import { clearLoginLockout } from '@/lib/auth/account-lockout'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 // student_credentials ещё нет в сгенерированных типах БД (миграция применяется
 // владельцем) — обращаемся к ней через нетипизированный клиент.
@@ -40,19 +41,17 @@ async function gateStaff(journeyId: string): Promise<{ err: NextResponse } | {
   const sb = createServerClient()
   const { data: journey } = await sb
     .from('education_journeys')
-    .select('id, person_id, primary_department_id, education_status')
+    .select('id, person_id, primary_department_id, desired_department_id, education_status')
     .eq('id', journeyId)
     .maybeSingle()
   if (!journey) return { err: apiError('journey_not_found', 404) }
 
-  const j = journey as { id: string; person_id: string; primary_department_id: string | null; education_status: string | null }
+  const j = journey as { id: string; person_id: string; primary_department_id: string | null; desired_department_id: string | null; education_status: string | null }
   // Вход в портал — только для студенток.
   if (j.education_status !== 'student') return { err: apiError('forbidden', 403) }
 
   const allowed = session.roles.includes('superadmin')
-    || (await hasEducationPrivilege(session, 'manage_students', {
-      department_id: j.primary_department_id ?? undefined,
-    }))
+    || (await hasEducationPrivilege(session, 'manage_students', journeyTarget(j)))
   if (!allowed) return { err: apiError('forbidden', 403) }
 
   return { sb, journey: j }

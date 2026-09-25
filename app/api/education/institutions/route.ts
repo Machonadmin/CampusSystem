@@ -16,6 +16,8 @@ export async function GET() {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
+    // Штатный справочник — не для портального токена студентки.
+    if (session.principal === 'student') return apiError('forbidden', 403)
 
     // Видимость по юниту: менеджер со scope='department' видит только заведения
     // своей вертикали (юнит + под-единицы + заведение-контейнер над ним), а не

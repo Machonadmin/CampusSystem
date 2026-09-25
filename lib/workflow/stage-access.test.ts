@@ -28,6 +28,7 @@ function roleStage(requiredRoleCode: string | null): StageContext {
     requiresSignature: true,
     journeyId: 'j1',
     departmentId: null,
+    target: undefined,
   }
 }
 

@@ -77,6 +77,9 @@ export async function POST(request: NextRequest) {
     if (!isAdminSeater) {
       if (!HEAD_SEATABLE_ROLES.has((role as { code: string | null }).code ?? '')) return apiError('forbidden', 403)
       if (body.person_id === session.person_id) return apiError('forbidden', 403)
+      // Назначить ГЛАВУ юнита может только администратор посадки: глава,
+      // посадивший «второго главу», передал бы ему право раздавать привилегии.
+      if (body.is_head === true) return apiError('forbidden', 403)
     }
 
     const isHead = body.is_head === true

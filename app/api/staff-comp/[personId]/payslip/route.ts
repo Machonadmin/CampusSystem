@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canViewStaffComp, canApprovePayslip, monthRange, sumEntries } from '@/lib/finance/staff-comp'
+import { canViewStaffComp, canApprovePayslip, isSelfCompTarget, monthRange, sumEntries, canAccessStaffCompPerson } from '@/lib/finance/staff-comp'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -26,6 +26,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ perso
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (!(await canViewStaffComp(session))) return apiError('forbidden', 403)
+    if (!(await canAccessStaffCompPerson(session, params.personId, 'view'))) return apiError('forbidden', 403)
 
     const sp = request.nextUrl.searchParams
     const year = Number(sp.get('year')), month = Number(sp.get('month'))
@@ -69,6 +70,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ pers
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (!(await canApprovePayslip(session))) return apiError('forbidden', 403)
+    if (!(await canAccessStaffCompPerson(session, params.personId, 'approve_payment'))) return apiError('forbidden', 403)
+    if (isSelfCompTarget(session, params.personId)) return apiError('staff_comp_self_forbidden', 403)
 
     const sp = request.nextUrl.searchParams
     const year = Number(sp.get('year')), month = Number(sp.get('month'))

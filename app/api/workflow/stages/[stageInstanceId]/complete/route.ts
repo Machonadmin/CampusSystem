@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { jsonError } from '@/lib/api/handler'
-import { loadStageContext, stageSignerAuthority } from '@/lib/workflow/stage-access'
+import { loadStageContext, stageSignerAuthority, stageTarget } from '@/lib/workflow/stage-access'
 import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import { finalCodeToStatus, setJewishnessStatus } from '@/lib/jewishness/status'
 import { parseBenefitsInput, setAdmissionBenefits, createAdmissionContract } from '@/lib/admission/benefits'
@@ -51,7 +51,7 @@ export async function POST(
     const authority = await stageSignerAuthority(session, ctx)
     if (!authority) return apiError('forbidden', 403)
 
-    const target = ctx.departmentId ? { department_id: ctx.departmentId } : undefined
+    const target = stageTarget(ctx)
     if (body.final_code === 'convert_to_applicant') {
       await requireEducationPrivilege('convert_lead', target)
     }

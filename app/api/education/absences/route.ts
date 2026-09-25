@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny, getUserDepartmentIds } from '@/lib/education/permissions'
+import { getAbsencePrivilegeScope, filterVisibleAbsences, journeyDepartments } from '@/lib/education/absence-access'
 import { notifyDepartmentAbsence } from '@/lib/education/absence-cases'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
@@ -54,19 +54,19 @@ export async function GET(request: NextRequest) {
     if (!session) return apiError('unauthorized', 401)
     if (session.principal === 'student') return apiError('forbidden', 403)
 
-    const isManager = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
-    const myDepts = isManager ? [] : await getUserDepartmentIds(session.person_id)
-    if (!isManager && myDepts.length === 0) return NextResponse.json({ items: [] })
+    const access = await getAbsencePrivilegeScope(session)
+    const isManager = access.all || access.deptManager
+    if (!access.all && access.depts.length === 0) return NextResponse.json({ items: [] })
 
     const sb = createServerClient()
     const status = request.nextUrl.searchParams.get('status')?.trim()
     try {
       let q = sb.from('absence_cases').select('*').order('opened_at', { ascending: false })
-      if (!isManager) q = q.in('assigned_department_id', myDepts)
+      if (!access.all && !access.deptManager) q = q.in('assigned_department_id', access.depts)
       if (status && ['open', 'in_handling', 'resolved'].includes(status)) q = q.eq('status', status)
       const { data, error } = await q
       if (error) throw error
-      const rows = (data ?? []) as CaseRow[]
+      const rows = await filterVisibleAbsences(sb, access, (data ?? []) as CaseRow[])
       const { studentByJourney, personName, deptName } = await resolveNames(sb, rows)
       // Список подразделений для пикера передачи (доска уже гейтится выше).
       const { data: depts } = await sb.from('departments').select('id, name').order('name')
@@ -97,8 +97,8 @@ export async function POST(request: NextRequest) {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     if (session.principal === 'student') return apiError('forbidden', 403)
-    const ok = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
-    if (!ok) return apiError('forbidden', 403)
+    const access = await getAbsencePrivilegeScope(session)
+    if (!access.all && !access.deptManager) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { journey_id?: string; lesson_id?: string; absence_date?: string; note?: string; department_id?: string }
     const journeyId = (body.journey_id ?? '').trim()
@@ -106,6 +106,11 @@ export async function POST(request: NextRequest) {
     const departmentId = (body.department_id ?? '').trim() || null
 
     const sb = createServerClient()
+    // Менеджер юнита открывает случай только для студентки своего юнита.
+    if (!access.all) {
+      const jd = (await journeyDepartments(sb, [journeyId])).get(journeyId)
+      if (!jd || !access.depts.includes(jd)) return apiError('forbidden', 403)
+    }
     try {
       const { data, error } = await sb.from('absence_cases').insert({
         journey_id: journeyId,

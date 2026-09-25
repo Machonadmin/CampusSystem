@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
+import { requireEducationPrivilege, type EducationPrivilege, type PrivilegeTarget } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 type EduWriteScope = 'view' | 'manage'
 
@@ -62,17 +63,17 @@ export async function GET(
 
     // 2. journey → education_status + primary_department_id (для проверки прав)
     let eduStatus: string | null = null
-    let targetDept: string | null = null
+    let jTarget: PrivilegeTarget | undefined
     if (pi.journey_id) {
       const { data: journey } = await sb
         .from('education_journeys')
-        .select('education_status, primary_department_id')
+        .select('education_status, primary_department_id, desired_department_id')
         .eq('id', pi.journey_id)
         .maybeSingle()
       eduStatus = journey?.education_status ?? null
-      targetDept = journey?.primary_department_id ?? null
+      jTarget = journey ? journeyTarget(journey) : { unassigned: true }
     }
-    const target = targetDept ? { department_id: targetDept } : undefined
+    const target = jTarget
 
     // Право на просмотр — по статусу journey (бросает 403, если нет)
     await requireEducationPrivilege(pickPrivilege(eduStatus, 'view'), target)

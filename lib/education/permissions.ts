@@ -66,6 +66,8 @@ const EDU_PRIV_MODULES = ['education', 'recruitment', 'admission', 'studies'] as
 export interface PrivilegeTarget {
   department_id?: string
   teacher_ids?: string[]
+  /** См. AccessTarget.unassigned в lib/permissions/scope.ts. */
+  unassigned?: boolean
 }
 
 // ─── In-memory кэш ────────────────────────────────────────────────────────────
@@ -361,7 +363,10 @@ export async function getEducationDeptFilter(
   session: SessionPayload,
   privilege: EducationPrivilege = 'view_students',
 ): Promise<string[] | null> {
-  if (session.principal !== 'student' && session.roles.includes('superadmin')) return null
+  // Портальный токен студентки: штатные справочники/структуры ей не отдаём —
+  // [] (пусто), а не null (null = «без фильтра», запрос шёл бы по всему институту).
+  if (session.principal === 'student') return []
+  if (session.roles.includes('superadmin')) return null
   const scope = await getEducationPrivilegeScope(session, privilege)
   if (scope !== 'department') return null
   return await getUserDepartmentIds(session.person_id)
@@ -378,7 +383,10 @@ export async function getEducationContainerDeptFilter(
   session: SessionPayload,
   privilege: EducationPrivilege = 'view_students',
 ): Promise<string[] | null> {
-  if (session.principal !== 'student' && session.roles.includes('superadmin')) return null
+  // Портальный токен студентки: штатные справочники/структуры ей не отдаём —
+  // [] (пусто), а не null (null = «без фильтра», запрос шёл бы по всему институту).
+  if (session.principal === 'student') return []
+  if (session.roles.includes('superadmin')) return null
   const scope = await getEducationPrivilegeScope(session, privilege)
   if (scope !== 'department') return null
   const deptIds = await getUserDepartmentIds(session.person_id)
@@ -427,6 +435,9 @@ async function getStructureScope(session: SessionPayload): Promise<Scope | null>
  * как у getEducationDeptFilter, но scope берётся из управления структурой.
  */
 export async function getEducationStructureDeptFilter(session: SessionPayload): Promise<string[] | null> {
+  // Портальный токен студентки: штатные справочники/структуры ей не отдаём —
+  // [] (пусто), а не null (null = «без фильтра», запрос шёл бы по всему институту).
+  if (session.principal === 'student') return []
   const scope = await getStructureScope(session)
   if (scope !== 'department') return null
   return await getUserDepartmentIds(session.person_id)
@@ -437,6 +448,9 @@ export async function getEducationStructureDeptFilter(session: SessionPayload): 
  * Как getEducationContainerDeptFilter, но scope из управления структурой + предки.
  */
 export async function getEducationStructureContainerFilter(session: SessionPayload): Promise<string[] | null> {
+  // Портальный токен студентки: штатные справочники/структуры ей не отдаём —
+  // [] (пусто), а не null (null = «без фильтра», запрос шёл бы по всему институту).
+  if (session.principal === 'student') return []
   const scope = await getStructureScope(session)
   if (scope !== 'department') return null
   const deptIds = await getUserDepartmentIds(session.person_id)

@@ -15,6 +15,7 @@ import { loadFinanceTotals } from '@/lib/reports/metrics'
 import { isActiveOn as isDormActiveOn } from '@/lib/dormitory/occupancy'
 import { isActiveOn as isFoodActiveOn } from '@/lib/food/enrollment'
 import { documentStats } from '@/lib/documents/expiry'
+import { journeyTarget } from '@/lib/education/journey-target'
 import {
   visibleSections,
   pickCurrentActive,
@@ -206,7 +207,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const { data: journeyRow, error: jErr } = await sb
       .from('education_journeys')
       .select(`
-        id, primary_department_id, education_status, opened_at, application_date,
+        id, primary_department_id, desired_department_id, education_status, opened_at, application_date,
         person:persons!applicant_profiles_person_id_fkey(full_name, hebrew_name, email, phones, photo_url),
         primary_department:departments!education_journeys_primary_department_id_fkey(name),
         specialty:specialties!education_journeys_specialty_id_fkey(name, code)
@@ -219,6 +220,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const journey = journeyRow as unknown as {
       id: string
       primary_department_id: string | null
+      desired_department_id: string | null
       education_status: string | null
       opened_at: string | null
       application_date: string | null
@@ -234,9 +236,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // 2. Верхний гейт — как карточка студента: view_students в его подразделении.
-    const eduGate = await hasEducationPrivilege(session, 'view_students', {
-      department_id: journey.primary_department_id ?? undefined,
-    })
+    const eduGate = await hasEducationPrivilege(session, 'view_students', journeyTarget(journey))
     if (!eduGate) return apiError('forbidden', 403)
 
     // 3. Привилегии 'view' по чувствительным модулям.

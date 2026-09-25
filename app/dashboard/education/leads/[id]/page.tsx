@@ -8,6 +8,7 @@ import {
   type EducationPrivilege,
 } from '@/lib/education/permissions'
 import LeadViewClient, { type LeadViewData } from './LeadViewClient'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -33,7 +34,7 @@ export default async function LeadViewPage(props: Props) {
   const { data: journey } = await sb
     .from('education_journeys')
     .select(`
-      id, person_id, education_status, primary_department_id,
+      id, person_id, education_status, primary_department_id, desired_department_id,
       referral_source, notes, opened_at, application_date,
       person:persons!applicant_profiles_person_id_fkey(id, full_name, first_name, last_name, middle_name, hebrew_name,
         email, phones, gender, birth_date, address, marital_status, nationality, passport_number, photo_url),
@@ -49,6 +50,7 @@ export default async function LeadViewPage(props: Props) {
     person_id: string
     education_status: string | null
     primary_department_id: string | null
+    desired_department_id: string | null
     referral_source: string | null
     notes: string | null
     opened_at: string | null
@@ -73,7 +75,8 @@ export default async function LeadViewPage(props: Props) {
     primary_department: { id: string; name: string } | null
   }
 
-  const target = { department_id: j.primary_department_id ?? undefined }
+  // Цель — как у списков: у лида/абитуриентки desired, без подразделения см. journeyTarget.
+  const target = journeyTarget(j)
   const status = j.education_status
 
   // Право на просмотр — по статусу journey (бросает 403, если нет)

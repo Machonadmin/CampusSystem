@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 /**
  * Журнал коммуникаций лида/абитуриента/студента на УРОВНЕ journey.
@@ -34,10 +35,10 @@ function managePrivilegeFor(status: string): 'manage_leads' | 'manage_applicants
 async function loadJourney(sb: ReturnType<typeof createServerClient>, journeyId: string) {
   const { data } = await sb
     .from('education_journeys')
-    .select('id, education_status, primary_department_id')
+    .select('id, education_status, primary_department_id, desired_department_id')
     .eq('id', journeyId)
     .maybeSingle()
-  return data as { id: string; education_status: string; primary_department_id: string | null } | null
+  return data as { id: string; education_status: string; primary_department_id: string | null; desired_department_id: string | null } | null
 }
 
 /** Все stage_instance_id journey + id активного/самого свежего подэтапа для POST. */
@@ -76,9 +77,7 @@ export async function GET(_req: NextRequest, props: Params) {
     const journey = await loadJourney(sb, params.id)
     if (!journey) return apiError('not_found', 404)
 
-    const canView = await hasEducationPrivilege(session, viewPrivilegeFor(journey.education_status), {
-      department_id: journey.primary_department_id ?? undefined,
-    })
+    const canView = await hasEducationPrivilege(session, viewPrivilegeFor(journey.education_status), journeyTarget(journey))
     if (!canView) return apiError('forbidden', 403)
 
     const { stageIds } = await collectStages(sb, params.id)
@@ -132,9 +131,7 @@ export async function POST(req: NextRequest, props: Params) {
     const journey = await loadJourney(sb, params.id)
     if (!journey) return apiError('not_found', 404)
 
-    const canManage = await hasEducationPrivilege(session, managePrivilegeFor(journey.education_status), {
-      department_id: journey.primary_department_id ?? undefined,
-    })
+    const canManage = await hasEducationPrivilege(session, managePrivilegeFor(journey.education_status), journeyTarget(journey))
     if (!canManage) return apiError('forbidden', 403)
 
     const { targetStageId } = await collectStages(sb, params.id)

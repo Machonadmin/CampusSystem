@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth, errorResponse } from '@/lib/api/handler'
+import { requireStaff, errorResponse } from '@/lib/api/handler'
 import { apiError, apiErrorWith, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -14,7 +14,7 @@ async function requireSuperadmin() {
 export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireAuth()
+    await requireStaff()
     const sb = createServerClient()
 
     const { data, error } = await sb

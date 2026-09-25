@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, errorResponse } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { canDoEducationInAny, getUserDepartmentIds, hasEducationPrivilege } from '@/lib/education/permissions'
+import { canDoEducationInAny, hasEducationPrivilege } from '@/lib/education/permissions'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { getTaskAccess } from '@/lib/tasks/access'
 import { mapDbError } from '@/lib/tasks/helpers'
@@ -16,6 +16,8 @@ import {
 } from '@/lib/students/open-items'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { TaskRow } from '@/types/database'
+import { getAbsencePrivilegeScope, filterVisibleAbsences } from '@/lib/education/absence-access'
+import { getAlertStudentScope } from '@/lib/education/alert-scope'
 
 type Sb = ReturnType<typeof createServerClient>
 
@@ -27,6 +29,8 @@ async function loadAlerts(sb: Sb, session: SessionPayload, personId: string): Pr
   const allowed = (await canDoEducationInAny(session, 'view_students'))
     || (await hasEducationPrivilege(session, 'manage_alerts'))
   if (!allowed) return []
+  const studentScope = await getAlertStudentScope(sb, session)
+  if (studentScope && !studentScope.has(personId)) return []
   const seeSensitive = await hasEducationPrivilege(session, 'view_sensitive_alerts')
 
   try {
@@ -82,9 +86,8 @@ async function loadAlerts(sb: Sb, session: SessionPayload, personId: string): Pr
 // Та же видимость, что у GET /api/education/absences: менеджер (superadmin или
 // manage_students) видит все, остальные — только переданные своим подразделениям.
 async function loadAbsences(sb: Sb, session: SessionPayload, journeyId: string): Promise<OpenAbsenceItem[]> {
-  const isManager = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
-  const myDepts = isManager ? [] : await getUserDepartmentIds(session.person_id)
-  if (!isManager && myDepts.length === 0) return []
+  const access = await getAbsencePrivilegeScope(session)
+  if (!access.all && access.depts.length === 0) return []
 
   try {
     let q = sb
@@ -93,13 +96,13 @@ async function loadAbsences(sb: Sb, session: SessionPayload, journeyId: string):
       .eq('journey_id', journeyId)
       .neq('status', 'resolved')
       .order('opened_at', { ascending: false })
-    if (!isManager) q = q.in('assigned_department_id', myDepts)
+    if (!access.all && !access.deptManager) q = q.in('assigned_department_id', access.depts)
     const { data, error } = await q
     if (error) throw error
-    const rows = (data ?? []) as Array<{
+    const rows = await filterVisibleAbsences(sb, access, ((data ?? []) as Array<{
       id: string; absence_date: string | null; note: string | null; status: string
       assigned_department_id: string | null; opened_at: string
-    }>
+    }>).map(r => ({ ...r, journey_id: journeyId })))
 
     const deptIds = [...new Set(rows.map(r => r.assigned_department_id).filter(Boolean))] as string[]
     const deptName = new Map<string, string>()

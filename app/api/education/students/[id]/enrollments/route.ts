@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege, type EducationPrivilege } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { journeyTarget } from '@/lib/education/journey-target'
 
 /** Привилегия просмотра по education_status journey. */
 function pickViewPrivilege(status: string | null): EducationPrivilege {
@@ -28,13 +29,12 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('education_status, primary_department_id')
+      .select('education_status, primary_department_id, desired_department_id')
       .eq('id', params.id)
       .maybeSingle()
-    const targetDept = journey?.primary_department_id ?? null
     await requireEducationPrivilege(
       pickViewPrivilege(journey?.education_status ?? null),
-      targetDept ? { department_id: targetDept } : undefined,
+      journey ? journeyTarget(journey) : { unassigned: true },
     )
 
     const { data, error } = await sb
