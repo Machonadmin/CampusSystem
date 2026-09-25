@@ -16,8 +16,10 @@ import { isMissingTable } from '@/lib/supabase/errors'
  * одобренной скидки к finance_discounts — отдельное действие финмодуля).
  *
  * GET — список (finance view / approve_discount / education-менеджер).
- * POST — запросить скидку для студентки (правило — canRequestTuitionDiscount,
- *   lib/finance/discount-request-access.ts). Право УТВЕРЖДАТЬ — approve_discount (см. [id] PATCH).
+ * POST — запросить скидку для студентки: ТОЛЬКО секретариат учёбы её юнита
+ *   (studies_secretary + посадка в юните/предке) или superadmin; портальный
+ *   токен студентки — никогда. Правило — canRequestTuitionDiscount
+ *   (lib/finance/discount-request-access.ts). Право УТВЕРЖДАТЬ — approve_discount (см. [id] PATCH).
  * Deploy-safe: нет таблицы → пусто.
  */
 
