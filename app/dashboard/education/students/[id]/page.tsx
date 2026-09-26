@@ -107,6 +107,20 @@ export default async function StudentViewPage(props: Props) {
   // Блок «בקשת הנחה» — тем же правилом, что и сервер (POST discount-approvals).
   const canRequestDiscount = await canRequestTuitionDiscount(session, j.primary_department_id)
 
+  // Дефолтный % скидки из настроек финансов — читаем здесь, на сервере:
+  // секретарю учёбы GET /api/finance/settings закрыт, а видеть он должен
+  // именно то, что решили в настройках. Нет таблицы/строки → фолбэк панели (90).
+  let discountDefaultPercent: number | null = null
+  if (canRequestDiscount) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: fs } = await (sb.from('finance_settings') as any)
+        .select('default_discount_percent').eq('id', true).maybeSingle()
+      const v = (fs as { default_discount_percent?: number | null } | null)?.default_discount_percent
+      if (typeof v === 'number' && Number.isFinite(v)) discountDefaultPercent = v
+    } catch { /* остаётся фолбэк */ }
+  }
+
   // Доп. данные: направления, общины, родственники, история статусов
   const [{ data: interests }, { data: communities }, { data: relatives }, { data: history }] = await Promise.all([
     sb.from('lead_interests')
@@ -212,6 +226,7 @@ export default async function StudentViewPage(props: Props) {
       showOverview
       routeBase="students"
       canRequestDiscount={canRequestDiscount}
+      discountDefaultPercent={discountDefaultPercent}
     />
   )
 }
