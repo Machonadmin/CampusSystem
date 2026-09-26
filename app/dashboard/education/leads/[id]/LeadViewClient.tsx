@@ -124,6 +124,8 @@ interface Props {
    * блок «בקשת הנחה».
    */
   canRequestDiscount?: boolean
+  /** finance_settings.default_discount_percent, прочитан на сервере. */
+  discountDefaultPercent?: number | null
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -196,7 +198,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, showOverview, routeBase = 'leads', navContext, extraPanel, canRequestDiscount = false }: Props) {
+export default function LeadViewClient({ data, showEditButton, canManage, canConvert, studyLifecycle, showReport, showOverview, routeBase = 'leads', navContext, extraPanel, canRequestDiscount = false, discountDefaultPercent = null }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const t = useTranslations('education')
@@ -511,7 +513,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               {canManage && <PortalCredentialsPanel journeyId={data.journeyId} />}
               {canManage && <StaffStudentMessagesPanel journeyId={data.journeyId} canManage={canManage} />}
               <StudentFinancePanel journeyId={data.journeyId} />
-              {canRequestDiscount && <DiscountRequestPanel journeyId={data.journeyId} />}
+              {canRequestDiscount && <DiscountRequestPanel journeyId={data.journeyId} defaultPercent={discountDefaultPercent} />}
             </PanelGroup>
           )}
           <JourneyTimeline journeyId={data.journeyId} />

@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { toast } from '@/components/ui/toast'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
-/** Фолбэк, если настройки финансов не прочитались (нет права/таблицы). */
+/** Фолбэк, если настройки финансов не прочитались (нет таблицы/строки). */
 const FALLBACK_PERCENT = 90
 
 /**
@@ -13,36 +13,22 @@ const FALLBACK_PERCENT = 90
  * и отправляет ЗАПРОС (tuition_discount_approvals, статус pending). Автоматической
  * скидки нет — её утверждает финансовая роль в «אישורי הנחות».
  *
- * Поле заранее заполнено дефолтом из /api/finance/settings (обычно 90) и серое,
- * пока его не тронули: не тронули — уходит этот дефолт. Панель показывается
+ * Поле заранее заполнено дефолтом finance_settings.default_discount_percent —
+ * страница читает его на сервере и передаёт пропом defaultPercent (секретарю
+ * учёбы GET /api/finance/settings закрыт). Серое, пока его не тронули: не
+ * тронули — уходит этот дефолт. Панель показывается
  * только тем, кому сервер разрешает POST (см. canRequestTuitionDiscount) —
  * решение принимает страница карточки (проп canRequestDiscount в LeadViewClient).
  */
-export default function DiscountRequestPanel({ journeyId }: { journeyId: string }) {
+export default function DiscountRequestPanel({ journeyId, defaultPercent }: { journeyId: string; defaultPercent?: number | null }) {
   const t = useTranslations('finance.discount_request')
   const primary = getModuleColor('finance', 'primary')
 
-  const [percent, setPercent] = useState<string>(String(FALLBACK_PERCENT))
+  const [percent, setPercent] = useState<string>(String(typeof defaultPercent === 'number' && Number.isFinite(defaultPercent) ? defaultPercent : FALLBACK_PERCENT))
   const [touched, setTouched] = useState(false)
-  // Ref — чтобы ответ настроек, пришедший ПОСЛЕ правки, не затёр введённое.
-  const touchedRef = useRef(false)
   const [note, setNote] = useState('')
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState<'sent' | 'exists' | null>(null)
-
-  // Дефолт из настроек финансов. Пока поле не тронуто — подставляем его.
-  useEffect(() => {
-    let alive = true
-    fetch('/api/finance/settings')
-      .then(r => (r.ok ? r.json() : null))
-      .then((b: { settings?: { default_discount_percent?: number | null } } | null) => {
-        const v = b?.settings?.default_discount_percent
-        if (!alive || typeof v !== 'number' || !Number.isFinite(v)) return
-        if (!touchedRef.current) setPercent(String(v))
-      })
-      .catch(() => { /* остаётся фолбэк 90 */ })
-    return () => { alive = false }
-  }, [])
 
   const num = Number(percent)
   const valid = percent.trim() !== '' && Number.isFinite(num) && num >= 0 && num <= 100
@@ -109,7 +95,7 @@ export default function DiscountRequestPanel({ journeyId }: { journeyId: string 
             step={1}
             inputMode="decimal"
             value={percent}
-            onChange={e => { setPercent(e.target.value); touchedRef.current = true; setTouched(true); setResult(null) }}
+            onChange={e => { setPercent(e.target.value); setTouched(true); setResult(null) }}
             aria-invalid={!valid}
             style={{
               ...inputStyle, width: 90, fontFamily: 'var(--font-mono)',
