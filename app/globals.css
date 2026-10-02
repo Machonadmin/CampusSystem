@@ -740,3 +740,13 @@ p { text-wrap: pretty; }
   display: flex;
   gap: 2px;
 }
+
+/* Эмблема (components/ui/InstitutionLogo): в тёмной теме — версия со светлой
+   звездой, иначе тёмно-синяя звезда теряется на тёмном фоне. */
+.brand-logo-dark { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brand-logo-light { display: none; }
+  :root:not([data-theme="light"]) .brand-logo-dark { display: block; }
+}
+:root[data-theme="dark"] .brand-logo-light { display: none; }
+:root[data-theme="dark"] .brand-logo-dark { display: block; }
