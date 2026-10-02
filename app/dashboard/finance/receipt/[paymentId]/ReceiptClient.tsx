@@ -4,6 +4,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { formatMoney } from '@/lib/finance/money'
 import { useSafeBack } from '@/lib/hooks/useSafeBack'
+import { InstitutionLogo } from '@/components/ui/InstitutionLogo'
 
 interface Payment {
   id: string
@@ -91,6 +92,9 @@ export default function ReceiptClient({ payment, journeyId, studentName, student
       }}>
         {/* Шапка */}
         <div style={{ textAlign: 'center', borderBottom: '2px solid var(--accent-strong)', paddingBottom: 16, marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+            <InstitutionLogo height={56} />
+          </div>
           <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{t('institution')}</div>
           <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--accent-strong)', marginTop: 6 }}>{t('title')}</div>
           <div style={{ fontSize: 12, color: 'var(--text-faint)', marginTop: 4 }}>
@@ -141,6 +145,9 @@ export default function ReceiptClient({ payment, journeyId, studentName, student
       <style>{`
         @media print {
           .receipt-actions { display: none !important; }
+          /* На бумаге фон не печатается — всегда обычная (тёмно-синяя) эмблема. */
+          .receipt-sheet .brand-logo-dark { display: none !important; }
+          .receipt-sheet .brand-logo-light { display: block !important; }
           .receipt-sheet {
             box-shadow: none !important;
             border: none !important;

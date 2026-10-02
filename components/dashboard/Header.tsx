@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { InstitutionLogo } from '@/components/ui/InstitutionLogo'
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -98,8 +98,7 @@ export default function Header({ userName, roles }: HeaderProps) {
         className="flex items-center gap-3 flex-shrink-0"
         style={{ borderInlineStart: '3px solid #4BAED4', paddingInlineStart: 12 }}
       >
-        <Image src="/logo.png" alt={tNav('logo_alt')} width={47} height={40} priority
-          style={{ height: 40, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+        <InstitutionLogo height={40} alt={tNav('logo_alt')} priority />
         <span
           className="hidden lg:block"
           style={{ color: 'var(--accent-strong)', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}
