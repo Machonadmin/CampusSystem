@@ -14,7 +14,9 @@ self.addEventListener('push', event => {
     self.registration.showNotification(data.title, {
       body: data.body || undefined,
       icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      // Значок в строке состояния Android рисуется только по прозрачности:
+      // нужен силуэт эмблемы на прозрачном фоне, иначе виден белый квадрат.
+      badge: '/icons/badge-96.png',
       dir: 'rtl',
       lang: 'he',
       data: { link: data.link || '/dashboard' },
