@@ -4,8 +4,9 @@ import type { MetadataRoute } from 'next'
  * PWA-манифест: даёт «Установить приложение» / «Добавить на главный экран» на
  * телефоне — система открывается в отдельном окне без адресной строки, со своей
  * иконкой. Иконки сгенерированы из эмблемы public/logo.png (вырезана из лого1.pdf)
- * на белом фоне с безопасными полями
- * (одни файлы годятся и как maskable для круглой маски Android).
+ * на белом фоне. any (заставка) — эмблема 50% холста, в натуральном размере;
+ * maskable (иконка на главном экране Android) — эмблема 76%, крупнее, но ещё
+ * внутри безопасной зоны круглой маски.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -21,8 +22,8 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/icons/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+      { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   }
 }
