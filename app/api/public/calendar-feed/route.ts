@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { verifyFeedToken } from '@/lib/calendar/feed-token'
-import { buildICS, toFloating, type IcsEvent } from '@/lib/calendar/ics'
+import { buildICS, toFloating, wallClockFloating, type IcsEvent } from '@/lib/calendar/ics'
 import { todayISO } from '@/lib/dates'
 import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
 
@@ -97,11 +97,14 @@ export async function GET(request: NextRequest) {
       .limit(2000)
     for (const a of (data ?? []) as ApptRow[]) {
       if (a.status === 'cancelled') continue
+      // Время встречи «настенное» (см. wallClockFloating), не UTC.
+      const start = wallClockFloating(a.starts_at)
+      if (!start) continue
       events.push({
         uid: `appt-${a.id}@campus`,
         summary: a.title ?? 'פגישה',
         description: a.reason ?? undefined,
-        kind: 'utc', start: new Date(a.starts_at), end: new Date(a.ends_at),
+        kind: 'floating', start, end: wallClockFloating(a.ends_at) ?? undefined,
       })
     }
   } catch { /* нет таблицы — пропускаем слой */ }

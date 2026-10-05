@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { escapeICS, foldLine, toUtcStamp, toDateStamp, toFloating, buildICS } from './ics'
+import { escapeICS, foldLine, toUtcStamp, toDateStamp, toFloating, wallClockFloating, buildICS } from './ics'
 
 describe('ICS helpers', () => {
   it('escapes special characters per RFC 5545', () => {
@@ -52,5 +52,22 @@ describe('buildICS', () => {
     expect(ics).toContain('SUMMARY:פגישה')
     expect(ics).toContain('DESCRIPTION:הערה')
     expect((ics.match(/BEGIN:VEVENT/g) ?? []).length).toBe(3)
+  })
+})
+
+describe('wallClockFloating', () => {
+  it('берёт часы из строки встречи, без сдвига в UTC', () => {
+    expect(wallClockFloating('2026-10-05T10:00:00+00:00')).toBe('20261005T100000')
+    expect(wallClockFloating('2026-10-05T23:30')).toBe('20261005T233000')
+  })
+  it('нераспознанная строка → null', () => {
+    expect(wallClockFloating('')).toBeNull()
+    expect(wallClockFloating('2026-10-05')).toBeNull()
+  })
+})
+
+describe('buildICS — зона календаря', () => {
+  it('объявляет Asia/Jerusalem для плавающих времён', () => {
+    expect(buildICS({ name: 'x', events: [] })).toContain('X-WR-TIMEZONE:Asia/Jerusalem')
   })
 })
