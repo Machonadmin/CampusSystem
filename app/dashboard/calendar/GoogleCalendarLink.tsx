@@ -73,8 +73,11 @@ export function GoogleCalendarLink({ primary }: { primary: string }) {
       </button>
 
       {open && (
-        <Modal onClose={() => setOpen(false)} ariaLabel={t('title')} maxWidth={540}>
-          <h2 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 6px', color: 'var(--text)' }}>{t('title')}</h2>
+        <Modal onClose={() => setOpen(false)} ariaLabel={t('title')} maxWidth={540} closeOnBackdrop panelStyle={{ padding: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+            <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: 'var(--text)' }}>{t('title')}</h2>
+            <button type="button" onClick={() => setOpen(false)} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 24, lineHeight: 1, padding: 0 }}>×</button>
+          </div>
           <p style={{ fontSize: 13.5, color: 'var(--text-muted)', margin: '0 0 14px', lineHeight: 1.55 }}>{t('intro')}</p>
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>

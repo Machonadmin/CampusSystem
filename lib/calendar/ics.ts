@@ -47,6 +47,18 @@ export function toFloating(dateISO: string, timeHHMM: string): string {
   return `${d}T${pad(Number(h))}${pad(Number(m))}00`
 }
 
+/**
+ * Строка времени встречи из БД ('2026-10-05T10:00:00+00:00') → плавающее
+ * 'YYYYMMDDTHHMMSS'. Приложение хранит в appointments «настенное» время
+ * (форма шлёт '2026-10-05T10:00' без зоны, экран показывает часы из строки),
+ * поэтому в фид отдаём те же часы, а не UTC-инстант — иначе Google сдвигал
+ * встречу на +2/+3 часа. null — строка не распознана.
+ */
+export function wallClockFloating(iso: string): string | null {
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/.exec(iso)
+  return m ? toFloating(m[1], `${m[2]}:${m[3]}`) : null
+}
+
 export type IcsEvent = {
   uid: string
   summary: string
@@ -73,6 +85,8 @@ export function buildICS(opts: { name: string; events: IcsEvent[]; now?: Date })
     'METHOD:PUBLISH',
     foldLine(`X-WR-CALNAME:${escapeICS(opts.name)}`),
     'X-PUBLISHED-TTL:PT6H',
+    // Плавающие времена фида — израильские: без зоны Google может прочесть их как UTC.
+    'X-WR-TIMEZONE:Asia/Jerusalem',
   ]
   for (const ev of opts.events) {
     out.push('BEGIN:VEVENT')
