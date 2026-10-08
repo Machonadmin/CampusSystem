@@ -522,7 +522,7 @@ export default function RecruitmentTab() {
               {t('leads.delete_confirm.title')}
             </h2>
             <p style={{ fontSize: 14, color: 'var(--text)', margin: '0 0 24px', lineHeight: 1.5 }}>
-              {t('card.status.lead')} <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message')}
+              <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message').replace('{filter}', t('leads.process_status.deleted'))}
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button
