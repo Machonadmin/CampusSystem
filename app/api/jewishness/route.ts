@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
+import { isJewishnessStatus, normalizeJewishnessStatus, type JewishnessStatus } from '@/lib/jewishness/status'
 
 /**
  * GET /api/jewishness — ПОЛНЫЙ модуль בירור יהדות (не только очередь).
@@ -14,8 +15,8 @@ import { getSignatureMethod } from '@/lib/settings/app-settings'
  * ещё нет (миграция не применена) — все считаются 'pending'.
  */
 
-
-const STATUSES = ['pending', 'initial_checked', 'verified', 'rejected', 'needs_review', 'partial'] as const
+// Ровно три статуса (владелец, M16): pending «בבדיקה» · verified «אושר» ·
+// rejected «לא אושר». Упразднённые коды (до миграции) считаются 'pending'.
 
 export async function GET(request: NextRequest) {
   try {
@@ -66,11 +67,10 @@ export async function GET(request: NextRequest) {
       if (jid) activeStage.add(jid)
     }
 
-    const counts: Record<string, number> = { pending: 0, initial_checked: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 }
+    const counts: Record<JewishnessStatus, number> = { pending: 0, verified: 0, rejected: 0 }
     let students = journeys.map(j => {
-      const status = (STATUSES as readonly string[]).includes(j.jewishness_status as string)
-        ? (j.jewishness_status as string) : 'pending'
-      counts[status] = (counts[status] ?? 0) + 1
+      const status = normalizeJewishnessStatus(j.jewishness_status)
+      counts[status] += 1
       const person = j.person
       return {
         journey_id: j.id,
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    if (statusFilter && (STATUSES as readonly string[]).includes(statusFilter)) {
+    if (statusFilter && isJewishnessStatus(statusFilter)) {
       students = students.filter(s => s.status === statusFilter)
     }
     if (search) {
