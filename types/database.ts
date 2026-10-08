@@ -1819,6 +1819,31 @@ export interface UserPreferencesInsert {
 }
 export type UserPreferencesUpdate = Partial<Omit<UserPreferencesInsert, 'person_id'>>
 
+// ─── Замечания сотрудников («הצעה לשיפור או באג», миграция 20261008120000) ───
+export interface FeedbackReportRow {
+  id:                string
+  kind:              'bug' | 'suggestion'
+  body:              string
+  page_url:          string | null
+  user_agent:        string | null
+  screenshots:       unknown
+  created_by:        string
+  status:            'new' | 'in_review' | 'in_progress' | 'done' | 'rejected'
+  owner_reply:       string | null
+  status_changed_at: string | null
+  created_at:        string
+  updated_at:        string
+}
+export interface FeedbackReportInsert {
+  kind:         FeedbackReportRow['kind']
+  body:         string
+  page_url?:    string | null
+  user_agent?:  string | null
+  screenshots?: unknown
+  created_by:   string
+}
+export type FeedbackReportUpdate = Partial<Pick<FeedbackReportRow, 'status' | 'owner_reply' | 'status_changed_at'>>
+
 // ─── Notifications (личные уведомления в шапке) ──────────────────────────────
 export interface NotificationRow {
   id:         string
@@ -2136,6 +2161,7 @@ export interface Database {
       app_settings:              T<AppSettingRow,                AppSettingInsert,                AppSettingUpdate>
       user_preferences:          T<UserPreferencesRow,           UserPreferencesInsert,           UserPreferencesUpdate>
       notifications:             T<NotificationRow,              NotificationInsert,              NotificationUpdate>
+      feedback_reports:          T<FeedbackReportRow,            FeedbackReportInsert,            FeedbackReportUpdate>
       study_tracks:              T<StudyTrackRow,                StudyTrackInsert,                StudyTrackUpdate>
       journey_study_tracks:      T<JourneyStudyTrackRow,         JourneyStudyTrackInsert,         JourneyStudyTrackUpdate>
       calendar_events:           T<CalendarEventRow,             CalendarEventInsert,             CalendarEventUpdate>

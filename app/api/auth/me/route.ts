@@ -7,6 +7,7 @@ import { effectivePrivileges, visibleModules } from '@/lib/permissions/module-ga
 import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { canViewChavruta } from '@/lib/chavruta/access'
 import { canViewStaffComp } from '@/lib/finance/staff-comp'
+import { canSubmitFeedback } from '@/lib/feedback/access'
 import { ALL_MODULE_CODES as REGISTRY_ALL_MODULE_CODES } from '@/lib/modules/registry'
 import type { RoleCode } from '@/types/database'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
@@ -187,6 +188,11 @@ export async function GET() {
   let can_view_staff_comp = false
   try { can_view_staff_comp = await canViewStaffComp(session) } catch { /* fail-closed */ }
 
+  // «הצעה לשיפור או באג» — кнопка в шапке только у тех, кому владелец выдал
+  // feedback.submit (и у самого superadmin). Fail-closed: ошибка → кнопки нет.
+  let can_submit_feedback = false
+  try { can_submit_feedback = await canSubmitFeedback(session) } catch { /* fail-closed */ }
+
   return NextResponse.json({
     person_id: session.person_id,
     login_email: session.login_email,
@@ -199,5 +205,6 @@ export async function GET() {
     is_chavruta_teacher,
     can_view_chavruta,
     can_view_staff_comp,
+    can_submit_feedback,
   })
 }

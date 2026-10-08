@@ -4,7 +4,7 @@ import { verifyToken, isReadOnlySession } from '@/lib/auth/jwt'
 import { PROTECTED_MODULE_CODES, moduleCodeFromSegment } from '@/lib/modules/registry'
 import { todayISO } from '@/lib/dates'
 
-const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/', '/api/portal/login', '/api/cron/']
+const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/', '/api/portal/login', '/api/cron/', '/api/agent/']
 const PUBLIC_PAGES = ['/login', '/portal/login']
 
 // Модули, чью страницу закрывает право '<module>.access'. Состав берётся из

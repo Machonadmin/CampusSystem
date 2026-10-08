@@ -42,7 +42,9 @@ const relRoute = (f: string) => f.slice(API_DIR.length + 1).split(sep).join('/')
 
 // Публичные префиксы — источник истины тот же, что в middleware.ts
 // (PUBLIC_API_PREFIXES). Эти маршруты намеренно доступны без сессии.
-const PUBLIC_PREFIXES = ['auth/', 'dev-login', 'public/', 'portal/login', 'cron/']
+// 'agent/' — вход для Claude (/api/agent/feedback), закрыт токеном FEEDBACK_AGENT_TOKEN
+// (lib/feedback/agent-auth.ts, fail-closed), как cron/ закрыт CRON_SECRET.
+const PUBLIC_PREFIXES = ['auth/', 'dev-login', 'public/', 'portal/login', 'cron/', 'agent/']
 const isPublic = (r: string) => PUBLIC_PREFIXES.some(p => r.startsWith(p))
 
 // Чувствительные модули: их обработчики обязаны проверять привилегию/роль, а не
