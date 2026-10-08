@@ -256,18 +256,19 @@ export default function RecruitmentTab() {
             <option value="all">{t('leads.process_status.all')}</option>
             <option value="deleted">{t('leads.process_status.deleted')}</option>
           </select>
-          <button
-            type="button"
-            onClick={() => setMineOnly(v => !v)}
+          {/* Флажок: показать только лиды, чей процесс набора создал я (created_by). */}
+          <label
             style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
               border: `1px solid ${mineOnly ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
               background: mineOnly ? 'var(--accent-tint)' : 'var(--surface)',
               color: mineOnly ? 'var(--accent-strong)' : 'var(--text-muted)', whiteSpace: 'nowrap',
             }}
           >
-            {mineOnly ? t('leads.my_leads') : t('leads.all_leads')}
-          </button>
+            <input type="checkbox" checked={mineOnly} onChange={e => setMineOnly(e.target.checked)} style={{ margin: 0, cursor: 'pointer' }} />
+            {t('leads.my_leads')}
+          </label>
           {activeFilters > 0 && (
             <button
               type="button"

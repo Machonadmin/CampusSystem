@@ -434,9 +434,9 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_kodesh_home', fb: 'מרחב קודש', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
     { key: 'launch_kodesh_courses', fb: 'קורסי קודש', icon: LIC.cap, href: '/dashboard/education/kodesh-courses' },
     { key: 'launch_kodesh_rav', fb: 'אישורי הרב', icon: LIC.check, href: '/dashboard/education/kodesh-rav', acc: 'kodesh_rav' },
-    { key: 'launch_track_catalog', fb: 'מסלולי לימוד', icon: LIC.map, href: '/dashboard/education/tracks', acc: 'track_catalog' },
+    { key: 'launch_track_catalog', fb: 'מסלולי חול', icon: LIC.map, href: '/dashboard/education/tracks', acc: 'track_catalog' },
     { key: 'launch_no_lesson_days', fb: 'ימים ללא לימודים', icon: LIC.cal, href: '/dashboard/education/no-lesson-days', acc: 'no_lesson_days' },
-    { key: 'launch_student_alerts', fb: 'התראות ומשימות', icon: LIC.alert, href: '/dashboard/education/alerts', acc: 'student_alerts' },
+    { key: 'launch_student_alerts', fb: 'התראות על תלמידות', icon: LIC.alert, href: '/dashboard/education/alerts', acc: 'student_alerts' },
     // «כספים והנחות» убрана (решение владельца 4, 24.09.2026): финансовое
     // администрирование живёт в модуле «כספים» — ссылка в шапке /dashboard/finance
     // (тот же маршрут /dashboard/education/finance-admin, тот же гейт finance_admin).

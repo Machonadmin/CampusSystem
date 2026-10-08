@@ -11,6 +11,7 @@ import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '.
 import { useMe } from '@/lib/hooks/useMe'
 import { toast } from '@/components/ui/toast'
 import { Modal } from '@/components/ui/Modal'
+import { acceptanceFinalKey, isMedicalFinal } from '@/lib/i18n/acceptance-finals'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -169,6 +170,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   // process.finals, поэтому сначала берём acceptance_finals.
   const finalLabel = (stageCode: string | null | undefined, code: string, fallback: string) => {
     const generic = t(`process.finals.${code}`, fallback)
+    // Мед./псих. заключение — информационный этап: «מתאימה / לא מתאימה», не «אושר / נדחה».
+    if (isMedicalFinal(stageCode, code)) return t(acceptanceFinalKey(stageCode, code), generic)
     return stageCode === 'jewishness' ? t(`acceptance_finals.${code}`, generic) : generic
   }
 
@@ -190,7 +193,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
   const [graphProcessId, setGraphProcessId] = useState<string | null>(null)
 
-  const [reactivatingStage, setReactivatingStage] = useState<{ id: string; name: string } | null>(null)
+  const [reactivatingStage, setReactivatingStage] = useState<{ id: string; name: string; mode: 'activate' | 'change' } | null>(null)
   const [reactivating, setReactivating] = useState(false)
   // «Занавес» (п. י"ב): свёрнутая история завершённых шагов до текущего фронтира.
   const [historyOpen, setHistoryOpen] = useState<Record<string, boolean>>({})
@@ -211,6 +214,15 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
 
   function processStatusLabel(status: string): string {
     return t(`process.process_status.${status}`, status)
+  }
+
+  // Ярлык закрытого процесса: всегда причина закрытия (finish_reason),
+  // а без причины (или 'cancelled' — «просто закрыт») — «נסגר».
+  function closedProcessLabel(proc: ProcessInfo): string {
+    if (proc.status !== 'active' && proc.finish_reason && proc.finish_reason !== 'cancelled') {
+      return t(`process.finals.${proc.finish_reason}`, proc.finish_reason)
+    }
+    return processStatusLabel(proc.status)
   }
 
   function stageStatusLabel(status: string): string {
@@ -238,7 +250,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
       const res = await fetch(`/api/workflow/stages/${stageId}/reactivate`, { method: 'POST' })
       if (!res.ok) {
         const data = await res.json() as { error?: string }
-        toast(data.error ?? t('process.modals.activate_title'), 'error')
+        toast(data.error ?? t(reactivatingStage.mode === 'change' ? 'process.modals.change_title' : 'process.modals.activate_title'), 'error')
         return
       }
       setReactivatingStage(null)
@@ -419,9 +431,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   ? { background: 'var(--success-tint)', color: 'var(--success)' }
                   : processStatusStyle(proc.status)),
               }}>
-                {proc.status === 'cancelled' && proc.finish_reason && POSITIVE_CLOSE_REASONS.has(proc.finish_reason)
-                  ? t(`process.finals.${proc.finish_reason}`, proc.finish_reason)
-                  : processStatusLabel(proc.status)}
+                {closedProcessLabel(proc)}
               </span>
               <button
                 onClick={() => setGraphProcessId(proc.id)}
@@ -471,7 +481,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                     </button>
                     {stage.status === 'skipped' && proc.status === 'active' && canManage && (
                       <button
-                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '' })}
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '', mode: 'activate' })}
                         title={t('process.actions.activate_stage')}
                         style={{
                           flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
@@ -488,7 +498,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         Только «фронтир» (RPC сам блокирует, если поток ушёл дальше). */}
                     {stage.status === 'completed' && proc.status === 'active' && canManage && (
                       <button
-                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '' })}
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '', mode: 'change' })}
                         title={t('process.actions.change_decision')}
                         style={{
                           flexShrink: 0, marginInlineStart: 6, background: 'none', border: 'none', cursor: 'pointer',
@@ -895,7 +905,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
         >
             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--surface-2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
-                {t('process.modals.activate_title')}
+                {t(reactivatingStage.mode === 'change' ? 'process.modals.change_title' : 'process.modals.activate_title')}
               </span>
               <button
                 onClick={() => setReactivatingStage(null)}
@@ -905,7 +915,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
             </div>
             <div style={{ padding: '16px 24px' }}>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>
-                <strong>«{reactivatingStage.name}»</strong> — {t('process.modals.activate_text')}
+                <strong>«{reactivatingStage.name}»</strong> — {t(reactivatingStage.mode === 'change' ? 'process.modals.change_text' : 'process.modals.activate_text')}
               </p>
             </div>
             <div style={{ padding: '12px 24px 20px', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
