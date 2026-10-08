@@ -112,7 +112,8 @@ export function buildMergeNote(sourceLabel: string, date: string, filled: string
 
 /** Чистый текст пометки «возможный дубль». */
 export function buildDuplicateNote(persons: { id: string; full_name: string | null }[]): string {
-  return `ייתכן כפילות עם: ${persons.map(p => `${p.full_name || '—'} (/dashboard/persons/${p.id})`).join('; ')}`
+  // Без технических путей/идентификаторов: имя + куда смотреть.
+  return `ייתכן שזו אותה אישה כמו: ${persons.map(p => p.full_name || '—').join('; ')} — בדקו במאגר האנשים`
 }
 
 /** Чистый фильтр: направления/свободный текст, которых у персоны ещё нет. */

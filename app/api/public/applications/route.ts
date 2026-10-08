@@ -161,11 +161,13 @@ export async function POST(request: NextRequest) {
         ?? null
 
       const applicantName = [body.last_name?.trim(), body.first_name.trim()].filter(Boolean).join(' ')
-      const typeNote = applicantType !== 'student' ? `\nמי פונה: ${applicantType}` : ''
+      // Кто обращается — словами, не кодом (parent/representative).
+      const APPLICANT_TYPE_HE: Record<string, string> = { parent: 'הורה', representative: 'נציג/ת קהילה' }
+      const typeNote = applicantType !== 'student' ? `\nמי פונה: ${APPLICANT_TYPE_HE[applicantType] ?? applicantType}` : ''
       const commentNote = comment ? `\n${comment}` : ''
       const base = {
         // Повторная регистрация в уже открытый journey — отдельная пометка в заголовке.
-        title: `${lead.newJourney ? 'פנייה חדשה מהאתר' : 'פנייה חוזרת מהאתר'}: ${applicantName}`,
+        title: `${lead.newJourney ? 'ליד חדש מהאתר' : 'ליד חוזר מהאתר'}: ${applicantName}`,
         description: `טלפון: ${body.phone}${body.email ? `\nמייל: ${body.email}` : ''}${typeNote}${commentNote}`,
         module: 'education' as const,
         metadata: { source: 'public_form', journey_id: journeyId },

@@ -3,6 +3,8 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 
 /**
@@ -58,8 +60,9 @@ export async function GET() {
       }
       const deptIds = [...new Set(groups.map(g => g.department_id).filter(Boolean))] as string[]
       if (deptIds.length) {
-        const { data } = await sb.from('departments').select('id, name').in('id', deptIds)
-        for (const d of (data ?? []) as Array<{ id: string; name: string }>) deptName.set(d.id, d.name)
+        const { data } = await sb.from('departments').select('id, name, name_he, name_en').in('id', deptIds)
+        const lang = getCookieLocale()
+        for (const d of (data ?? []) as Array<{ id: string; name: string; name_he: string | null; name_en: string | null }>) deptName.set(d.id, localizedDeptName(d, lang))
       }
     }
 

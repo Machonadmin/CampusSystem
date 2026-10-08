@@ -6,6 +6,8 @@ import { expandDepartmentTree, type DepartmentEdge } from '@/lib/permissions/sco
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { ACTIVE_STUDENT_STATUSES } from '@/lib/education/journey-status'
 import { errorResponse } from '@/lib/api/handler'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
 /**
  * GET /api/staff/scope-preview?department_id={uuid}
@@ -33,8 +35,10 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
 
     // Поддерево юнита (юнит + все под-единицы вниз по parent_id).
-    const { data: allDepts } = await sb.from('departments').select('id, parent_id, name')
-    const edges = (allDepts ?? []) as Array<DepartmentEdge & { name: string }>
+    const { data: allDepts } = await sb.from('departments').select('id, parent_id, name, name_he, name_en')
+    const lang = getCookieLocale()
+    const edges = ((allDepts ?? []) as Array<DepartmentEdge & { name: string; name_he: string | null; name_en: string | null }>)
+      .map(d => ({ ...d, name: localizedDeptName(d, lang) }))
     const subtree = expandDepartmentTree([departmentId], edges)
     const unitName = edges.find(d => d.id === departmentId)?.name ?? null
     const isKodesh = subtree.includes(KODESH_DEPT_ID)

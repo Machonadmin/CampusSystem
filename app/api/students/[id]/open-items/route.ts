@@ -4,6 +4,8 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { canDoEducationInAny, hasEducationPrivilege } from '@/lib/education/permissions'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { getTaskAccess } from '@/lib/tasks/access'
 import { mapDbError } from '@/lib/tasks/helpers'
 import { isUuid } from '@/lib/tasks/student-tag'
@@ -107,9 +109,10 @@ async function loadAbsences(sb: Sb, session: SessionPayload, journeyId: string):
     const deptIds = [...new Set(rows.map(r => r.assigned_department_id).filter(Boolean))] as string[]
     const deptName = new Map<string, string>()
     if (deptIds.length > 0) {
-      const { data: ds, error: dErr } = await sb.from('departments').select('id, name').in('id', deptIds)
+      const { data: ds, error: dErr } = await sb.from('departments').select('id, name, name_he, name_en').in('id', deptIds)
       if (dErr) console.error('[open-items] departments:', dErr)
-      for (const d of (ds ?? []) as Array<{ id: string; name: string }>) deptName.set(d.id, d.name)
+      const lang = getCookieLocale()
+      for (const d of (ds ?? []) as Array<{ id: string; name: string; name_he: string | null; name_en: string | null }>) deptName.set(d.id, localizedDeptName(d, lang))
     }
 
     return rows.map(r => ({

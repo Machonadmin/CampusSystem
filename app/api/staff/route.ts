@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePrivilege } from '@/lib/auth/module-privileges'
@@ -57,10 +58,11 @@ export async function GET(request: NextRequest) {
     // 4) Departments
     const { data: depts } = await sb
       .from('departments')
-      .select('id, name')
+      .select('id, name, name_he, name_en')
       .in('id', deptIds)
 
-    const deptMap = new Map((depts ?? []).map(d => [d.id, d.name]))
+    // Имя подразделения — на языке интерфейса (name_he/name_en, откат к name).
+    const deptMap = new Map((depts ?? []).map(d => [d.id, localizedDeptName(d, lang)]))
 
     // 5) Join — one row per current position
     const result = positions
@@ -242,7 +244,7 @@ export async function POST(request: NextRequest) {
 
     const { data: dept } = await sb
       .from('departments')
-      .select('name')
+      .select('name, name_he, name_en')
       .eq('id', r.department_id)
       .single()
 
@@ -251,7 +253,7 @@ export async function POST(request: NextRequest) {
       person_id: r.person_id,
       full_name: r.full_name,
       position: r.position,
-      department: dept?.name ?? null,
+      department: dept ? localizedDeptName(dept, getCookieLocale()) : null,
     }, { status: 201 })
   } catch (err: unknown) {
     return jsonError(err)
