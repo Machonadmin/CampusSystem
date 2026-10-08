@@ -358,7 +358,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                             onClick: () => setAddPerson({ id: emp.person_id, full_name: emp.full_name, hebrew_name: emp.hebrew_name, email: emp.email }),
                             hidden: !isSuperadmin || !!user,
                           },
-                          { key: 'edit', label: tCommon('edit'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
+                          { key: 'edit', label: t('edit_employee_details'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
                           {
                             // Честный ярлык: API закрывает посадки (end_date), человек и
                             // логин остаются — «מחיקה» вводила владельца в заблуждение.

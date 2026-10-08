@@ -25,7 +25,7 @@ export default function NotFound() {
           href="/dashboard"
           style={{ fontSize: 15, fontWeight: 600, padding: '11px 26px', borderRadius: 9, background: 'var(--accent)', color: '#fff', textDecoration: 'none', display: 'inline-block' }}
         >
-          {t('back_home', 'חזרה לדף הבית')}
+          {t('back_home', 'חזרה למסך הבית')}
         </Link>
       </div>
     </div>

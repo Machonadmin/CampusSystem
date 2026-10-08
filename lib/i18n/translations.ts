@@ -170,7 +170,7 @@ const he: typeof ru = {
   collapse: 'כווץ',
   expand: 'הרחב',
   nav: {
-    home: 'ראשי',
+    home: 'מסך הבית',
     tasks: 'משימות',
     calendar: 'יומן',
     profile: 'הפרופיל שלי',

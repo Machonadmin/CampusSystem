@@ -254,10 +254,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                               {s.description && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{s.description}</p>}
                               {/* flags */}
                               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-                                {s.has_tasks && <Tag label={t('flag_has_tasks')} />}
-                                {s.has_action_log && <Tag label={t('flag_has_action_log')} />}
-                                {s.is_optional && <Tag label={t('flag_is_optional')} />}
-                                {s.is_addable && <Tag label={t('flag_is_addable')} />}
+                                {s.has_tasks && <Tag label={t('flag_has_tasks_tag')} />}
                                 {s.requires_signature && <Tag label={t('f_requires_signature')} accent />}
                               </div>
                               {/* who signs */}
