@@ -11,6 +11,7 @@ import StageSignatures from '@/components/workflow/StageSignatures'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { acceptanceFinalKey } from '@/lib/i18n/acceptance-finals'
 
 interface Final { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }
 interface StageCell {
@@ -286,8 +287,8 @@ export default function AcceptanceOverviewTab() {
                           ) : (
                             <Cell cell={cell} onSign={() => openSign(name, app.journey_id, cell, medicalPending)}
                               pendingLabel={t('overview.pending')} signLabel={t('overview.sign')}
-                              moduleLabel={t('overview.handle_in_module', 'לטיפול במודול')}
-                              finalLabel={c => t(`acceptance_finals.${c}`, c)}
+                              moduleLabel={t(`overview.sign_in_screen.${code}`, t('overview.handle_in_module'))}
+                              finalLabel={c => t(acceptanceFinalKey(code, c), c)}
                               daysLabel={n => t('overview.days_short').replace('{n}', String(n))} />
                           )}
                         </td>
@@ -335,7 +336,7 @@ export default function AcceptanceOverviewTab() {
                     color: selectedFinal === f.code ? (f.is_positive ? 'var(--success)' : 'var(--danger)') : 'var(--text)',
                   }}
                 >
-                  {t(`acceptance_finals.${f.code}`, f.name_ru)}
+                  {t(acceptanceFinalKey(modal.cell.stage_code, f.code), f.name_ru)}
                 </button>
               ))}
             </div>

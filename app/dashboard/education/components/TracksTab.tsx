@@ -113,7 +113,6 @@ export default function TracksTab() {
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('table_name')}</th>
                   <th style={thStyle}>{t('code_label')}</th>
-                  <th style={thStyle}>{t('category_label')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('years_count_label')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('table_status')}</th>
                   <th style={{ ...thStyle, width: 170 }}>{t('table_actions')}</th>
@@ -124,7 +123,6 @@ export default function TracksTab() {
                   <tr key={tr.id} style={{ borderTop: '1px solid var(--surface-2)' }}>
                     <td style={tdStyle} data-label={t('table_name')}>{trackName(tr, lang)}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-muted)', fontFamily: 'monospace' }} data-label={t('code_label')} dir="ltr">{tr.code}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('category_label')} dir="ltr">{tr.category ?? '—'}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }} data-label={t('years_count_label')}>{tr.years_count}</td>
                     <td style={tdStyle} data-label={t('table_status')}>
                       {tr.is_active

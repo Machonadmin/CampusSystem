@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
+import { acceptanceFinalKey } from '@/lib/i18n/acceptance-finals'
 
 interface Signature {
   signer_name: string
@@ -66,7 +67,7 @@ export default function StageSignatures({ journeyId }: { journeyId: string }) {
       <div style={{ display: 'grid', gap: 10 }}>
         {roleStages.map(st => {
           const stageName = t(`acceptance_stages.${st.stage_code}`, st.stage_name)
-          const decision = st.final_code ? t(`acceptance_finals.${st.final_code}`, st.final_code) : null
+          const decision = st.final_code ? t(acceptanceFinalKey(st.stage_code, st.final_code), st.final_code) : null
           const positive = ['approved', 'admitted', 'admitted_conditional'].includes(st.final_code ?? '')
           return (
             <div key={st.stage_instance_id} style={{ border: '1px solid var(--surface-2)', borderRadius: 10, padding: 12 }}>

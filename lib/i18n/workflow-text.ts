@@ -5,6 +5,8 @@
 // которые мы НЕ трогаем. Поэтому переводим ПРИ ОТОБРАЖЕНИИ по известным шаблонам;
 // незнакомая строка возвращается как есть (без потери информации).
 
+import { acceptanceFinalKey, isMedicalFinal } from './acceptance-finals'
+
 type TFunc = (key: string, fallback?: string) => string
 
 export interface SystemEventOptions {
@@ -43,8 +45,8 @@ export function translateSystemEvent(content: string, t: TFunc, opts?: SystemEve
   if (completed) {
     const code = completed[1].trim()
     const generic = t(`finals.${code}`, code)
-    const label = opts?.tEducation && opts.stageCode && ACCEPTANCE_FINALS_STAGES.has(opts.stageCode)
-      ? opts.tEducation(`acceptance_finals.${code}`, generic)
+    const label = opts?.tEducation && opts.stageCode && (ACCEPTANCE_FINALS_STAGES.has(opts.stageCode) || isMedicalFinal(opts.stageCode, code))
+      ? opts.tEducation(acceptanceFinalKey(opts.stageCode, code), generic)
       : generic
     return `${t('system.substage_completed')}: ${label}`
   }
