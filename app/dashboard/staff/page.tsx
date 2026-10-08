@@ -324,7 +324,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       </div>
                     </td>
                     <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
-                      <div>{emp.position}</div>
+                      <div>{emp.position || '—'}</div>
                       {emp.employment_type && emp.employment_type !== 'staff' && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
                       )}

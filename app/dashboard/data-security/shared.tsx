@@ -24,10 +24,17 @@ const chip: React.CSSProperties = {
   fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap',
 }
 
-export function LevelBadge({ level, t }: { level: PrivilegeLevel | null; t: T }) {
+/**
+ * Ступень права. «Полное управление» — только у права `<модуль>.manage`, которое
+ * действительно открывает весь модуль; у отдельного действия уровня manage
+ * (напр. «אישור תשלום») подпись просто «Управление», иначе кажется, что
+ * выдаётся весь модуль.
+ */
+export function LevelBadge({ level, code, t }: { level: PrivilegeLevel | null; code?: string; t: T }) {
   if (!level) return null
   const s = LEVEL_STYLE[level]
-  return <span style={{ ...chip, background: s.bg, color: s.fg }}>{t(`level_${level}`)}</span>
+  const label = level === 'manage' && code === 'manage' ? t('level_manage_full') : t(`level_${level}`)
+  return <span style={{ ...chip, background: s.bg, color: s.fg }}>{label}</span>
 }
 
 export function RiskBadge({ risk, t }: { risk: PrivilegeRisk; t: T }) {

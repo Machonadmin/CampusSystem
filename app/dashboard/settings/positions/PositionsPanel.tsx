@@ -5,7 +5,9 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import PageActionButton from '@/components/ui/PageActionButton'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedRefName } from '@/lib/education/localized-ref'
+import { localizedRefName } from '@/lib/education/localized-ref'
 import { toast } from '@/components/ui/toast'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -29,6 +31,9 @@ interface ModalState {
 export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
   const t = useTranslations('settings.reference_positions')
   const tNav = useTranslations('navigation')
+  // Главная колонка — название на языке интерфейса; вторая — «другой» язык
+  // (для иврита — русское название, для ru/en — ивритское).
+  const { lang } = useLang()
   const [positions, setPositions] = useState<ReferencePositionRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,7 +71,7 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
   useEffect(() => { loadData() }, [loadData])
 
   const handleDeactivate = async (pos: ReferencePositionRow) => {
-    if (!(await confirmDialog({ message: t('deactivate_confirm').replace('{name}', pos.name_ru), tone: 'danger' }))) return
+    if (!(await confirmDialog({ message: t('deactivate_confirm').replace('{name}', localizedRefName(pos, lang)), tone: 'danger' }))) return
     try {
       const resp = await fetch(`/api/settings/positions/${pos.id}`, { method: 'DELETE' })
       if (!resp.ok) {
@@ -161,7 +166,7 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
               <thead>
                 <tr style={{ background: 'var(--surface-2)' }}>
                   <th style={thStyle}>{t('table_position')}</th>
-                  <th style={thStyle}>{t('table_hebrew')}</th>
+                  <th style={thStyle}>{lang === 'he' ? t('table_russian') : t('table_hebrew')}</th>
                   <th style={thStyle}>{t('table_category')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('table_status')}</th>
                 </tr>
@@ -181,12 +186,18 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
                         <td style={{ ...tdStyle, fontWeight: 500 }} data-label={t('table_position')}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                             <span style={{ fontSize: 9, color: 'var(--text-faint)', transition: 'transform .15s', transform: `rotate(${open ? 90 : 0}deg)` }}>▶</span>
-                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{pos.name_ru}</span>
+                            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{localizedRefName(pos, lang)}</span>
                           </span>
                         </td>
-                        <td style={{ ...tdStyle, color: 'var(--text-muted)', direction: 'rtl' }} data-label={t('table_hebrew')}>
-                          {pos.name_he ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
-                        </td>
+                        {lang === 'he' ? (
+                          <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('table_russian')}>
+                            {pos.name_ru}
+                          </td>
+                        ) : (
+                          <td style={{ ...tdStyle, color: 'var(--text-muted)', direction: 'rtl' }} data-label={t('table_hebrew')}>
+                            {pos.name_he ?? <span style={{ color: 'var(--border-strong)' }}>—</span>}
+                          </td>
+                        )}
                         <td style={tdStyle} data-label={t('table_category')}>
                           <span style={{
                             fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500,

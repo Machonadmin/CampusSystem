@@ -902,7 +902,7 @@
         "expand": "הרחב סרגל"
       },
       "workspace": {
-        "all_structures": "כל המבנים",
+        "all_structures": "כל המסלולים",
         "structure_one": "מבנה",
         "pick_year": "בחירת שנת לימוד",
         "pick_cohort": "בחירת שנת לימודים (תשפ״ז)",
@@ -913,7 +913,7 @@
         "manage": "ניהול הסמסטר",
         "count_semesters": "{n} סמסטרים",
         "count_students": "{n} תלמידות",
-        "structures_hint": "בחר מבנה כדי לראות את שנות הלימוד ואת שנות הלימודים",
+        "structures_hint": "בחר מסלול כדי לראות את שנות הלימוד ואת שנות הלימודים",
         "no_track": "ללא מסלול",
         "empty_year": "אין סמסטרים בשנה זו עדיין — הוסף סמסטר.",
         "section_chol": "לימודי חול",
@@ -983,7 +983,7 @@
         "launch_students": "תלמידות ומבנה",
         "launch_assignment": "שיבוץ לסמסטרים וקורסים",
         "launch_tracks": "שיבוץ מסלולים",
-        "launch_kodesh": "שיבוץ קודש",
+        "launch_kodesh": "שיבוץ לרמות קודש",
         "launch_teachers_hours": "מורות ושעות",
         "launch_teacher_attendance": "נוכחות מורות",
         "launch_absences": "טיפול בהיעדרויות",
@@ -1784,7 +1784,7 @@
       "gen_all_busy": "יוצר…",
       "gen_all_result": "נוצרו {created} · דולגו {skipped} · נכשלו {failed}",
       "gen_all_hint": "יוצר שיעורי קודש לכל הכיתות לפי מערכת השעות, לכל תקופת הלימוד (רק מוסיף, לא מוחק)",
-      "title": "הכנת הסמסטר",
+      "title": "שיבוץ לרמות קודש",
       "subtitle": "כל תלמידה חייבת להיות משובצת לרמת קודש",
       "unassigned_count": "{n} ממתינות לשיבוץ קודש",
       "group_col": "רמת קודש",
@@ -2251,7 +2251,7 @@
       "no_end_time_warning": "{n} שיעורים מאושרים ללא שעת סיום — לא נספרו ב\"בפועל\""
     },
     "kodesh_courses": {
-      "title": "קורסים",
+      "title": "קורסי קודש",
       "subtitle": "קורסים לפי רמת קודש, שעות, מורות",
       "create_hint": "יצירת קורס מוגבלת לרב; בחירת מורות ואישורן דרך הרב.",
       "no_levels": "אין רמות קודש",
@@ -2313,8 +2313,8 @@
     },
     "kodesh_home": {
       "title": "מרחב קודש",
-      "subtitle": "הכנת הסמסטר ומצב הסמסטר",
-      "view_prep": "הכנת הסמסטר",
+      "subtitle": "שיבוץ לרמות קודש ומצב הסמסטר",
+      "view_prep": "שיבוץ לרמות קודש",
       "view_semester": "מסך סמסטר",
       "kpi_assigned": "שובצו",
       "kpi_unassigned": "לא שובצו",
@@ -2366,7 +2366,7 @@
     "kodesh_nav": {
       "section": "מרחב קודש",
       "more": "עוד",
-      "prep": "הכנת הסמסטר",
+      "prep": "שיבוץ לרמות קודש",
       "alerts": "התראות על תלמידות",
       "calendar": "מערכת שעות",
       "courses": "קורסים",
@@ -2416,7 +2416,7 @@
     },
     "priority": {
       "low": "נמוכה",
-      "normal": "בינונית",
+      "normal": "רגילה",
       "high": "גבוהה",
       "urgent": "דחופה"
     },
@@ -2621,7 +2621,7 @@
       "head_col": "מנהל",
       "staff_col": "עובדים",
       "actions_col": "פעולות",
-      "head_label": "מנהל"
+      "head_label": "ראש המחלקה"
     },
     "no_depts": "אין מחלקות",
     "no_results": "לא נמצאו תוצאות",
@@ -2963,7 +2963,7 @@
       "l_roles": "תפקידים",
       "l_accounts": "התחברות",
       "l_privileges": "הרשאות אישיות",
-      "l_students": "תלמיד",
+      "l_students": "תיק תלמידה",
       "l_journeys": "תהליכים",
       "l_documents": "מסמכים",
       "l_relatives": "קרובי משפחה",
@@ -3235,6 +3235,7 @@
       "desc": "תוארי משרה של עובדים: הוראה, ניהול, תמיכה",
       "table_position": "תואר משרה",
       "table_hebrew": "עברית",
+      "table_russian": "רוסית",
       "table_category": "קטגוריה",
       "table_teaching": "הוראה",
       "table_sort_order": "סדר",
@@ -3300,7 +3301,7 @@
       "save_error": "השמירה נכשלה"
     },
     "workflows": {
-      "desc": "עורך חזותי של תבניות תהליכי קליטה וגיוס",
+      "desc": "שלבי תהליכי הגיוס וועדת הקבלה",
       "title": "תבניות תהליכים",
       "subtitle": "שלבים, חותמים, משימות, סיומים ומעברים של התהליך",
       "readonly_badge": "צפייה בלבד",
@@ -5550,7 +5551,8 @@
     "level_access": "כניסה",
     "level_view": "צפייה",
     "level_edit": "עריכה",
-    "level_manage": "ניהול מלא",
+    "level_manage": "ניהול",
+    "level_manage_full": "ניהול מלא",
     "level_none": "אין גישה",
     "scope": "היקף",
     "scope_all": "כל המוסד",
@@ -5558,11 +5560,11 @@
     "scope_own": "רשומות אישיות בלבד",
     "risk_sensitive": "רגיש",
     "risk_critical": "רגיש מאוד",
-    "legacy_badge": "קוד ישן",
-    "legacy_hidden": "{n} הרשאות בקוד ישן מוסתרות",
+    "legacy_badge": "הרשאה ישנה (לא בשימוש)",
+    "legacy_hidden": "{n} הרשאות ישנות מוסתרות",
     "legacy_show": "הצג",
     "legacy_hide": "הסתר",
-    "superseded_by": "הוחלף על ידי: {name}",
+    "superseded_by": "הוחלפה ב: {name}",
     "no_name": "אין שם להרשאה הזו",
     "no_description": "חסר הסבר",
     "add_description": "הוסף הסבר",

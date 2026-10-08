@@ -426,7 +426,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     // «שיבוץ מסלולים» убран (owner: «ממה נפשך» — дубль): вход на распределение
     // по маршрутам живёт на дашборде (KPI + карточка «ждут распределения»),
     // который появляется ровно тогда, когда есть кого распределять.
-    { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
+    { key: 'launch_kodesh', fb: 'שיבוץ לרמות קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
     // Модуль иудаики (Phase 1/2/3) и прочие экраны. Решение владельца: карточка
     // скрыта, если главный GET экрана дал бы 403 («אין לך הרשאה») — acc зеркалит
     // ту же проверку (см. launcher-access). «קורסי קודש» без acc: её GET

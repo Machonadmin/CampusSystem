@@ -72,6 +72,21 @@ export default function GeneralView({
   const [busy, setBusy] = useState(false)
   const [query, setQuery] = useState('')
 
+  // «Заменено на»: показываем имя права и его раздел, а не технический код
+  // (admission.view_applicants → «צפייה במועמדות (קבלה)»).
+  const supersededLabel = useMemo(() => {
+    const names = new Map<string, string>()
+    const walk = (node: TreeNode) => {
+      for (const i of node.items) {
+        if (i.name) names.set(`${i.module}.${i.code}`, node.name ? `${i.name} (${node.name})` : i.name)
+      }
+      node.children.forEach(walk)
+    }
+    tree.roots.forEach(walk)
+    for (const i of tree.unassigned) if (i.name) names.set(`${i.module}.${i.code}`, i.name)
+    return (key: string) => names.get(key) ?? t('no_name', '—')
+  }, [tree, t])
+
   const legacyCount = useMemo(() => {
     let n = 0
     const walk = (node: TreeNode) => {
@@ -264,7 +279,7 @@ export default function GeneralView({
         )}
         {!item.description && <MissingDescription t={t} />}
         <RiskBadge risk={item.risk} t={t} />
-        <LevelBadge level={item.level} t={t} />
+        <LevelBadge level={item.level} code={item.code} t={t} />
       </div>
     )
   }
@@ -533,6 +548,7 @@ export default function GeneralView({
         <DetailPanel
           node={selected.node}
           item={selected.item}
+          supersededLabel={supersededLabel}
           departments={departments}
           onClose={() => setSelected(null)}
           t={t}
@@ -578,9 +594,10 @@ function IconBtn({ label, onClick, disabled, children }: {
 }
 
 // ─── Карточка выбранного узла или права ──────────────────────────────────────
-function DetailPanel({ node, item, departments, onClose, t, lang }: {
+function DetailPanel({ node, item, supersededLabel, departments, onClose, t, lang }: {
   node: TreeNode
   item: CatalogEntry | null
+  supersededLabel: (key: string) => string
   departments: Department[]
   onClose: () => void
   t: T
@@ -613,7 +630,7 @@ function DetailPanel({ node, item, departments, onClose, t, lang }: {
       <p style={{ margin: '4px 0 0', fontSize: 11.5, color: 'var(--text-muted)' }}>{node.name}</p>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '12px 0' }}>
-        {item && <LevelBadge level={item.level} t={t} />}
+        {item && <LevelBadge level={item.level} code={item.code} t={t} />}
         {item && <RiskBadge risk={item.risk} t={t} />}
         {dept && <ScopeBadge scope="department" departments={[dept.name]} t={t} />}
       </div>
@@ -626,7 +643,7 @@ function DetailPanel({ node, item, departments, onClose, t, lang }: {
 
       {item?.isLegacy && item.supersededBy && (
         <p style={{ margin: '12px 0 0', padding: '9px 11px', borderRadius: 8, background: 'var(--surface-2)', fontSize: 12, color: 'var(--text-muted)' }}>
-          {t('superseded_by').replace('{name}', item.supersededBy)}
+          {t('superseded_by').replace('{name}', supersededLabel(item.supersededBy))}
         </p>
       )}
 

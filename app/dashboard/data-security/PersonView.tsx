@@ -234,7 +234,7 @@ export default function PersonView({
           <ScopeBadge scope="department" departments={deptNames} t={t} />
         )}
         <RiskBadge risk={item.risk} t={t} />
-        <LevelBadge level={item.level} t={t} />
+        <LevelBadge level={item.level} code={item.code} t={t} />
 
         <ThreeWay value={decision} disabled={!canGrant} onChange={v => setDecision(key, v)} t={t} />
       </div>
