@@ -5,6 +5,7 @@ import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { isMissingTable } from '@/lib/supabase/errors'
+import { normalizeJewishnessStatus } from '@/lib/jewishness/status'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -71,8 +72,14 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ jour
           nameById.set(p.id, (p.hebrew_name || p.full_name || '').trim())
         }
       }
+      // До миграции M16 в истории ещё могут быть упразднённые коды: строка
+      // 'initial_checked' показывается как первичная проверка (source), остальные
+      // нормализуются к одному из трёх статусов.
       history = list.map(r => ({
-        status: r.status, note: r.note, source: r.source, created_at: r.created_at,
+        status: normalizeJewishnessStatus(r.status),
+        note: r.note,
+        source: r.status === 'initial_checked' ? 'initial_check' : r.source,
+        created_at: r.created_at,
         changed_by_name: r.changed_by ? nameById.get(r.changed_by) ?? null : null,
       }))
     } catch (e) {
@@ -131,7 +138,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ jour
         birth_date: (j.birth_date as string | null) ?? null,
         citizenship: (j.citizenship as string | null) ?? null,
       },
-      status: (j.jewishness_status as string | null) ?? 'pending',
+      status: normalizeJewishnessStatus(j.jewishness_status),
       notes: (j.jewishness_notes as string | null) ?? null,
       verified_by_name: verifiedByName,
       verified_at: (j.jewishness_verified_at as string | null) ?? null,
