@@ -278,15 +278,17 @@ export default function RecruitmentFormSettingsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {TEXT_KEYS.map(key => {
                 const def = ta(key)
+                // Подпись — место на странице, а не сам текст (B3); дефолт — в плейсхолдере.
+                const label = t(`text_labels.${key}`)
                 const val = cfg.texts[lang]?.[key] ?? ''
                 const long = key.endsWith('_body') || key === 'programs_note' || key === 'hero_tagline'
                 return (
                   <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{def}</span>
+                    <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>{label}</span>
                     {long ? (
-                      <textarea aria-label={def} value={val} placeholder={def} onChange={e => setText(key, e.target.value)} rows={2} style={textInput} />
+                      <textarea aria-label={label} value={val} placeholder={def} onChange={e => setText(key, e.target.value)} rows={2} style={textInput} />
                     ) : (
-                      <input aria-label={def} value={val} placeholder={def} onChange={e => setText(key, e.target.value)} style={textInput} />
+                      <input aria-label={label} value={val} placeholder={def} onChange={e => setText(key, e.target.value)} style={textInput} />
                     )}
                   </div>
                 )

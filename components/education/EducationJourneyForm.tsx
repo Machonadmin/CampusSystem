@@ -39,7 +39,8 @@ const TAB_LABEL_KEYS_BASE = ['personal', 'contacts', 'family', 'community', 'dir
 const TAB_LABEL_KEYS_WITH_ACADEMIC = [...TAB_LABEL_KEYS_BASE, 'academic']
 
 // Источники по бизнес-процессу v2 (док. «גיוס וקבלה», п. «מקור»):
-// התקשרה בעצמה / דרך אירוע או קהילה / המלצה / ייבוא רשימה.
+// טלפוני / דרך אירוע או קהילה / המלצה / ייבוא רשימה.
+// Код 'self' = «טלפוני»; старый код 'call' слит в него (миграция 20261009100000).
 const SOURCE_CODES = ['self', 'event_community', 'referral', 'import']
 
 const MODE_CONFIG = {
