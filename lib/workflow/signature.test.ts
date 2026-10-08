@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { validateSignature } from './signature'
-import { isValidSignaturePath } from './signature-storage'
+import { isValidSignaturePath, isValidFinanceSignaturePath, financeSignatureFolder } from './signature-storage'
 
 const STAGE = '11111111-2222-4333-8444-555555555555'
 const IMG = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'
@@ -21,10 +21,29 @@ describe('isValidSignaturePath', () => {
     expect(isValidSignaturePath(`signatures/${STAGE}/../secret.png`, STAGE)).toBe(false)
     expect(isValidSignaturePath(`signatures/${STAGE}/${IMG}.pdf`, STAGE)).toBe(false)
   })
+  it('rejects a finance signature path (different scope)', () => {
+    expect(isValidSignaturePath(`${financeSignatureFolder(STAGE)}/${IMG}.png`, STAGE)).toBe(false)
+  })
 })
 
-describe('validateSignature', () => {
-  const base = { method: 'both' as const, signerFullName: 'Sarah Cohen', stageInstanceId: STAGE }
+describe('isValidFinanceSignaturePath', () => {
+  const JOURNEY = STAGE
+  it('accepts a path bound to the student (journey)', () => {
+    expect(isValidFinanceSignaturePath(`signatures/finance/${JOURNEY}/${IMG}.png`, JOURNEY)).toBe(true)
+  })
+  it('rejects another student\'s folder (IDOR guard)', () => {
+    const other = '99999999-2222-4333-8444-555555555555'
+    expect(isValidFinanceSignaturePath(`signatures/finance/${other}/${IMG}.png`, JOURNEY)).toBe(false)
+  })
+  it('rejects a stage signature path and arbitrary documents', () => {
+    expect(isValidFinanceSignaturePath(`signatures/${JOURNEY}/${IMG}.png`, JOURNEY)).toBe(false)
+    expect(isValidFinanceSignaturePath(`journeys/${JOURNEY}/${IMG}.png`, JOURNEY)).toBe(false)
+    expect(isValidFinanceSignaturePath(`signatures/finance/${JOURNEY}/../${IMG}.png`, JOURNEY)).toBe(false)
+  })
+})
+
+describe('validateSignature (drawn only, owner decision M19)', () => {
+  const base = { stageInstanceId: STAGE }
 
   it('requires a signature payload', () => {
     expect(validateSignature(null, base)).toEqual({ error: 'signature_required' })
@@ -32,61 +51,17 @@ describe('validateSignature', () => {
   it('rejects an unknown kind', () => {
     expect(validateSignature({ kind: 'wax-seal' }, base)).toEqual({ error: 'invalid_signature_kind' })
   })
-
-  it('accepts a typed signature that matches the signer name (case-insensitive)', () => {
-    const r = validateSignature({ kind: 'typed', typed_name: 'sarah cohen' }, base)
-    expect(r).toEqual({ ok: { kind: 'typed', typed_name: 'sarah cohen', drawing_path: null, metadata: {} } })
+  it('rejects a typed signature: signing is drawing only', () => {
+    expect(validateSignature({ kind: 'typed', typed_name: 'Sarah Cohen' } as never, base)).toEqual({ error: 'signature_kind_not_allowed' })
   })
-  it('rejects a typed signature that does not match the signer (forgery guard)', () => {
-    expect(validateSignature({ kind: 'typed', typed_name: 'David Levi' }, base)).toEqual({ error: 'typed_name_mismatch' })
+  it('requires a drawing path', () => {
+    expect(validateSignature({ kind: 'drawn' }, base)).toEqual({ error: 'drawing_required' })
   })
-  it('rejects an empty typed name', () => {
-    expect(validateSignature({ kind: 'typed', typed_name: '   ' }, base)).toEqual({ error: 'typed_name_required' })
-  })
-
   it('accepts a drawn signature with a valid, stage-bound path', () => {
     const r = validateSignature({ kind: 'drawn', drawing_path: okPath }, base)
-    expect(r).toEqual({ ok: { kind: 'drawn', typed_name: null, drawing_path: okPath, metadata: {} } })
+    expect(r).toEqual({ ok: { kind: 'drawn', drawing_path: okPath, metadata: {} } })
   })
   it('rejects a drawn signature pointing at another object (IDOR guard)', () => {
     expect(validateSignature({ kind: 'drawn', drawing_path: `journeys/x/passport.png` }, base)).toEqual({ error: 'invalid_drawing_path' })
-  })
-
-  it('enforces the org method: typed-only rejects a drawn signature', () => {
-    expect(validateSignature({ kind: 'drawn', drawing_path: okPath }, { ...base, method: 'typed' })).toEqual({ error: 'signature_kind_not_allowed' })
-  })
-  it('enforces the org method: drawn-only rejects a typed signature', () => {
-    expect(validateSignature({ kind: 'typed', typed_name: 'Sarah Cohen' }, { ...base, method: 'drawn' })).toEqual({ error: 'signature_kind_not_allowed' })
-  })
-
-  it('ignores extra/inner whitespace in the typed name', () => {
-    const r = validateSignature({ kind: 'typed', typed_name: '  Sarah   Cohen ' }, base)
-    expect('ok' in r).toBe(true)
-  })
-  it('accepts a match to any of signerAltNames (e.g. Hebrew name)', () => {
-    const r = validateSignature(
-      { kind: 'typed', typed_name: 'שרה כהן' },
-      { ...base, signerAltNames: ['שרה כהן'] },
-    )
-    expect('ok' in r).toBe(true)
-  })
-  it('strips Hebrew niqqud when comparing', () => {
-    const r = validateSignature(
-      { kind: 'typed', typed_name: 'שָׂרָה כֹּהֵן' },
-      { ...base, signerAltNames: ['שרה  כהן'] },
-    )
-    expect('ok' in r).toBe(true)
-  })
-  it('still rejects a name that matches none of the known names', () => {
-    expect(
-      validateSignature({ kind: 'typed', typed_name: 'דוד לוי' }, { ...base, signerAltNames: ['שרה כהן'] }),
-    ).toEqual({ error: 'typed_name_mismatch' })
-  })
-  it('works when signerFullName is null but an alt name matches', () => {
-    const r = validateSignature(
-      { kind: 'typed', typed_name: 'Sarah Cohen' },
-      { ...base, signerFullName: null, signerAltNames: ['', 'Sarah Cohen'] },
-    )
-    expect('ok' in r).toBe(true)
   })
 })

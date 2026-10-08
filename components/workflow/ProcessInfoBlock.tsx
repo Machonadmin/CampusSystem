@@ -7,7 +7,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import ProcessGraphModal from './ProcessGraphModal'
 import StageEventsFeed from './StageEventsFeed'
-import SignatureCapture, { type SignatureMethod, type SignaturePayload } from './SignatureCapture'
+import SignatureCapture, { type SignaturePayload } from './SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 import { toast } from '@/components/ui/toast'
 import { Modal } from '@/components/ui/Modal'
@@ -93,7 +93,6 @@ interface StageDetail {
   can_sign?: boolean
   required_role_code?: string | null
   can_convert: boolean
-  signature_method?: SignatureMethod
 }
 
 interface ClosingFinal {
@@ -336,8 +335,6 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           }
           const { storage_path } = await up.json() as { storage_path: string }
           signatureBody = { kind: 'drawn', drawing_path: storage_path }
-        } else if (signature.kind === 'typed' && signature.typed_name) {
-          signatureBody = { kind: 'typed', typed_name: signature.typed_name }
         }
       }
 
@@ -809,7 +806,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
               rows={2}
               style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
             />
-            <SignatureCapture method={stageDetail?.signature_method ?? 'both'} defaultTypedName={me?.full_name ?? undefined} onChange={setSigPayload} />
+            <SignatureCapture signerName={me?.full_name} onChange={setSigPayload} />
             {completeError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{completeError}</div>}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button

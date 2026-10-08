@@ -3,7 +3,6 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
-import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { normalizeJewishnessStatus } from '@/lib/jewishness/status'
 import { errorResponse } from '@/lib/api/handler'
@@ -117,7 +116,6 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ jour
       finals = (f ?? []) as typeof finals
     }
 
-    const signature_method = await getSignatureMethod()
 
     // Полномочия текущего пользователя для двухшаговой проверки (spec §3.3).
     const isSuper = session.principal !== 'student' && session.roles.includes('superadmin')
@@ -146,7 +144,6 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ jour
       documents: docs ?? [],
       active_stage_instance_id: stageInstanceId,
       finals,
-      signature_method,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

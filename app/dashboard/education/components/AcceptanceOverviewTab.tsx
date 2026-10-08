@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
-import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import StageSignatures from '@/components/workflow/StageSignatures'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
@@ -63,7 +63,6 @@ export default function AcceptanceOverviewTab() {
   const me = useMe()
 
   const [applicants, setApplicants] = useState<Applicant[]>([])
-  const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
   // Фильтр переживает переход в карточку и «חזרה» (sessionStorage).
   const [filter, setFilter, filterReady] = useSessionState<StatusFilter>('admission.filter', 'active')
   const [loading, setLoading] = useState(true)
@@ -117,7 +116,6 @@ export default function AcceptanceOverviewTab() {
       if (!res.ok) { setError(t('overview.load_error')); setApplicants([]); return }
       const b = await res.json()
       setApplicants(b.applicants ?? [])
-      setSigMethod((b.signature_method ?? 'both') as SignatureMethod)
     } catch {
       setError(t('overview.load_error'))
     } finally {
@@ -145,8 +143,6 @@ export default function AcceptanceOverviewTab() {
           if (!up.ok) { const d = await up.json().catch(() => ({})) as { error?: string }; setSignError(d.error ?? tCommon('error')); return }
           const { storage_path } = await up.json() as { storage_path: string }
           signatureBody = { kind: 'drawn', drawing_path: storage_path }
-        } else if (sig.kind === 'typed' && sig.typed_name) {
-          signatureBody = { kind: 'typed', typed_name: sig.typed_name }
         }
       }
       const rd: Record<string, unknown> = {}
@@ -361,7 +357,7 @@ export default function AcceptanceOverviewTab() {
                   rows={2}
                   style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
                 />
-                <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
+                <SignatureCapture signerName={me?.full_name} onChange={setSig} />
               </>
             )}
 

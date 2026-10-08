@@ -711,11 +711,7 @@
       },
       "signature": {
         "title": "חתימה דיגיטלית",
-        "method": {
-          "typed": "הקלדת שם",
-          "drawn": "ציור חתימה"
-        },
-        "typed_placeholder": "שם מלא",
+        "signer": "החותם: {name}. השם, התאריך והשעה נרשמים אוטומטית",
         "draw_hint": "חתום במסגרת למטה",
         "clear": "ניקוי",
         "confirm": "חתום והשלם"
@@ -3289,15 +3285,6 @@
       "technical": "טכני",
       "external": "חיצוני"
     },
-    "signature": {
-      "title": "שיטת חתימה דיגיטלית",
-      "subtitle": "כיצד חותמים על שלבי הקבלה",
-      "typed": "הקלדת שם",
-      "drawn": "חתימה מצוירת",
-      "both": "שניהם (לבחירת החותם)",
-      "saved": "נשמר ✓",
-      "save_error": "השמירה נכשלה"
-    },
     "workflows": {
       "desc": "שלבי תהליכי הגיוס וועדת הקבלה",
       "title": "תבניות תהליכים",
@@ -3662,7 +3649,8 @@
       "contract_support": "תמיכה",
       "reason": "סיבה",
       "reason_ph": "משפחה נזקקת / ממומן / …",
-      "signature": "חתימה אלקטרונית — הקלד/י שם מלא",
+      "signature": "חתימה",
+      "signature_on_receipt": "תודפס על הקבלה",
       "signed_by": "נחתם ע\"י {name} · {date}",
       "remaining": "נותר לתשלום",
       "method": "אמצעי תשלום",
@@ -5199,13 +5187,10 @@
     "file_type_not_allowed": "סוג קובץ לא נתמך",
     "signature_required": "נדרשת חתימה",
     "invalid_signature_kind": "סוג חתימה שגוי",
-    "signature_kind_not_allowed": "סוג החתימה אינו מותר בהגדרות",
-    "typed_name_required": "יש להקליד שם",
-    "typed_name_mismatch": "השם שהוקלד אינו תואם לשם החותם",
+    "signature_kind_not_allowed": "חותמים רק בציור החתימה",
     "drawing_required": "יש לצייר חתימה",
     "invalid_drawing_path": "קובץ חתימה שגוי",
     "signature_record_failed": "השלב הושלם אך רישום החתימה נכשל",
-    "invalid_signature_method": "שיטת חתימה שגויה",
     "cannot_remove_head": "לא ניתן להסיר את ראש המחלקה",
     "attendance_window_closed": "חלון עריכת הנוכחות נסגר — פנה למנהל",
     "note_required": "נא לכתוב הערה",

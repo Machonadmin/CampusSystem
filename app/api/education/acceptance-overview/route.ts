@@ -4,7 +4,6 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
-import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { ACCEPTANCE_PROCESS_CODES, signerRoleCodes } from '@/lib/workflow/acceptance-codes'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -86,10 +85,9 @@ export async function GET(request: NextRequest) {
     const STUDENT_LIFECYCLE = new Set(['student', 'on_leave', 'graduated', 'expelled'])
     pis = pis.filter(p => !STUDENT_LIFECYCLE.has(p.journey?.education_status ?? ''))
 
-    const signature_method = await getSignatureMethod()
 
     if (pis.length === 0) {
-      return NextResponse.json({ applicants: [], signature_method })
+      return NextResponse.json({ applicants: [] })
     }
 
     const instanceIds = pis.map(p => p.id)
@@ -181,7 +179,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ applicants, signature_method })
+    return NextResponse.json({ applicants })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)

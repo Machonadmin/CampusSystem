@@ -6,7 +6,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
@@ -45,7 +45,6 @@ interface Detail {
   documents: DetailDoc[]
   active_stage_instance_id: string | null
   finals: Final[]
-  signature_method: SignatureMethod
 }
 
 /** Цвета статус-бейджа: verified=зелёный, rejected=красный, pending (בבדיקה)=серый. */
@@ -81,7 +80,6 @@ export default function JewishnessListClient() {
 
   const [students, setStudents] = useState<ListStudent[]>([])
   const [counts, setCounts] = useState<Counts>({ pending: 0, verified: 0, rejected: 0 })
-  const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -108,7 +106,6 @@ export default function JewishnessListClient() {
       const b = await res.json()
       setStudents(b.students ?? [])
       setCounts(b.counts ?? { pending: 0, verified: 0, rejected: 0 })
-      setSigMethod((b.signature_method ?? 'both') as SignatureMethod)
     } catch {
       setError(t('load_error'))
     } finally {
@@ -192,7 +189,6 @@ export default function JewishnessListClient() {
       {selected && (
         <DetailModal
           journeyId={selected}
-          sigMethodFallback={sigMethod}
           primary={primary}
           onClose={() => setSelected(null)}
           onChanged={load}
@@ -252,10 +248,9 @@ function StudentRow({ student, primary, onOpen }: { student: ListStudent; primar
 }
 
 function DetailModal({
-  journeyId, sigMethodFallback, primary, onClose, onChanged,
+  journeyId, primary, onClose, onChanged,
 }: {
   journeyId: string
-  sigMethodFallback: SignatureMethod
   primary: string
   onClose: () => void
   onChanged: () => void
@@ -316,7 +311,7 @@ function DetailModal({
           ) : loading || !detail ? (
             <SkeletonRows />
           ) : (
-            <DetailBody detail={detail} sigMethodFallback={sigMethodFallback} primary={primary} light={light} reload={async () => { await loadDetail(); onChanged() }} />
+            <DetailBody detail={detail} primary={primary} light={light} reload={async () => { await loadDetail(); onChanged() }} />
           )}
         </div>
     </Modal>
@@ -324,10 +319,9 @@ function DetailModal({
 }
 
 function DetailBody({
-  detail, sigMethodFallback, primary, light, reload,
+  detail, primary, light, reload,
 }: {
   detail: Detail
-  sigMethodFallback: SignatureMethod
   primary: string
   light: string
   reload: () => Promise<void>
@@ -404,7 +398,6 @@ function DetailBody({
         <AcceptanceDecisionSection
           stageInstanceId={detail.active_stage_instance_id}
           finals={detail.finals.filter(f => f.code !== 'partial')}
-          sigMethod={detail.signature_method ?? sigMethodFallback}
           primary={primary}
           reload={reload}
         />
@@ -518,11 +511,10 @@ function DocumentsSection({
 }
 
 function AcceptanceDecisionSection({
-  stageInstanceId, finals, sigMethod, primary, reload,
+  stageInstanceId, finals, primary, reload,
 }: {
   stageInstanceId: string
   finals: Final[]
-  sigMethod: SignatureMethod
   primary: string
   reload: () => Promise<void>
 }) {
@@ -558,8 +550,6 @@ function AcceptanceDecisionSection({
           }
           const { storage_path } = await up.json() as { storage_path: string }
           signatureBody = { kind: 'drawn', drawing_path: storage_path }
-        } else if (sig.kind === 'typed' && sig.typed_name) {
-          signatureBody = { kind: 'typed', typed_name: sig.typed_name }
         }
       }
 
@@ -616,7 +606,7 @@ function AcceptanceDecisionSection({
             rows={2}
             style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
           />
-          <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
+          <SignatureCapture signerName={me?.full_name} onChange={setSig} />
           {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <button
             onClick={submit}

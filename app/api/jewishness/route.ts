@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
-import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { isJewishnessStatus, normalizeJewishnessStatus, type JewishnessStatus } from '@/lib/jewishness/status'
 
 /**
@@ -24,8 +23,6 @@ export async function GET(request: NextRequest) {
     const sb = createServerClient()
     const statusFilter = request.nextUrl.searchParams.get('status')?.trim() || null
     const search = request.nextUrl.searchParams.get('search')?.trim().toLowerCase() || null
-
-    const signature_method = await getSignatureMethod()
 
     // Все journey в фазе приёма/учёбы. '*' — чтобы подхватить jewishness_status
     // после миграции и не падать до неё (без явного select колонки).
@@ -96,7 +93,7 @@ export async function GET(request: NextRequest) {
     }
     students.sort((a, b) => (a.hebrew_name || a.full_name || '').localeCompare(b.hebrew_name || b.full_name || '', 'he'))
 
-    return NextResponse.json({ students, counts, signature_method })
+    return NextResponse.json({ students, counts })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)
