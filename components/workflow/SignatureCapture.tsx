@@ -1,63 +1,43 @@
 'use client'
 
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
-export type SignatureMethod = 'typed' | 'drawn' | 'both'
-
 export interface SignaturePayload {
-  kind: 'typed' | 'drawn'
-  typed_name?: string
-  drawing_blob?: Blob
+  kind: 'drawn'
+  drawing_blob: Blob
 }
 
 interface Props {
-  method: SignatureMethod
-  defaultTypedName?: string
-  /** Emits the current signature, or null when incomplete/invalid. */
+  /** Name of the logged-in signer, shown for information only. */
+  signerName?: string | null
+  /** Emits the current drawing, or null when nothing is drawn yet. */
   onChange: (payload: SignaturePayload | null) => void
 }
 
 /**
- * Reusable signature capture. Presentational only — it never touches identity;
- * the signer is derived server-side. Emits a typed name or a drawn PNG Blob.
+ * Reusable signature pad. Signing = drawing (owner decision M19): there is no
+ * typed-name option. Presentational only — it never sends identity; the server
+ * records who signed (the logged-in user) and when. The signer's name is shown
+ * so the person sees in whose name the signature will be recorded.
  */
-export default function SignatureCapture({ method, defaultTypedName, onChange }: Props) {
+export default function SignatureCapture({ signerName, onChange }: Props) {
   const t = useTranslations('education')
-  const [mode, setMode] = useState<'typed' | 'drawn'>(method === 'drawn' ? 'drawn' : 'typed')
-  const [typedName, setTypedName] = useState(defaultTypedName ?? '')
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const drawing = useRef(false)
   const hasDrawn = useRef(false)
   const last = useRef<{ x: number; y: number } | null>(null)
 
-  // Emit typed changes.
+  // Prime the canvas with a white background (the PNG is shown on light paper/receipts).
   useEffect(() => {
-    if (mode !== 'typed') return
-    const name = typedName.trim()
-    onChange(name ? { kind: 'typed', typed_name: name } : null)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typedName, mode])
-
-  // Prefill with the signer's registered name once it arrives (e.g. async
-  // /api/auth/me), only while the field is still empty. Runs only when
-  // defaultTypedName changes, so it never refills after the user clears it.
-  useEffect(() => {
-    if (defaultTypedName && !typedName) setTypedName(defaultTypedName)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultTypedName])
-
-  // Prime the canvas with a white background whenever we enter draw mode.
-  useEffect(() => {
-    if (mode !== 'drawn') return
     const c = canvasRef.current
     const ctx = c?.getContext('2d')
     if (!c || !ctx) return
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, c.width, c.height)
     hasDrawn.current = false
-  }, [mode])
+  }, [])
 
   const emitDrawn = useCallback(() => {
     const c = canvasRef.current
@@ -81,7 +61,8 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
     const ctx = canvasRef.current!.getContext('2d')!
     const p = coords(e)
     const l = last.current ?? p
-    ctx.strokeStyle = 'var(--text)'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'
+    // Canvas does not resolve CSS variables — use a fixed ink colour on the white pad.
+    ctx.strokeStyle = '#1a1a2e'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'
     ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(p.x, p.y); ctx.stroke()
     last.current = p
     hasDrawn.current = true
@@ -100,63 +81,31 @@ export default function SignatureCapture({ method, defaultTypedName, onChange }:
     hasDrawn.current = false
     onChange(null)
   }
-  function switchMode(m: 'typed' | 'drawn') {
-    setMode(m)
-    if (m === 'typed') {
-      const n = typedName.trim()
-      onChange(n ? { kind: 'typed', typed_name: n } : null)
-    } else {
-      onChange(null)
-    }
-  }
+
+  const name = (signerName ?? '').trim()
 
   return (
-    <div style={{ display: 'grid', gap: 10 }}>
-      {method === 'both' && (
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button type="button" onClick={() => switchMode('typed')} style={tab(mode === 'typed')}>
-            {t('process.signature.method.typed')}
-          </button>
-          <button type="button" onClick={() => switchMode('drawn')} style={tab(mode === 'drawn')}>
-            {t('process.signature.method.drawn')}
-          </button>
+    <div style={{ display: 'grid', gap: 6 }}>
+      {name && (
+        <div style={{ fontSize: 13, color: 'var(--text)' }}>
+          {t('process.signature.signer').replace('{name}', name)}
         </div>
       )}
-
-      {mode === 'typed' ? (
-        <input aria-label={t('process.signature.typed_placeholder')}
-          value={typedName}
-          onChange={e => setTypedName(e.target.value)}
-          placeholder={t('process.signature.typed_placeholder')}
-          style={{ fontSize: 14, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }}
-        />
-      ) : (
-        <div style={{ display: 'grid', gap: 6 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('process.signature.draw_hint')}</div>
-          <canvas
-            ref={canvasRef}
-            width={480}
-            height={150}
-            onPointerDown={down}
-            onPointerMove={move}
-            onPointerUp={up}
-            onPointerLeave={up}
-            style={{ width: '100%', height: 150, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', touchAction: 'none', cursor: 'crosshair' }}
-          />
-          <button type="button" onClick={clear} style={{ justifySelf: 'start', fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            {t('process.signature.clear')}
-          </button>
-        </div>
-      )}
+      <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('process.signature.draw_hint')}</div>
+      <canvas
+        ref={canvasRef}
+        width={480}
+        height={150}
+        aria-label={t('process.signature.title')}
+        onPointerDown={down}
+        onPointerMove={move}
+        onPointerUp={up}
+        onPointerLeave={up}
+        style={{ width: '100%', maxWidth: 480, height: 150, border: '1px solid var(--border-strong)', borderRadius: 8, background: '#ffffff', touchAction: 'none', cursor: 'crosshair' }}
+      />
+      <button type="button" onClick={clear} style={{ justifySelf: 'start', fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        {t('process.signature.clear')}
+      </button>
     </div>
   )
-}
-
-function tab(active: boolean): React.CSSProperties {
-  return {
-    fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, cursor: 'pointer',
-    border: `1px solid ${active ? 'var(--accent)' : 'var(--border-strong)'}`,
-    background: active ? '#EEF0FE' : 'var(--surface)',
-    color: active ? 'var(--accent)' : 'var(--text-muted)',
-  }
 }

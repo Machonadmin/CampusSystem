@@ -713,11 +713,7 @@
       },
       "signature": {
         "title": "Digital signature",
-        "method": {
-          "typed": "Type name",
-          "drawn": "Draw signature"
-        },
-        "typed_placeholder": "Full name",
+        "signer": "Signer: {name}. Name, date and time are recorded automatically",
         "draw_hint": "Sign in the box below",
         "clear": "Clear",
         "confirm": "Sign & complete"
@@ -3291,15 +3287,6 @@
       "technical": "Technical Staff",
       "external": "External"
     },
-    "signature": {
-      "title": "Digital signature method",
-      "subtitle": "How acceptance stages are signed",
-      "typed": "Typed name",
-      "drawn": "Drawn signature",
-      "both": "Both (signer chooses)",
-      "saved": "Saved ✓",
-      "save_error": "Save failed"
-    },
     "workflows": {
       "desc": "Stages of the recruitment and admission committee processes",
       "title": "Process Templates",
@@ -3664,7 +3651,8 @@
       "contract_support": "Support",
       "reason": "Reason",
       "reason_ph": "Needy family / sponsored / …",
-      "signature": "Electronic signature — type your full name",
+      "signature": "Signature",
+      "signature_on_receipt": "printed on the receipt",
       "signed_by": "Signed by {name} · {date}",
       "remaining": "Remaining",
       "method": "Payment method",
@@ -5201,13 +5189,10 @@
     "file_type_not_allowed": "File type not allowed",
     "signature_required": "A signature is required",
     "invalid_signature_kind": "Invalid signature type",
-    "signature_kind_not_allowed": "This signature type is not allowed by settings",
-    "typed_name_required": "Enter your name",
-    "typed_name_mismatch": "The typed name does not match the signer",
+    "signature_kind_not_allowed": "Signing is done only by drawing the signature",
     "drawing_required": "Draw a signature",
     "invalid_drawing_path": "Invalid signature file",
     "signature_record_failed": "Stage completed, but the signature could not be recorded",
-    "invalid_signature_method": "Invalid signature method",
     "cannot_remove_head": "Cannot remove the head of department",
     "attendance_window_closed": "The attendance edit window has closed — contact your manager",
     "note_required": "Please write a note",

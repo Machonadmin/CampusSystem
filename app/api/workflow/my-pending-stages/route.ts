@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { ACCEPTANCE_PROCESS_CODES, signerRoleCodes } from '@/lib/workflow/acceptance-codes'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -61,14 +60,13 @@ export async function GET() {
     })
 
     if (mine.length === 0) {
-      const signature_method = await getSignatureMethod()
-      return NextResponse.json({ stages: [], signature_method })
+      return NextResponse.json({ stages: [] })
     }
 
     const journeyIds = [...new Set(mine.map(s => s.process_instance?.journey_id).filter(Boolean) as string[])]
     const templateIds = [...new Set(mine.map(s => s.stage_template?.id).filter(Boolean) as string[])]
 
-    const [{ data: journeys }, { data: allFinals }, signature_method] = await Promise.all([
+    const [{ data: journeys }, { data: allFinals }] = await Promise.all([
       sb.from('education_journeys')
         .select('id, person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, photo_url)')
         .in('id', journeyIds),
@@ -76,7 +74,6 @@ export async function GET() {
         .select('id, stage_template_id, code, name_ru, is_positive, sort_order')
         .in('stage_template_id', templateIds)
         .order('sort_order', { ascending: true }),
-      getSignatureMethod(),
     ])
 
     const personByJourney = new Map<string, {
@@ -115,7 +112,7 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json({ stages, signature_method })
+    return NextResponse.json({ stages })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 
 interface ReferralOrigin {
@@ -75,7 +75,6 @@ export default function PsychReferrals() {
 
   const [referrals, setReferrals] = useState<Referral[]>([])
   const [finals, setFinals] = useState<Final[]>([])
-  const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
   const [loaded, setLoaded] = useState(false)
 
   const load = useCallback(async () => {
@@ -85,7 +84,6 @@ export default function PsychReferrals() {
       const b = await res.json()
       setReferrals(b.referrals ?? [])
       setFinals(b.finals ?? [])
-      setSigMethod((b.signature_method ?? 'both') as SignatureMethod)
     } catch { /* тихо — блок просто не покажется */ }
     finally { setLoaded(true) }
   }, [])
@@ -111,7 +109,6 @@ export default function PsychReferrals() {
             key={r.stage_instance_id}
             referral={r}
             finals={finals}
-            sigMethod={sigMethod}
             onSigned={load}
           />
         ))}
@@ -121,11 +118,10 @@ export default function PsychReferrals() {
 }
 
 function ReferralCard({
-  referral, finals, sigMethod, onSigned,
+  referral, finals, onSigned,
 }: {
   referral: Referral
   finals: Final[]
-  sigMethod: SignatureMethod
   onSigned: () => void
 }) {
   const t = useTranslations('psychologist')
@@ -187,8 +183,6 @@ function ReferralCard({
           }
           const { storage_path } = await up.json() as { storage_path: string }
           signatureBody = { kind: 'drawn', drawing_path: storage_path }
-        } else if (sig.kind === 'typed' && sig.typed_name) {
-          signatureBody = { kind: 'typed', typed_name: sig.typed_name }
         }
       }
 
@@ -342,7 +336,7 @@ function ReferralCard({
                   rows={2}
                   style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
                 />
-                <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
+                <SignatureCapture signerName={me?.full_name} onChange={setSig} />
                 {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
                 <button
                   onClick={submit}

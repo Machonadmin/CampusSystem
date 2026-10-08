@@ -3,6 +3,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { canViewStudentFinanceFull } from '@/lib/finance/access'
 import { isMissingColumn } from '@/lib/supabase/errors'
+import { signatureImageUrls } from '@/lib/workflow/signature-storage'
 import ReceiptClient from './ReceiptClient'
 
 interface Props {
@@ -28,7 +29,7 @@ export default async function ReceiptPage(props: Props) {
   const sb = createServerClient()
 
   const BASE = 'id, journey_id, amount, paid_at, method, reference, status, approved_at'
-  const FULL = `${BASE}, deposited_to, from_account, to_account, signer_name, typed_name, signed_at`
+  const FULL = `${BASE}, deposited_to, from_account, to_account, signer_name, typed_name, drawing_path, signed_at`
   let cols = FULL
   {
     const probe = await sb.from('finance_payments').select(FULL).limit(1)
@@ -57,6 +58,7 @@ export default async function ReceiptPage(props: Props) {
     to_account?: string | null
     signer_name?: string | null
     typed_name?: string | null
+    drawing_path?: string | null
     signed_at?: string | null
   }
 
@@ -79,6 +81,11 @@ export default async function ReceiptPage(props: Props) {
     person: { id: string; full_name: string | null; hebrew_name: string | null } | null
   } | null
 
+  // Рисунок подписи (M19) — короткоживущая ссылка из приватного бакета.
+  const signatureUrl = p.drawing_path
+    ? ((await signatureImageUrls([p.drawing_path])).get(p.drawing_path) ?? null)
+    : null
+
   return (
     <ReceiptClient
       payment={{
@@ -94,6 +101,7 @@ export default async function ReceiptPage(props: Props) {
         to_account: p.to_account ?? null,
         signer_name: p.signer_name ?? null,
         typed_name: p.typed_name ?? null,
+        signature_url: signatureUrl,
         signed_at: p.signed_at ?? null,
       }}
       journeyId={p.journey_id}

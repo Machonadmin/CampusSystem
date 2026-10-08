@@ -9,7 +9,6 @@ import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import { finalCodeToStatus, setJewishnessStatus } from '@/lib/jewishness/status'
 import { parseBenefitsInput, setAdmissionBenefits, createAdmissionContract } from '@/lib/admission/benefits'
 import { createNotifications } from '@/lib/notifications/create'
-import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { validateSignature, type ValidSignature } from '@/lib/workflow/signature'
 import { signatureImageExists } from '@/lib/workflow/signature-storage'
 
@@ -60,31 +59,11 @@ export async function POST(
     const sigRaw = (body.result_data?.signature ?? null) as unknown
     let validSig: ValidSignature | null = null
     if (ctx.requiresSignature || sigRaw != null) {
-      const method = await getSignatureMethod()
-      // Альтернативные имена подписанта (иврит / имя+фамилия) для typed-подписи:
-      // раньше проходило только точное совпадение с full_name (напр. рус. vs иврит).
-      const { data: signerPerson } = await createServerClient()
-        .from('persons')
-        .select('hebrew_name, first_name, last_name')
-        .eq('id', session.person_id)
-        .maybeSingle()
-      const sp = signerPerson as { hebrew_name: string | null; first_name: string | null; last_name: string | null } | null
-      const signerAltNames = [
-        sp?.hebrew_name ?? '',
-        [sp?.first_name, sp?.last_name].filter(Boolean).join(' '),
-        [sp?.last_name, sp?.first_name].filter(Boolean).join(' '),
-      ].filter(n => n.trim().length > 0)
-      const v = validateSignature(sigRaw as never, {
-        method,
-        signerFullName: session.full_name,
-        signerAltNames,
-        stageInstanceId: params.stageInstanceId,
-      })
+      // Подпись — только рисунок (M19). Кто подписал — из сессии, ниже.
+      const v = validateSignature(sigRaw as never, { stageInstanceId: params.stageInstanceId })
       if ('error' in v) return apiError(v.error, 400)
-      if (v.ok.kind === 'drawn' && v.ok.drawing_path) {
-        const exists = await signatureImageExists(params.stageInstanceId, v.ok.drawing_path)
-        if (!exists) return apiError('invalid_drawing_path', 400)
-      }
+      const exists = await signatureImageExists(params.stageInstanceId, v.ok.drawing_path)
+      if (!exists) return apiError('invalid_drawing_path', 400)
       validSig = v.ok
     }
 
@@ -139,7 +118,7 @@ export async function POST(
         signer_role_code: ctx.requiredRoleCode,
         signed_via: authority,
         signature_kind: validSig.kind,
-        typed_name: validSig.typed_name,
+        typed_name: null,
         drawing_path: validSig.drawing_path,
         final_code: body.final_code,
         metadata: validSig.metadata,
