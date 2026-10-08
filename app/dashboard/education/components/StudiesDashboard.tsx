@@ -422,7 +422,7 @@ const LIC = {
 // Ничего не удалено из системы — только из этой панели.
 const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
   { key: 'launch_actions_flat', fb: '', items: [
-    { key: 'launch_assignment', fb: 'שיבוץ', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
+    { key: 'launch_assignment', fb: 'שיבוץ לסמסטרים וקורסים', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
     // «שיבוץ מסלולים» убран (owner: «ממה נפשך» — дубль): вход на распределение
     // по маршрутам живёт на дашборде (KPI + карточка «ждут распределения»),
     // который появляется ровно тогда, когда есть кого распределять.
@@ -431,7 +431,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     // скрыта, если главный GET экрана дал бы 403 («אין לך הרשאה») — acc зеркалит
     // ту же проверку (см. launcher-access). «קורסי קודש» без acc: её GET
     // class-groups открыт любому вошедшему, ForbiddenState там не бывает.
-    { key: 'launch_kodesh_home', fb: 'בית מחלקת יהדות', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
+    { key: 'launch_kodesh_home', fb: 'מרחב קודש', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
     { key: 'launch_kodesh_courses', fb: 'קורסי קודש', icon: LIC.cap, href: '/dashboard/education/kodesh-courses' },
     { key: 'launch_kodesh_rav', fb: 'אישורי הרב', icon: LIC.check, href: '/dashboard/education/kodesh-rav', acc: 'kodesh_rav' },
     { key: 'launch_track_catalog', fb: 'מסלולי לימוד', icon: LIC.map, href: '/dashboard/education/tracks', acc: 'track_catalog' },
