@@ -150,9 +150,6 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
   const [description, setDescription] = useState(stage?.description ?? '')
   const [sortOrder, setSortOrder] = useState(String(stage?.sort_order ?? 0))
   const [hasTasks, setHasTasks] = useState(stage?.has_tasks ?? false)
-  const [hasActionLog, setHasActionLog] = useState(stage?.has_action_log ?? true)
-  const [isOptional, setIsOptional] = useState(stage?.is_optional ?? false)
-  const [isAddable, setIsAddable] = useState(stage?.is_addable ?? false)
   const [requiresSignature, setRequiresSignature] = useState(stage?.requires_signature ?? false)
   const [signerCodes, setSignerCodes] = useState<Set<string>>(
     new Set((stage?.required_role_code ?? '').split(',').map(s => s.trim()).filter(Boolean)),
@@ -177,9 +174,8 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
       name_ru: nameRu.trim(),
       description: description.trim() || null,
       has_tasks: hasTasks,
-      has_action_log: hasActionLog,
-      is_optional: isOptional,
-      is_addable: isAddable,
+      // has_action_log / is_optional / is_addable убраны из формы (S7): ни код,
+      // ни SQL их не читают. Не отправляем — значения в БД остаются как были.
       sort_order: Number(sortOrder) || 0,
       required_role_code,
       requires_signature: requiresSignature,
@@ -212,11 +208,8 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
         <Field label={t('f_description')}><textarea style={{ ...inputStyle, minHeight: 52, resize: 'vertical' }} value={description} onChange={e => setDescription(e.target.value)} /></Field>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 14 }}>
+      <div style={{ marginTop: 14 }}>
         <label style={labelStyle}><input type="checkbox" checked={hasTasks} onChange={e => setHasTasks(e.target.checked)} />{t('flag_has_tasks')}</label>
-        <label style={labelStyle}><input type="checkbox" checked={hasActionLog} onChange={e => setHasActionLog(e.target.checked)} />{t('flag_has_action_log')}</label>
-        <label style={labelStyle}><input type="checkbox" checked={isOptional} onChange={e => setIsOptional(e.target.checked)} />{t('flag_is_optional')}</label>
-        <label style={labelStyle}><input type="checkbox" checked={isAddable} onChange={e => setIsAddable(e.target.checked)} />{t('flag_is_addable')}</label>
       </div>
 
       {/* Who signs — headline feature */}
@@ -375,7 +368,9 @@ export function TaskModal({ t, tCommon, stageId, task, roles, onClose, onSaved }
         <Field label={t('f_assignee_type')}>
           <select style={inputStyle} value={assigneeType} onChange={e => setAssigneeType(e.target.value)}>
             <option value="">—</option>
-            {ASSIGNEE_TYPES.map(a => <option key={a} value={a}>{t('at_' + a)}</option>)}
+            {/* «role» движок не обрабатывает (задача создаётся без исполнителя) —
+                для новых задач не предлагаем; у старых показываем с пометкой (S1). */}
+            {ASSIGNEE_TYPES.filter(a => a !== 'role' || assigneeType === 'role').map(a => <option key={a} value={a}>{t('at_' + a)}</option>)}
           </select>
         </Field>
         {assigneeType === 'role' && (
@@ -399,7 +394,10 @@ export function TaskModal({ t, tCommon, stageId, task, roles, onClose, onSaved }
             {PRIORITIES.map(p => <option key={p} value={p}>{t('pr_' + p)}</option>)}
           </select>
         </Field>
-        <Field label={t('f_due_days')}><input type="number" style={inputStyle} value={dueDays} onChange={e => setDueDays(e.target.value)} /></Field>
+        <Field label={t('f_due_days')}>
+          <input type="number" style={inputStyle} value={dueDays} onChange={e => setDueDays(e.target.value)} />
+          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('f_due_days_hint')}</span>
+        </Field>
       </div>
     </Modal>
   )

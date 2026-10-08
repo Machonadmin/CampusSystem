@@ -80,6 +80,8 @@ export default function AuditLogClient() {
 
   const actionLabel = (a: string) =>
     a === 'create' ? t('action_create') : a === 'update' ? t('action_update') : t('action_delete')
+  // Человекочитаемый «тип записи» вместо имени таблицы; неизвестный тип — как есть.
+  const entityLabel = (type: string) => t(`entity_${type}`, type)
   const actionColor = (a: string) =>
     a === 'create' ? 'var(--success)' : a === 'delete' ? 'var(--danger)' : 'var(--accent-strong)'
   const actionTint = (a: string) =>
@@ -129,7 +131,7 @@ export default function AuditLogClient() {
           <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('entity_type')}</span>
           <select value={entityType} onChange={e => setEntityType(e.target.value)} style={inp}>
             <option value="">{t('all')}</option>
-            {AUDITED_ENTITY_TYPES.map(x => <option key={x} value={x}>{x}</option>)}
+            {AUDITED_ENTITY_TYPES.map(x => <option key={x} value={x}>{entityLabel(x)}</option>)}
           </select>
         </label>
         <label style={{ display: 'grid', gap: 4 }}>
@@ -190,7 +192,7 @@ export default function AuditLogClient() {
                       fontSize: 11.5, fontWeight: 700, color: actionColor(e.action), background: actionTint(e.action),
                       borderRadius: 999, padding: '2px 10px',
                     }}>{actionLabel(e.action)}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }} dir="ltr">{e.entity_type}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{entityLabel(e.entity_type)}</span>
                     <span style={{ fontSize: 11.5, color: 'var(--text-faint)', fontFamily: 'monospace' }} dir="ltr">{e.entity_id.slice(0, 8)}</span>
                     <span style={{ flex: 1 }} />
                     <span style={{ fontSize: 12.5, color: e.changed_by_name ? 'var(--text)' : 'var(--text-faint)' }}>
