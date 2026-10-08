@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { stageName } from '@/lib/workflow/labels'
 import { Modal } from '@/components/ui/Modal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -12,6 +13,8 @@ interface GraphNode {
   id: string
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
   sort_order: number
   activation_rule: 'after_one' | 'after_all'
   status: NodeStatus
@@ -147,6 +150,7 @@ function buildMermaid(data: GraphData, c: GraphColors = DEFAULT_GRAPH_COLORS, la
 export default function ProcessGraphModal({ processInstanceId, onClose, onStageClick }: Props) {
   const t = useTranslations('education')
   const tCommon = useTranslations('common')
+  const { lang } = useLang()
   const [data, setData] = useState<GraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -193,8 +197,9 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     let cancelled = false
     setRenderError('')
 
-    // Подписи узлов на языке интерфейса (как в ProcessInfoBlock); name_ru — запасной.
-    const markup = buildMermaid(data, resolveGraphColors(), n => t(`process.stages.${n.code}`, n.name_ru))
+    // Подписи узлов на языке интерфейса (общее правило lib/workflow/labels,
+    // как в ProcessInfoBlock и редакторе шаблонов); name_ru — запасной.
+    const markup = buildMermaid(data, resolveGraphColors(), n => stageName(n, lang, t))
 
     ;(async () => {
       try {
@@ -212,7 +217,7 @@ export default function ProcessGraphModal({ processInstanceId, onClose, onStageC
     })()
 
     return () => { cancelled = true }
-  }, [data, t])
+  }, [data, t, lang])
 
   const showGraph = !loading && !error && !renderError && !!data && data.nodes.length > 0
 

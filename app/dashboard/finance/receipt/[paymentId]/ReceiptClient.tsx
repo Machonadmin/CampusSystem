@@ -19,6 +19,8 @@ interface Payment {
   to_account: string | null
   signer_name: string | null
   typed_name: string | null
+  /** Рисунок подписи (M19); null — старая запись без рисунка. */
+  signature_url: string | null
   signed_at: string | null
 }
 
@@ -53,6 +55,8 @@ export default function ReceiptClient({ payment, journeyId, studentName, student
     ? ([p.from_account, p.to_account].some(Boolean) ? `${p.from_account || '—'} → ${p.to_account || '—'}` : null)
     : (p.deposited_to || null)
 
+  // Имя подписанта — то, что система записала сама (signer_name из сессии);
+  // typed_name — только для старых записей до M19.
   const signer = p.signer_name || p.typed_name || null
   // Короткий человекочитаемый номер квитанции из UUID платежа.
   const receiptNo = p.id.slice(0, 8).toUpperCase()
@@ -129,6 +133,10 @@ export default function ReceiptClient({ payment, journeyId, studentName, student
         {/* Подпись */}
         <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24 }}>
           <div style={{ flex: 1 }}>
+            {p.signature_url && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={p.signature_url} alt={t('signature')} style={{ display: 'block', maxHeight: 70, maxWidth: 240, marginBottom: 4 }} />
+            )}
             <div style={{ borderTop: '1px solid var(--text-muted)', paddingTop: 6, fontSize: 12, color: 'var(--text-muted)' }}>
               {t('signature')}
             </div>

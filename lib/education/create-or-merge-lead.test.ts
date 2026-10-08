@@ -34,7 +34,7 @@ describe('buildMergeNote', () => {
 describe('buildDuplicateNote', () => {
   it('имя и ссылка на карточку', () => {
     expect(buildDuplicateNote([{ id: 'p1', full_name: 'Cohen Sarah' }, { id: 'p2', full_name: null }]))
-      .toBe('ייתכן כפילות עם: Cohen Sarah (/dashboard/persons/p1); — (/dashboard/persons/p2)')
+      .toBe('ייתכן שזו אותה אישה כמו: Cohen Sarah; — — בדקו במאגר האנשים')
   })
 })
 

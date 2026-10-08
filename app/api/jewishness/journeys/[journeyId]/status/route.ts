@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
-import { isJewishnessStatus, setJewishnessStatus } from '@/lib/jewishness/status'
-import { canSetJewishnessStatus } from '@/lib/jewishness/two-step'
+import { isJewishnessStatus, setJewishnessStatus, type JewishnessStatus } from '@/lib/jewishness/status'
+import { canDoInitialCheck, canSetJewishnessStatus } from '@/lib/jewishness/two-step'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { parseBenefitsInput, setAdmissionBenefits } from '@/lib/admission/benefits'
 import { errorResponse } from '@/lib/api/handler'
@@ -11,7 +11,10 @@ import { errorResponse } from '@/lib/api/handler'
 /**
  * POST /api/jewishness/journeys/[journeyId]/status
  * Установить статус проверки еврейства (модульный путь).
- * Body: { status: 'pending'|'verified'|'rejected'|'needs_review', note?: string }
+ * Body: { status: 'pending'|'verified'|'rejected', note?: string }
+ *   или { action: 'initial_check', note?: string } — первичная проверка рава
+ *   (статус остаётся 'pending' «בבדיקה», фиксируется кто/когда проверил).
+ *   Статусов ровно три (владелец, M16): בבדיקה / אושר / לא אושר.
  *
  * Пишет статус + строку истории (source='module'). Это одна из двух точек
  * записи статуса (вторая — завершение acceptance-этапа 'jewishness'); обе пишут
@@ -25,11 +28,16 @@ export async function POST(request: NextRequest, props: { params: Promise<{ jour
   try {
     const session = await requireJewishnessAccess()
 
-    const body = await request.json().catch(() => ({})) as { status?: string; note?: string }
-    if (!isJewishnessStatus(body.status)) return apiError('invalid_reference', 400)
+    const body = await request.json().catch(() => ({})) as { status?: string; action?: string; note?: string }
+    // 'initial_checked' как статус больше не существует; старый клиент мог
+    // прислать его — трактуем как действие «первичная проверка».
+    const isInitialCheck = body.action === 'initial_check' || body.status === 'initial_checked'
+    const status: JewishnessStatus | null = isInitialCheck ? 'pending'
+      : isJewishnessStatus(body.status) ? body.status : null
+    if (!status) return apiError('invalid_reference', 400)
 
-    // Разделение полномочий משה⇄חנה (spec §3.3): initial_checked — только Moshe
-    // (jewishness_initial_check); verified (финал) — только Chana
+    // Разделение полномочий משה⇄חנה (spec §3.3): первичная проверка — только
+    // Moshe (jewishness_initial_check); verified (финал) — только Chana
     // (jewishness_final_approve); rejected — любой из двух. Суперадмин — всегда.
     const caps = {
       isSuperadmin: session.principal !== 'student' && session.roles.includes('superadmin'),
@@ -37,7 +45,8 @@ export async function POST(request: NextRequest, props: { params: Promise<{ jour
       canInitialCheck: await hasEducationPrivilege(session, 'jewishness_initial_check'),
       canFinalApprove: await hasEducationPrivilege(session, 'jewishness_final_approve'),
     }
-    if (!canSetJewishnessStatus(body.status, caps)) return apiError('forbidden', 403)
+    const allowed = isInitialCheck ? canDoInitialCheck(caps) : canSetJewishnessStatus(status, caps)
+    if (!allowed) return apiError('forbidden', 403)
 
     const sb = createServerClient()
 
@@ -49,10 +58,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ jour
 
     const ok = await setJewishnessStatus(sb, {
       journeyId: params.journeyId,
-      status: body.status,
+      status,
       changedBy: session.person_id,
       note: body.note ?? null,
-      source: 'module',
+      source: isInitialCheck ? 'initial_check' : 'module',
     })
     if (!ok) return apiError('feature_not_migrated', 503)
 
@@ -66,7 +75,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ jour
       }
     }
 
-    return NextResponse.json({ ok: true, status: body.status })
+    return NextResponse.json({ ok: true, status })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)

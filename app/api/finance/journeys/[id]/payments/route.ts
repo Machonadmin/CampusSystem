@@ -8,6 +8,7 @@ import { isIsoDate } from '@/lib/finance/validation'
 import type { FinancePaymentInsert } from '@/types/database'
 import { isMissingColumn } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
+import { financeSignatureImageExists, isValidFinanceSignaturePath } from '@/lib/workflow/signature-storage'
 
 /**
  * POST /api/finance/journeys/[id]/payments
@@ -17,8 +18,11 @@ import { errorResponse } from '@/lib/api/handler'
  * Право: finance.create_invoice.
  *
  * Body: { amount (>0), paid_at, method?, reference?, deposited_to?,
- *         from_account?, to_account?, typed_name? (печатная подпись) }
- * recorded_by = текущий пользователь; подписант (signed_by) — из сессии.
+ *         from_account?, to_account?, drawing_path (рисунок подписи) }
+ * Подпись — ТОЛЬКО рисунок (M19): drawing_path получен из
+ * POST /api/finance/journeys/[id]/signature/upload. Печатного имени нет.
+ * recorded_by = текущий пользователь; подписант (signed_by, signer_name) и
+ * время (signed_at) — из сессии/сервера, никогда из тела.
  * Для перевода указываем from_account/to_account; для наличных/прочего —
  * deposited_to (куда зачислено). Каждый платёж ПОДПИСАН (кто/когда).
  * Деплой-безопасно: если новых колонок ещё нет (42703) — пишем базовый платёж.
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       deposited_to?: string | null
       from_account?: string | null
       to_account?: string | null
-      typed_name?: string | null
+      drawing_path?: string | null
     }
 
     const amount = Number(body.amount)
@@ -54,9 +58,11 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     if (!isIsoDate(paidAt)) {
       return apiError('paid_at_must_be_date', 400)
     }
-    // Печатная подпись обязательна (личность — из сессии, не из тела).
-    const typedName = (body.typed_name ?? '').trim() || (session.full_name ?? '').trim()
-    if (!typedName) return apiError('signature_required', 400)
+    // Рисунок подписи обязателен (личность — из сессии, не из тела).
+    const drawingPath = typeof body.drawing_path === 'string' ? body.drawing_path.trim() : ''
+    if (!drawingPath) return apiError('drawing_required', 400)
+    if (!isValidFinanceSignaturePath(drawingPath, params.id)) return apiError('invalid_drawing_path', 400)
+    if (!(await financeSignatureImageExists(params.id, drawingPath))) return apiError('invalid_drawing_path', 400)
 
     const sb = createServerClient()
 
@@ -84,8 +90,9 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       to_account: body.to_account?.trim() || null,
       signed_by: session.person_id,
       signer_name: (session.full_name ?? '').trim() || session.login_email,
-      signature_kind: 'typed',
-      typed_name: typedName,
+      signature_kind: 'drawn',
+      typed_name: null,
+      drawing_path: drawingPath,
       signed_at: new Date().toISOString(),
     }
 

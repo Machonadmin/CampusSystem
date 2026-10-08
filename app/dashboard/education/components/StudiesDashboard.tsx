@@ -422,21 +422,21 @@ const LIC = {
 // Ничего не удалено из системы — только из этой панели.
 const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
   { key: 'launch_actions_flat', fb: '', items: [
-    { key: 'launch_assignment', fb: 'שיבוץ', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
+    { key: 'launch_assignment', fb: 'שיבוץ לסמסטרים וקורסים', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
     // «שיבוץ מסלולים» убран (owner: «ממה נפשך» — дубль): вход на распределение
     // по маршрутам живёт на дашборде (KPI + карточка «ждут распределения»),
     // который появляется ровно тогда, когда есть кого распределять.
-    { key: 'launch_kodesh', fb: 'שיבוץ קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
+    { key: 'launch_kodesh', fb: 'שיבוץ לרמות קודש', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
     // Модуль иудаики (Phase 1/2/3) и прочие экраны. Решение владельца: карточка
     // скрыта, если главный GET экрана дал бы 403 («אין לך הרשאה») — acc зеркалит
     // ту же проверку (см. launcher-access). «קורסי קודש» без acc: её GET
     // class-groups открыт любому вошедшему, ForbiddenState там не бывает.
-    { key: 'launch_kodesh_home', fb: 'בית מחלקת יהדות', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
+    { key: 'launch_kodesh_home', fb: 'מרחב קודש', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
     { key: 'launch_kodesh_courses', fb: 'קורסי קודש', icon: LIC.cap, href: '/dashboard/education/kodesh-courses' },
     { key: 'launch_kodesh_rav', fb: 'אישורי הרב', icon: LIC.check, href: '/dashboard/education/kodesh-rav', acc: 'kodesh_rav' },
-    { key: 'launch_track_catalog', fb: 'מסלולי לימוד', icon: LIC.map, href: '/dashboard/education/tracks', acc: 'track_catalog' },
+    { key: 'launch_track_catalog', fb: 'מסלולי חול', icon: LIC.map, href: '/dashboard/education/tracks', acc: 'track_catalog' },
     { key: 'launch_no_lesson_days', fb: 'ימים ללא לימודים', icon: LIC.cal, href: '/dashboard/education/no-lesson-days', acc: 'no_lesson_days' },
-    { key: 'launch_student_alerts', fb: 'התראות ומשימות', icon: LIC.alert, href: '/dashboard/education/alerts', acc: 'student_alerts' },
+    { key: 'launch_student_alerts', fb: 'התראות על תלמידות', icon: LIC.alert, href: '/dashboard/education/alerts', acc: 'student_alerts' },
     // «כספים והנחות» убрана (решение владельца 4, 24.09.2026): финансовое
     // администрирование живёт в модуле «כספים» — ссылка в шапке /dashboard/finance
     // (тот же маршрут /dashboard/education/finance-admin, тот же гейт finance_admin).

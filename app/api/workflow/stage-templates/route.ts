@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { pickWorkflowI18n, STAGE_I18N_FIELDS } from '@/lib/workflow/i18n-fields'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
       sort_order?: number
       required_role_code?: string | null
       requires_signature?: boolean
-    }
+    } & Record<string, unknown>
 
     if (!body.process_template_id)
       return apiError('process_template_id_required', 400)
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
         // запятую, напр. 'doctor,psychologist'). NULL — без ролевого гейта.
         required_role_code:  body.required_role_code?.trim() || null,
         requires_signature:  body.requires_signature ?? false,
+        ...pickWorkflowI18n(body, STAGE_I18N_FIELDS),
       } as any)
       .select('*')
       .single()

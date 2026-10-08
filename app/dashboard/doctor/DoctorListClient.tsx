@@ -102,7 +102,7 @@ export default function DoctorListClient({ canManage, embedded = false }: { canM
       const parts: string[] = []
       if (s.open_visits > 0) parts.push(`${s.open_visits} · ${t('list.open_visits')}`)
       if (s.has_allergies) parts.push(t('list.allergies'))
-      return [s.hebrew_name || s.full_name || '', s.email ?? '', parts.join('; ') || '—']
+      return [s.full_name || s.hebrew_name || '', s.email ?? '', parts.join('; ') || '—']
     })
     downloadCsv('doctor', [headers, ...data])
   }
@@ -194,7 +194,8 @@ export default function DoctorListClient({ canManage, embedded = false }: { canM
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface)' }}
                   >
                     <td style={td} data-label={t('list.student')}>
-                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.hebrew_name || s.full_name || '—'}</div>
+                      <div style={{ fontWeight: 500, color: 'var(--text)' }}>{s.full_name || s.hebrew_name || '—'}</div>
+                      {s.full_name && s.hebrew_name && s.hebrew_name !== s.full_name && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{s.hebrew_name}</div>}
                       {s.email && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{s.email}</div>}
                     </td>
                     <td style={td} data-label={t('list.health')}>

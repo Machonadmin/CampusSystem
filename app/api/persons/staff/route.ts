@@ -2,6 +2,8 @@ import { flattenPhones } from '@/lib/persons/phone'
 import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { NextRequest, NextResponse } from 'next/server'
 import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedDeptName } from '@/lib/departments/localized-name'
+import type { Lang } from '@/lib/i18n/translations'
 import { createServerClient } from '@/lib/supabase/server'
 import { requirePersonsPrivilege } from '@/lib/persons/permissions'
 import { mapDbError } from '@/lib/persons/http'
@@ -98,10 +100,11 @@ export async function GET(request: NextRequest) {
       const batch = deptIds.slice(i, i + PAGE)
       const { data, error } = await sb
         .from('departments')
-        .select('id, name')
+        .select('id, name, name_he, name_en')
         .in('id', batch)
       if (error) throw error
-      for (const d of data ?? []) deptMap.set(d.id, d.name)
+      // Имя подразделения — на языке интерфейса (name_he/name_en, откат к name).
+      for (const d of data ?? []) deptMap.set(d.id, localizedDeptName(d, lang as Lang))
     }
 
     // 4) Сборка — одна строка на человека; должности агрегируем.

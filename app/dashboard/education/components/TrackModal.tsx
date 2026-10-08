@@ -36,7 +36,9 @@ export default function TrackModal({ mode, initial, onClose, onSaved }: Props) {
   const [nameHe, setNameHe] = useState(initial?.name_he ?? '')
   const [nameRu, setNameRu] = useState(initial?.name_ru ?? '')
   const [nameEn, setNameEn] = useState(initial?.name_en ?? '')
-  const [category, setCategory] = useState(initial?.category ?? '')
+  // «קטגוריה» скрыта из формы (ничем в системе не используется) — значение
+  // сохраняется как было, чтобы правка маршрута его не стирала.
+  const [category] = useState(initial?.category ?? '')
   const [yearsCount, setYearsCount] = useState(String(initial?.years_count ?? 4))
   const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 0))
   const [isActive, setIsActive] = useState(initial?.is_active ?? true)
@@ -123,10 +125,6 @@ export default function TrackModal({ mode, initial, onClose, onSaved }: Props) {
             <label style={lbl}>{t('code_label')} *</label>
             <input aria-label={t('code_label')} type="text" value={code} onChange={e => setCode(e.target.value)} style={inp} dir="ltr" placeholder="univ_pr" />
             <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 4 }}>{t('code_hint')}</div>
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={lbl}>{t('category_label')}</label>
-            <input aria-label={t('category_label')} type="text" value={category} onChange={e => setCategory(e.target.value)} style={inp} dir="ltr" placeholder="university" />
           </div>
         </div>
 

@@ -3,7 +3,6 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasEducationPrivilege, type EducationPrivilege, type PrivilegeTarget } from '@/lib/education/permissions'
-import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { stageSignerAuthority } from '@/lib/workflow/stage-access'
 import { errorResponse } from '@/lib/api/handler'
 import { journeyScopeDepartment, journeyTarget } from '@/lib/education/journey-target'
@@ -30,7 +29,7 @@ export async function GET(
       .from('stage_instances')
       .select(`
         id, status, final_code, activated_at, completed_at, notes,
-        stage_template:stage_templates(id, code, name_ru, description, has_tasks, sort_order, required_role_code, requires_signature),
+        stage_template:stage_templates(*),
         process_instance:process_instances(id, journey_id, status)
       `)
       .eq('id', params.stageInstanceId)
@@ -70,7 +69,7 @@ export async function GET(
     }
 
     const TASK_COLS = 'id, title, status, priority, assignee_type, due_date, completed_at, created_at'
-    const [{ data: directTasks }, { data: metaTasks }, { data: finals }, manageLeads, viewPriv, can_convert, signature_method, signerAuthority] = await Promise.all([
+    const [{ data: directTasks }, { data: metaTasks }, { data: finals }, manageLeads, viewPriv, can_convert, signerAuthority] = await Promise.all([
       sb.from('tasks')
         .select(TASK_COLS)
         .eq('stage_instance_id', params.stageInstanceId)
@@ -83,14 +82,13 @@ export async function GET(
         .order('created_at', { ascending: true }),
       stageTemplateId
         ? sb.from('stage_finals')
-            .select('id, code, name_ru, is_positive, sort_order')
+            .select('*')
             .eq('stage_template_id', stageTemplateId)
             .order('sort_order', { ascending: true })
         : { data: [] as { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }[] },
       hasEducationPrivilege(session, 'manage_leads', target),
       hasEducationPrivilege(session, pickViewPrivilege(eduStatus), target),
       hasEducationPrivilege(session, 'convert_lead', target),
-      getSignatureMethod(),
       stageSignerAuthority(session, stageCtx),
     ])
 
@@ -129,7 +127,6 @@ export async function GET(
       can_sign: signerAuthority !== null,
       required_role_code: tmpl?.required_role_code ?? null,
       can_convert,
-      signature_method,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }

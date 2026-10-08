@@ -95,7 +95,7 @@ export default function EmployeeCard({
               {seats.map(s => (
                 <div key={s.position_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>{s.position}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>{s.position || '—'}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {s.department_name && <span>{s.department_name}</span>}
                       {s.is_head && <span style={{ color: '#4BAED4', fontWeight: 600 }}>{t('dept.head_label')}</span>}

@@ -137,7 +137,10 @@ export async function GET() {
     // ─── by_source ────────────────────────────────────────────────────────
     const sourceMap = new Map<string, number>()
     for (const j of leadRows) {
-      const key = (j.referral_source && j.referral_source.trim()) || 'unknown'
+      const raw = (j.referral_source && j.referral_source.trim()) || 'unknown'
+      // «שיחת טלפון» (call) слита с «טלפוני» (self) — одна строка в отчёте,
+      // даже пока миграция 20261009100000 не применена.
+      const key = raw === 'call' ? 'self' : raw
       sourceMap.set(key, (sourceMap.get(key) ?? 0) + 1)
     }
     const by_source = [...sourceMap.entries()]

@@ -150,22 +150,27 @@ export async function POST(request: NextRequest) {
     //    Ищем отдел по имени; если нет — задача уходит в общий пул
     //    (unassigned), чтобы уведомление не потерялось. Best-effort.
     try {
-      // Новые лиды идут в пул отдела «Набор» (גיוס); до его создания — в
+      // Новые лиды идут в пул отдела набора. В БД он называется «Отдел набора»
+      // (колонка name — русская; старое имя «גיוס» слито в него миграцией
+      // 20260715280000), поэтому ищем по обоим именам. Если отдела нет —
       // «Администрация»; если и его нет — в общий пул (unassigned).
       const { data: deptRows } = await sb
         .from('departments')
         .select('id, name')
-        .in('name', ['גיוס', 'Администрация'])
+        .in('name', ['גיוס', 'Отдел набора', 'Администрация'])
       const dept = (deptRows ?? []).find(d => d.name === 'גיוס')
+        ?? (deptRows ?? []).find(d => d.name === 'Отдел набора')
         ?? (deptRows ?? []).find(d => d.name === 'Администрация')
         ?? null
 
       const applicantName = [body.last_name?.trim(), body.first_name.trim()].filter(Boolean).join(' ')
-      const typeNote = applicantType !== 'student' ? `\nמי פונה: ${applicantType}` : ''
+      // Кто обращается — словами, не кодом (parent/representative).
+      const APPLICANT_TYPE_HE: Record<string, string> = { parent: 'הורה', representative: 'נציג/ת קהילה' }
+      const typeNote = applicantType !== 'student' ? `\nמי פונה: ${APPLICANT_TYPE_HE[applicantType] ?? applicantType}` : ''
       const commentNote = comment ? `\n${comment}` : ''
       const base = {
         // Повторная регистрация в уже открытый journey — отдельная пометка в заголовке.
-        title: `${lead.newJourney ? 'פנייה חדשה מהאתר' : 'פנייה חוזרת מהאתר'}: ${applicantName}`,
+        title: `${lead.newJourney ? 'ליד חדש מהאתר' : 'ליד חוזר מהאתר'}: ${applicantName}`,
         description: `טלפון: ${body.phone}${body.email ? `\nמייל: ${body.email}` : ''}${typeNote}${commentNote}`,
         module: 'education' as const,
         metadata: { source: 'public_form', journey_id: journeyId },

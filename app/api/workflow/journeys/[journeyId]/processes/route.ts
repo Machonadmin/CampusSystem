@@ -34,14 +34,17 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ jour
       journeyForAuth ? journeyTarget(journeyForAuth) : { unassigned: true },
     )
 
+    // Шаблоны — через *: так в ответ попадают и name_he/name_en (переопределения
+    // названий из редактора, миграция 20261008120200), и запрос не падает, пока
+    // миграция ещё не применена.
     const { data: instances, error } = await sb
       .from('process_instances')
       .select(`
         id, status, started_at, finished_at, finish_reason,
-        template:process_templates(id, code, name_ru),
+        template:process_templates(*),
         stages:stage_instances(
           id, status, final_code, activated_at, completed_at,
-          stage_template:stage_templates(id, code, name_ru, sort_order, finals:stage_finals(code, name_ru, is_positive))
+          stage_template:stage_templates(*, finals:stage_finals(*))
         )
       `)
       .eq('journey_id', params.journeyId)

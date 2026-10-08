@@ -6,15 +6,16 @@ import { getSession } from '@/lib/auth/session'
 import { canManageStudentFinance } from '@/lib/finance/access'
 import { toCents, centsToNumber } from '@/lib/finance/money'
 import { errorResponse } from '@/lib/api/handler'
+import { financeSignatureImageExists, isValidFinanceSignaturePath } from '@/lib/workflow/signature-storage'
 
 /**
- * Скидка на счёт (הנחה). Уменьшает долг по счёту. Требует ПРИЧИНУ и подпись
- * (в этой фазе — печатная: подписант вводит имя; личность signed_by берётся из
- * сессии, НЕ из тела). Разрешён ЛЮБОЙ процент (0 < p ≤ 100). Сумма скидки
+ * Скидка на счёт (הנחה). Уменьшает долг по счёту. Требует ПРИЧИНУ и подпись —
+ * ТОЛЬКО рисунок (M19): drawing_path из POST /api/finance/journeys/<journey>/signature/upload.
+ * Кто подписал (signed_by, signer_name) и когда — из сессии/сервера, НЕ из тела. Разрешён ЛЮБОЙ процент (0 < p ≤ 100). Сумма скидки
  * считается от суммы счёта в целых копейках; суммарные скидки по счёту не
  * превышают его сумму. Право: finance.create_invoice. Деплой-безопасно.
  *
- * POST body: { percent: number, reason?: string, typed_name?: string }
+ * POST body: { percent: number, reason?: string, drawing_path: string }
  */
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
@@ -23,16 +24,16 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const body = await request.json().catch(() => ({})) as {
-      percent?: number; reason?: string; typed_name?: string
+      percent?: number; reason?: string; drawing_path?: string
     }
 
     const percent = Number(body.percent)
     if (!Number.isFinite(percent) || percent <= 0 || percent > 100) {
       return apiError('discount_percent_range', 400)
     }
-    // Печатная подпись обязательна (кто подписал — из сессии).
-    const typedName = (body.typed_name ?? '').trim() || (session.full_name ?? '').trim()
-    if (!typedName) return apiError('signature_required', 400)
+    // Рисунок подписи обязателен (кто подписал — из сессии).
+    const drawingPath = typeof body.drawing_path === 'string' ? body.drawing_path.trim() : ''
+    if (!drawingPath) return apiError('drawing_required', 400)
     const reason = (body.reason ?? '').trim() || null
 
     const sb = createServerClient()
@@ -49,6 +50,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       return apiError('forbidden', 403)
     }
     if ((charge as { status: string }).status !== 'active') return apiError('invalid_reference', 400)
+    // Рисунок должен лежать в папке подписей ЭТОЙ студентки (защита от IDOR).
+    const chargeJourneyId = (charge as { journey_id: string }).journey_id
+    if (!isValidFinanceSignaturePath(drawingPath, chargeJourneyId)) return apiError('invalid_drawing_path', 400)
+    if (!(await financeSignatureImageExists(chargeJourneyId, drawingPath))) return apiError('invalid_drawing_path', 400)
 
     const chargeCents = toCents((charge as { amount: number | string }).amount)
 
@@ -77,11 +82,12 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
         reason,
         signed_by: session.person_id,
         signer_name: (session.full_name ?? '').trim() || session.login_email,
-        signature_kind: 'typed',
-        typed_name: typedName,
+        signature_kind: 'drawn',
+        typed_name: null,
+        drawing_path: drawingPath,
         signed_at: new Date().toISOString(),
       })
-      .select('id, percent, amount, reason, signer_name, typed_name, signed_at, created_at')
+      .select('id, percent, amount, reason, signer_name, typed_name, drawing_path, signed_at, created_at')
       .single()
     if (error) {
       if (isMissingRelation(error)) return apiError('feature_not_migrated', 503)

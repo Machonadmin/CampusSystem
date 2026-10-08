@@ -1,4 +1,7 @@
 import { flattenPhones } from '@/lib/persons/phone'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedRefName } from '@/lib/education/localized-ref'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -28,6 +31,8 @@ export default async function AlumniViewPage(props: Props) {
   if (!canView) redirect('/dashboard')
 
   const sb = createServerClient()
+  // Названия направлений/уровней/подразделений — на языке интерфейса.
+  const lang = getCookieLocale()
 
   const { data: journey } = await sb
     .from('education_journeys')
@@ -92,7 +97,7 @@ export default async function AlumniViewPage(props: Props) {
   const [{ data: interests }, { data: communities }, { data: relatives }, { data: history }, { data: alumniProfile }] =
     await Promise.all([
       sb.from('lead_interests')
-        .select('free_text, direction:reference_directions(name_ru, department:departments(name)), level:reference_levels(name_ru)')
+        .select('free_text, direction:reference_directions(name_ru, name_he, name_en, department:departments(name, name_he, name_en)), level:reference_levels(name_ru, name_he, name_en)')
         .eq('person_id', j.person_id),
       sb.from('journey_communities')
         .select('community_id, contact_name, contact_role, contact_phone, contact_email, notes, community:communities(id, name, country, city)')
@@ -136,13 +141,13 @@ export default async function AlumniViewPage(props: Props) {
       photo_url: p?.photo_url ?? null,
     },
     interests: (interests ?? []).map(i => {
-      const dir = (i.direction as unknown) as { name_ru: string; department: { name: string } | null } | null
-      const lvl = (i.level as unknown) as { name_ru: string } | null
+      const dir = (i.direction as unknown) as { name_ru: string; name_he: string | null; name_en: string | null; department: { name: string; name_he: string | null; name_en: string | null } | null } | null
+      const lvl = (i.level as unknown) as { name_ru: string; name_he: string | null; name_en: string | null } | null
       return {
         free_text: i.free_text,
-        direction_name: dir?.name_ru ?? null,
-        level_name: lvl?.name_ru ?? null,
-        department_name: dir?.department?.name ?? null,
+        direction_name: dir ? localizedRefName(dir, lang) : null,
+        level_name: lvl ? localizedRefName(lvl, lang) : null,
+        department_name: dir?.department ? localizedDeptName(dir.department, lang) : null,
       }
     }),
     communities: (communities ?? []).map(c => {

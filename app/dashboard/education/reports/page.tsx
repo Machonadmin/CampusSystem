@@ -72,7 +72,8 @@ export default function ReportsPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch('/api/education/units')
+        // Только учебные подразделения (без кухни, משק и т.п.).
+        const res = await fetch('/api/education/units?scope=studies')
         if (res.ok) {
           const b = await res.json()
           const us: Unit[] = b.units ?? []

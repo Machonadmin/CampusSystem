@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { pickWorkflowI18n, FINAL_I18N_FIELDS } from '@/lib/workflow/i18n-fields'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
       sort_order?: number
       closes_process?: boolean
       process_finish_reason?: string | null
-    }
+    } & Record<string, unknown>
 
     if (!body.stage_template_id)
       return apiError('stage_template_id_required', 400)
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
         // Завершает ли этот исход весь процесс (и с какой причиной).
         closes_process:        body.closes_process ?? false,
         process_finish_reason: body.process_finish_reason?.trim() || null,
+        ...pickWorkflowI18n(body, FINAL_I18N_FIELDS),
       } as any)
       .select('*')
       .single()

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { pickWorkflowI18n, PROCESS_I18N_FIELDS } from '@/lib/workflow/i18n-fields'
 import { requireStaff, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -73,7 +74,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
   }
 }
 
-// PATCH /api/workflow/process-templates/[id] — только name_ru, description, is_active (code не меняем)
+// PATCH /api/workflow/process-templates/[id] — name_ru/he/en, description(_he/_en), is_active (code не меняем)
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
@@ -83,9 +84,9 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       name_ru?: string
       description?: string | null
       is_active?: boolean
-    }
+    } & Record<string, unknown>
 
-    const patch: Record<string, unknown> = {}
+    const patch: Record<string, unknown> = { ...pickWorkflowI18n(body, PROCESS_I18N_FIELDS) }
     if (body.name_ru !== undefined) {
       if (!body.name_ru.trim())
         return apiError('name_ru_not_empty', 400)

@@ -6,6 +6,8 @@ import { getAbsencePrivilegeScope, filterVisibleAbsences, journeyDepartments } f
 import { notifyDepartmentAbsence } from '@/lib/education/absence-cases'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
 /**
  * טיפול בהעדרויות — случаи отсутствия.
@@ -40,8 +42,9 @@ async function resolveNames(sb: ReturnType<typeof createServerClient>, rows: Cas
     // also resolve opener/handler names via nameById
     const deptName = new Map<string, string>()
     if (deptIds.length) {
-      const { data: ds } = await sb.from('departments').select('id, name').in('id', deptIds)
-      for (const d of (ds ?? []) as Array<{ id: string; name: string }>) deptName.set(d.id, d.name)
+      const { data: ds } = await sb.from('departments').select('id, name, name_he, name_en').in('id', deptIds)
+      const lang = getCookieLocale()
+      for (const d of (ds ?? []) as Array<{ id: string; name: string; name_he: string | null; name_en: string | null }>) deptName.set(d.id, localizedDeptName(d, lang))
     }
     return { studentByJourney, personName: nameById, deptName }
   }
@@ -69,7 +72,7 @@ export async function GET(request: NextRequest) {
       const rows = await filterVisibleAbsences(sb, access, (data ?? []) as CaseRow[])
       const { studentByJourney, personName, deptName } = await resolveNames(sb, rows)
       // Список подразделений для пикера передачи (доска уже гейтится выше).
-      const { data: depts } = await sb.from('departments').select('id, name').order('name')
+      const { data: depts } = await sb.from('departments').select('id, name, name_he, name_en').order('name')
       const departments = (depts ?? []) as Array<{ id: string; name: string }>
       return NextResponse.json({
         departments,
