@@ -195,11 +195,11 @@
     },
     "recruitment_report": {
       "title": "דוחות גיוס",
-      "subtitle": "מדדי גיוס: לידים, מקורות, שלבים, גיל, גאוגרפיה ומעבר לקבלה",
+      "subtitle": "מדדי גיוס: לידים, מקורות, שלבים, גיל, גאוגרפיה ואחוז התקדמות",
       "total_leads": "סך הכל לידים",
       "applicants": "מועמדות",
       "students": "תלמידות",
-      "conversion_rate": "% לידים שעברו לוועדת קבלה",
+      "conversion_rate": "אחוז התקדמות",
       "by_source": "לפי מקור",
       "by_stage": "לפי שלב",
       "by_age": "לפי גיל",
@@ -4353,7 +4353,7 @@
       "documents": "מסמכים",
       "sponsors": "תורמים",
       "security": "אבטחה",
-      "admission_funnel": "משפך קבלה"
+      "admission_funnel": "התקדמות לפי שלבים"
     },
     "metrics": {
       "total": "סך הכול",
@@ -4418,8 +4418,8 @@
       "students": "תלמידות",
       "reached_applicant": "הגיעו לשלב קבלה",
       "reached_student": "הפכו לתלמידות",
-      "lead_to_applicant": "המרה: ליד→מועמדת",
-      "applicant_to_student": "המרה: מועמדת→תלמידה",
+      "lead_to_applicant": "אחוז התקדמות: ליד ← מועמדת",
+      "applicant_to_student": "אחוז התקדמות: מועמדת ← תלמידה",
       "stage_pending": "ממתינות בשלב",
       "stage": {
         "academic": "בדיקה לימודית",

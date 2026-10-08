@@ -195,11 +195,11 @@
     },
     "recruitment_report": {
       "title": "Recruitment reports",
-      "subtitle": "Recruitment metrics: leads, sources, stages, age, geography and moving on to admission",
+      "subtitle": "Recruitment metrics: leads, sources, stages, age, geography and progress rate",
       "total_leads": "Total leads",
       "applicants": "Applicants",
       "students": "Students",
-      "conversion_rate": "% of leads who moved to the admission committee",
+      "conversion_rate": "Progress rate",
       "by_source": "By source",
       "by_stage": "By stage",
       "by_age": "By age",
@@ -4353,7 +4353,7 @@
       "documents": "Documents",
       "sponsors": "Sponsors",
       "security": "Security",
-      "admission_funnel": "Admission funnel"
+      "admission_funnel": "Progress by stage"
     },
     "metrics": {
       "total": "Total",
@@ -4418,8 +4418,8 @@
       "students": "Students",
       "reached_applicant": "Reached acceptance",
       "reached_student": "Became students",
-      "lead_to_applicant": "Conversion: lead→applicant",
-      "applicant_to_student": "Conversion: applicant→student",
+      "lead_to_applicant": "Progress rate: lead → applicant",
+      "applicant_to_student": "Progress rate: applicant → student",
       "stage_pending": "Pending at stage",
       "stage": {
         "academic": "Academic",
