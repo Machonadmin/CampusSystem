@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -6,13 +6,18 @@ import { getHeadedUnitIds } from '@/lib/education/unit-access'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { errorResponse } from '@/lib/api/handler'
+import { expandDepartmentTree, type DepartmentEdge } from '@/lib/permissions/scope'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
 /**
  * GET /api/education/units — учебные единицы, которыми пользователь вправе
  * управлять: superadmin видит все подразделения, иначе — те, где он глава
  * (staff_positions.is_head). Для панели «состав единицы».
+ *
+ * ?scope=studies — только учебные подразделения (ветка «לימודים», где лежит
+ * кафедра кодеша): в отчётах по учёбе не должно быть кухни, משק и т.п.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
@@ -25,6 +30,15 @@ export async function GET() {
       unitIds = (data ?? []).map(d => (d as { id: string }).id)
     } else {
       unitIds = await getHeadedUnitIds(session.person_id)
+    }
+    if (unitIds.length > 0 && request.nextUrl.searchParams.get('scope') === 'studies') {
+      const { data: edgesRaw } = await sb.from('departments').select('id, parent_id')
+      const edges = (edgesRaw ?? []) as DepartmentEdge[]
+      const studiesRoot = edges.find(e => e.id === KODESH_DEPT_ID)?.parent_id
+      if (studiesRoot) {
+        const studyIds = new Set(expandDepartmentTree([studiesRoot], edges))
+        unitIds = unitIds.filter(id => studyIds.has(id))
+      }
     }
     if (unitIds.length === 0) return NextResponse.json({ units: [], is_super: isSuper })
 

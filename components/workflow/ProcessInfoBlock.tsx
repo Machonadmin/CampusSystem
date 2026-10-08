@@ -4,20 +4,22 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
-import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import ProcessGraphModal from './ProcessGraphModal'
 import StageEventsFeed from './StageEventsFeed'
 import SignatureCapture, { type SignatureMethod, type SignaturePayload } from './SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 import { toast } from '@/components/ui/toast'
 import { Modal } from '@/components/ui/Modal'
-import { acceptanceFinalKey, isMedicalFinal } from '@/lib/i18n/acceptance-finals'
+import { processName, stageName, finalName } from '@/lib/workflow/labels'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface StageFinalName {
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
   is_positive?: boolean
 }
 
@@ -25,6 +27,8 @@ interface StageTemplateInfo {
   id: string
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
   sort_order: number
   finals?: StageFinalName[]
 }
@@ -42,6 +46,8 @@ interface ProcessTemplateInfo {
   id: string
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
 }
 
 interface ProcessInfo {
@@ -68,6 +74,8 @@ interface FinalInfo {
   id: string
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
   is_positive: boolean
   sort_order: number
 }
@@ -164,16 +172,19 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
   const tCommon = useTranslations('common')
   const tEv = useTranslations('events')
   const me = useMe()
+  const { lang } = useLang()
 
-  // Подпись исхода этапа. Для этапа проверки еврейства исходы — это решения
-  // приёмной комиссии («אישור חלקי»), а не «נאסף חלקית» из общего словаря
-  // process.finals, поэтому сначала берём acceptance_finals.
-  const finalLabel = (stageCode: string | null | undefined, code: string, fallback: string) => {
-    const generic = t(`process.finals.${code}`, fallback)
-    // Мед./псих. заключение — информационный этап: «מתאימה / לא מתאימה», не «אושר / נדחה».
-    if (isMedicalFinal(stageCode, code)) return t(acceptanceFinalKey(stageCode, code), generic)
-    return stageCode === 'jewishness' ? t(`acceptance_finals.${code}`, generic) : generic
-  }
+  // Подпись исхода этапа — общее правило lib/workflow/labels (то же, что в
+  // редакторе шаблонов): переопределение из редактора на языке интерфейса,
+  // иначе словарь (для проверки еврейства и мед./псих. заключения — подписи
+  // приёмной комиссии), иначе name_ru.
+  const finalLabel = (
+    stageCode: string | null | undefined,
+    code: string,
+    fallback: string,
+    row?: { name_ru: string; name_he?: string | null; name_en?: string | null } | null,
+  ) => finalName(stageCode, { code, name_ru: row?.name_ru ?? fallback, name_he: row?.name_he, name_en: row?.name_en }, lang, t)
+  const stageLabel = (st: StageTemplateInfo) => stageName(st, lang, t)
 
   const [processes, setProcesses] = useState<ProcessInfo[]>([])
   const [loading, setLoading] = useState(true)
@@ -423,7 +434,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
           <div key={proc.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
-                {proc.template ? t(`process.names.${proc.template.code}`, proc.template.name_ru) : t('process.title')}
+                {proc.template ? processName(proc.template, lang, t) : t('process.title')}
               </span>
               <span style={{
                 fontSize: 11, padding: '2px 8px', borderRadius: 10, fontWeight: 500,
@@ -469,19 +480,19 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                       </span>
                       <span style={stageLabelStyle(stage.status, accent)}>
                         {stage.stage_template
-                          ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru)
+                          ? stageLabel(stage.stage_template)
                           : '—'}
                       </span>
                       {stage.final_code && stage.status === 'completed' && (
                         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 'auto' }}>
-                          {finalLabel(stage.stage_template?.code, stage.final_code,
-                            stage.stage_template?.finals?.find(f => f.code === stage.final_code)?.name_ru ?? stage.final_code)}
+                          {finalLabel(stage.stage_template?.code, stage.final_code, stage.final_code,
+                            stage.stage_template?.finals?.find(f => f.code === stage.final_code))}
                         </span>
                       )}
                     </button>
                     {stage.status === 'skipped' && proc.status === 'active' && canManage && (
                       <button
-                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '', mode: 'activate' })}
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? stageLabel(stage.stage_template) : '', mode: 'activate' })}
                         title={t('process.actions.activate_stage')}
                         style={{
                           flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
@@ -498,7 +509,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                         Только «фронтир» (RPC сам блокирует, если поток ушёл дальше). */}
                     {stage.status === 'completed' && proc.status === 'active' && canManage && (
                       <button
-                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? t(`process.stages.${stage.stage_template.code}`, stage.stage_template.name_ru) : '', mode: 'change' })}
+                        onClick={() => setReactivatingStage({ id: stage.id, name: stage.stage_template ? stageLabel(stage.stage_template) : '', mode: 'change' })}
                         title={t('process.actions.change_decision')}
                         style={{
                           flexShrink: 0, marginInlineStart: 6, background: 'none', border: 'none', cursor: 'pointer',
@@ -600,7 +611,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   {loadingDetail
                     ? tCommon('loading')
                     : stageDetail?.stage_template
-                      ? t(`process.stages.${stageDetail.stage_template.code}`, stageDetail.stage_template.name_ru)
+                      ? stageLabel(stageDetail.stage_template)
                       : '—'}
                 </span>
                 {stageDetail && (
@@ -739,7 +750,7 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                                   transition: 'opacity 0.15s',
                                 }}
                               >
-                                {finalLabel(stageDetail.stage_template?.code, final.code, final.name_ru)}
+                                {finalLabel(stageDetail.stage_template?.code, final.code, final.name_ru, final)}
                               </button>
                             )
                           })}
@@ -758,8 +769,8 @@ export default function ProcessInfoBlock({ journeyId, canManage = false, canConv
                   {stageDetail.status === 'completed' && stageDetail.final_code && (
                     <div style={{ padding: '10px 14px', background: 'var(--success-tint)', border: '1px solid var(--success)', borderRadius: 8, fontSize: 13, color: 'var(--success)' }}>
                       {t('process.completed_with')} <strong>
-                        {finalLabel(stageDetail.stage_template?.code, stageDetail.final_code,
-                          stageDetail.finals.find(f => f.code === stageDetail.final_code)?.name_ru ?? stageDetail.final_code)}
+                        {finalLabel(stageDetail.stage_template?.code, stageDetail.final_code, stageDetail.final_code,
+                          stageDetail.finals.find(f => f.code === stageDetail.final_code))}
                       </strong>
                     </div>
                   )}

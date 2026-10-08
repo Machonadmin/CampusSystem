@@ -30,7 +30,7 @@ export async function GET(
       .from('stage_instances')
       .select(`
         id, status, final_code, activated_at, completed_at, notes,
-        stage_template:stage_templates(id, code, name_ru, description, has_tasks, sort_order, required_role_code, requires_signature),
+        stage_template:stage_templates(*),
         process_instance:process_instances(id, journey_id, status)
       `)
       .eq('id', params.stageInstanceId)
@@ -83,7 +83,7 @@ export async function GET(
         .order('created_at', { ascending: true }),
       stageTemplateId
         ? sb.from('stage_finals')
-            .select('id, code, name_ru, is_positive, sort_order')
+            .select('*')
             .eq('stage_template_id', stageTemplateId)
             .order('sort_order', { ascending: true })
         : { data: [] as { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }[] },

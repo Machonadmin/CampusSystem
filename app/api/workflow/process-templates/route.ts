@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { pickWorkflowI18n, PROCESS_I18N_FIELDS } from '@/lib/workflow/i18n-fields'
 import { requireStaff, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
   try {
     await requireSuperadmin()
     const sb = createServerClient()
-    const body = await request.json() as { code?: string; name_ru?: string; description?: string }
+    const body = await request.json() as { code?: string; name_ru?: string; description?: string } & Record<string, unknown>
 
     if (!body.code?.trim())    return apiError('code_field_required', 400)
     if (!body.name_ru?.trim()) return apiError('name_ru_required', 400)
@@ -52,6 +53,8 @@ export async function POST(request: NextRequest) {
         code:        body.code.trim(),
         name_ru:     body.name_ru.trim(),
         description: body.description?.trim() || null,
+        // he/en — только если пришли (до миграции 20261008120200 колонок нет).
+        ...pickWorkflowI18n(body, PROCESS_I18N_FIELDS),
       } as any)
       .select('*')
       .single()

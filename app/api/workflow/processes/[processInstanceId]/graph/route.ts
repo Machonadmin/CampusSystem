@@ -19,6 +19,8 @@ interface GraphNode {
   id: string                    // stage_template_id
   code: string
   name_ru: string
+  name_he: string | null
+  name_en: string | null
   sort_order: number
   activation_rule: 'after_one' | 'after_all'
   status: 'completed' | 'active' | 'waiting' | 'skipped' | 'cancelled' | null
@@ -81,11 +83,11 @@ export async function GET(
     // 3. stage_templates процесса
     const { data: templates, error: tErr } = await sb
       .from('stage_templates')
-      .select('id, code, name_ru, sort_order')
+      .select('*')
       .eq('process_template_id', pi.process_template_id)
       .order('sort_order', { ascending: true })
     if (tErr) throw tErr
-    const stageTemplates = (templates ?? []) as { id: string; code: string; name_ru: string; sort_order: number }[]
+    const stageTemplates = (templates ?? []) as { id: string; code: string; name_ru: string; name_he?: string | null; name_en?: string | null; sort_order: number }[]
     const templateIds = stageTemplates.map(t => t.id)
 
     if (templateIds.length === 0) {
@@ -149,6 +151,8 @@ export async function GET(
         id: t.id,
         code: t.code,
         name_ru: t.name_ru,
+        name_he: t.name_he ?? null,
+        name_en: t.name_en ?? null,
         sort_order: t.sort_order,
         activation_rule: activationByTo.get(t.id) ?? 'after_one',
         status: si?.status ?? null,

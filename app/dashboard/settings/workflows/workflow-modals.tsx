@@ -8,7 +8,8 @@ import type { ReactNode } from 'react'
 import { Modal as UIModal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { roleLabel } from '@/lib/roles/role-label'
-import { useLang } from '@/lib/i18n/LanguageContext'
+import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+import { stageName, finalName } from '@/lib/workflow/labels'
 import type { TemplateListRow, StageTemplate, Final, TaskTemplate, Transition, Role, T } from './workflow-shared'
 import { ASSIGNEE_TYPES, PRIORITIES, inputStyle, labelStyle, btnPrimary, btnGhost } from './workflow-shared'
 
@@ -39,6 +40,67 @@ export function Modal({ title, error, onClose, children, footer }: {
   )
 }
 
+// ── Название / описание на трёх языках ───────────────────────────────────────
+// Иврит и английский — переопределения: пустое поле = показывается стандартный
+// перевод системы (он же подставлен как подсказка в поле на языке интерфейса).
+// Русское название — внутреннее имя шаблона (обязательное; в нём движок пишет
+// системные события); в русском интерфейсе оно видно, только если у кода нет
+// стандартного перевода.
+export interface I18nText { he: string; en: string; ru: string }
+
+export function NameFields({ t, value, onChange, standard }: {
+  t: T
+  value: I18nText
+  onChange: (v: I18nText) => void
+  /** Стандартный перевод на языке интерфейса — подсказка в пустом поле. */
+  standard?: string
+}) {
+  const { lang } = useLang()
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <Field label={t('f_name_he')}>
+        <input style={inputStyle} dir="rtl" value={value.he} placeholder={lang === 'he' ? standard : undefined}
+          onChange={e => onChange({ ...value, he: e.target.value })} />
+      </Field>
+      <Field label={t('f_name_en')}>
+        <input style={inputStyle} dir="ltr" value={value.en} placeholder={lang === 'en' ? standard : undefined}
+          onChange={e => onChange({ ...value, en: e.target.value })} />
+      </Field>
+      <Field label={`${t('f_name_ru')} *`}>
+        <input style={inputStyle} dir="ltr" value={value.ru} onChange={e => onChange({ ...value, ru: e.target.value })} />
+      </Field>
+      <span style={{ fontSize: 11, color: 'var(--text-faint)', lineHeight: 1.5 }}>{t('name_i18n_hint')}</span>
+    </div>
+  )
+}
+
+export function DescriptionFields({ t, value, onChange }: {
+  t: T; value: I18nText; onChange: (v: I18nText) => void
+}) {
+  const area = { ...inputStyle, minHeight: 52, resize: 'vertical' as const }
+  return (
+    <div style={{ display: 'grid', gap: 10 }}>
+      <Field label={t('f_description_he')}><textarea style={area} dir="rtl" value={value.he} onChange={e => onChange({ ...value, he: e.target.value })} /></Field>
+      <Field label={t('f_description_en')}><textarea style={area} dir="ltr" value={value.en} onChange={e => onChange({ ...value, en: e.target.value })} /></Field>
+      <Field label={t('f_description_ru')}><textarea style={area} dir="ltr" value={value.ru} onChange={e => onChange({ ...value, ru: e.target.value })} /></Field>
+    </div>
+  )
+}
+
+function namesOf(row: { name_ru: string; name_he?: string | null; name_en?: string | null } | null | undefined): I18nText {
+  return { he: row?.name_he ?? '', en: row?.name_en ?? '', ru: row?.name_ru ?? '' }
+}
+function descOf(row: { description: string | null; description_he?: string | null; description_en?: string | null } | null | undefined): I18nText {
+  return { he: row?.description_he ?? '', en: row?.description_en ?? '', ru: row?.description ?? '' }
+}
+/** Тело запроса: he/en пустые → null (= стандартный перевод). */
+function namesBody(v: I18nText) {
+  return { name_ru: v.ru.trim(), name_he: v.he.trim() || null, name_en: v.en.trim() || null }
+}
+function descBody(v: I18nText) {
+  return { description: v.ru.trim() || null, description_he: v.he.trim() || null, description_en: v.en.trim() || null }
+}
+
 // ── HTTP helper: returns error message string, or null on success ─────────────
 export async function mutate(url: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<string | null> {
   try {
@@ -62,17 +124,17 @@ export function ProcessCreateModal({ t, tCommon, onClose, onSaved }: {
   t: T; tCommon: T; onClose: () => void; onSaved: () => void
 }) {
   const [code, setCode] = useState('')
-  const [nameRu, setNameRu] = useState('')
-  const [description, setDescription] = useState('')
+  const [names, setNames] = useState<I18nText>(namesOf(null))
+  const [desc, setDesc] = useState<I18nText>(descOf(null))
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
   async function save() {
     if (!code.trim()) { setErr(t('code_required')); return }
-    if (!nameRu.trim()) { setErr(t('name_required')); return }
+    if (!names.ru.trim()) { setErr(t('name_required')); return }
     setBusy(true); setErr(null)
     const e = await mutate('/api/workflow/process-templates', 'POST', {
-      code: code.trim(), name_ru: nameRu.trim(), description: description.trim() || undefined,
+      code: code.trim(), ...namesBody(names), ...descBody(desc),
     })
     setBusy(false)
     if (e) { setErr(e); return }
@@ -91,28 +153,28 @@ export function ProcessCreateModal({ t, tCommon, onClose, onSaved }: {
           <input style={{ ...inputStyle, fontFamily: 'monospace' }} value={code} onChange={e => setCode(e.target.value)} />
           <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('f_code_hint')}</span>
         </Field>
-        <Field label={`${t('f_name_ru')} *`}><input style={inputStyle} value={nameRu} onChange={e => setNameRu(e.target.value)} /></Field>
-        <Field label={t('f_description')}><textarea style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} value={description} onChange={e => setDescription(e.target.value)} /></Field>
+        <NameFields t={t} value={names} onChange={setNames} />
+        <DescriptionFields t={t} value={desc} onChange={setDesc} />
       </div>
     </Modal>
   )
 }
 
-// ── Process edit modal (name_ru / description / is_active) ────────────────────
-export function ProcessEditModal({ t, tCommon, template, onClose, onSaved }: {
-  t: T; tCommon: T; template: TemplateListRow; onClose: () => void; onSaved: () => void
+// ── Process edit modal (названия / описания на трёх языках, is_active) ─────────
+export function ProcessEditModal({ t, tCommon, template, standardName, onClose, onSaved }: {
+  t: T; tCommon: T; template: TemplateListRow; standardName?: string; onClose: () => void; onSaved: () => void
 }) {
-  const [nameRu, setNameRu] = useState(template.name_ru)
-  const [description, setDescription] = useState(template.description ?? '')
+  const [names, setNames] = useState<I18nText>(namesOf(template))
+  const [desc, setDesc] = useState<I18nText>(descOf(template))
   const [isActive, setIsActive] = useState(template.is_active)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
   async function save() {
-    if (!nameRu.trim()) { setErr(t('name_required')); return }
+    if (!names.ru.trim()) { setErr(t('name_required')); return }
     setBusy(true); setErr(null)
     const e = await mutate(`/api/workflow/process-templates/${template.id}`, 'PATCH', {
-      name_ru: nameRu.trim(), description: description.trim() || null, is_active: isActive,
+      ...namesBody(names), ...descBody(desc), is_active: isActive,
     })
     setBusy(false)
     if (e) { setErr(e); return }
@@ -128,8 +190,8 @@ export function ProcessEditModal({ t, tCommon, template, onClose, onSaved }: {
     }>
       <div style={{ display: 'grid', gap: 12 }}>
         <Field label={t('f_code')}><input style={{ ...inputStyle, fontFamily: 'monospace', opacity: 0.7 }} value={template.code} disabled /></Field>
-        <Field label={`${t('f_name_ru')} *`}><input style={inputStyle} value={nameRu} onChange={e => setNameRu(e.target.value)} /></Field>
-        <Field label={t('f_description')}><textarea style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} value={description} onChange={e => setDescription(e.target.value)} /></Field>
+        <NameFields t={t} value={names} onChange={setNames} standard={standardName} />
+        <DescriptionFields t={t} value={desc} onChange={setDesc} />
         <label style={labelStyle}>
           <input type="checkbox" checked={isActive} onChange={e => setIsActive(e.target.checked)} />
           {t('f_active')}
@@ -144,10 +206,11 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
   t: T; tCommon: T; processId: string; stage: StageTemplate | null
   roles: Role[]; onClose: () => void; onSaved: () => void
 }) {
-  const { t: lang } = useLang()
+  const { t: lang, lang: locale } = useLang()
+  const tEdu = useTranslations('education')
   const [code, setCode] = useState(stage?.code ?? '')
-  const [nameRu, setNameRu] = useState(stage?.name_ru ?? '')
-  const [description, setDescription] = useState(stage?.description ?? '')
+  const [names, setNames] = useState<I18nText>(namesOf(stage))
+  const [desc, setDesc] = useState<I18nText>(descOf(stage))
   const [sortOrder, setSortOrder] = useState(String(stage?.sort_order ?? 0))
   const [hasTasks, setHasTasks] = useState(stage?.has_tasks ?? false)
   const [requiresSignature, setRequiresSignature] = useState(stage?.requires_signature ?? false)
@@ -167,12 +230,12 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
 
   async function save() {
     if (!stage && !code.trim()) { setErr(t('code_required')); return }
-    if (!nameRu.trim()) { setErr(t('name_required')); return }
+    if (!names.ru.trim()) { setErr(t('name_required')); return }
     setBusy(true); setErr(null)
     const required_role_code = signerCodes.size ? [...signerCodes].join(',') : null
     const common = {
-      name_ru: nameRu.trim(),
-      description: description.trim() || null,
+      ...namesBody(names),
+      ...descBody(desc),
       has_tasks: hasTasks,
       // has_action_log / is_optional / is_addable убраны из формы (S7): ни код,
       // ни SQL их не читают. Не отправляем — значения в БД остаются как были.
@@ -202,10 +265,11 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
         <Field label={t('f_sort_order')}><input type="number" style={inputStyle} value={sortOrder} onChange={e => setSortOrder(e.target.value)} /></Field>
       </div>
       <div style={{ marginTop: 12 }}>
-        <Field label={`${t('f_stage_name')} *`}><input style={inputStyle} value={nameRu} onChange={e => setNameRu(e.target.value)} /></Field>
+        <NameFields t={t} value={names} onChange={setNames}
+          standard={stage ? stageName({ ...stage, name_he: null, name_en: null }, locale, tEdu) : undefined} />
       </div>
       <div style={{ marginTop: 12 }}>
-        <Field label={t('f_description')}><textarea style={{ ...inputStyle, minHeight: 52, resize: 'vertical' }} value={description} onChange={e => setDescription(e.target.value)} /></Field>
+        <DescriptionFields t={t} value={desc} onChange={setDesc} />
       </div>
 
       <div style={{ marginTop: 14 }}>
@@ -239,11 +303,13 @@ export function StageModal({ t, tCommon, processId, stage, roles, onClose, onSav
 }
 
 // ── Final create/edit modal ──────────────────────────────────────────────────
-export function FinalModal({ t, tCommon, stageId, final, onClose, onSaved }: {
-  t: T; tCommon: T; stageId: string; final: Final | null; onClose: () => void; onSaved: () => void
+export function FinalModal({ t, tCommon, stageId, stageCode, final, onClose, onSaved }: {
+  t: T; tCommon: T; stageId: string; stageCode?: string; final: Final | null; onClose: () => void; onSaved: () => void
 }) {
+  const { lang: locale } = useLang()
+  const tEdu = useTranslations('education')
   const [code, setCode] = useState(final?.code ?? '')
-  const [nameRu, setNameRu] = useState(final?.name_ru ?? '')
+  const [names, setNames] = useState<I18nText>(namesOf(final))
   const [isPositive, setIsPositive] = useState(final?.is_positive ?? true)
   const [closesProcess, setClosesProcess] = useState(final?.closes_process ?? false)
   const [finishReason, setFinishReason] = useState(final?.process_finish_reason ?? '')
@@ -253,10 +319,10 @@ export function FinalModal({ t, tCommon, stageId, final, onClose, onSaved }: {
 
   async function save() {
     if (!final && !code.trim()) { setErr(t('code_required')); return }
-    if (!nameRu.trim()) { setErr(t('name_required')); return }
+    if (!names.ru.trim()) { setErr(t('name_required')); return }
     setBusy(true); setErr(null)
     const common = {
-      name_ru: nameRu.trim(),
+      ...namesBody(names),
       is_positive: isPositive,
       closes_process: closesProcess,
       process_finish_reason: closesProcess ? (finishReason.trim() || null) : null,
@@ -284,7 +350,8 @@ export function FinalModal({ t, tCommon, stageId, final, onClose, onSaved }: {
         <Field label={t('f_sort_order')}><input type="number" style={inputStyle} value={sortOrder} onChange={e => setSortOrder(e.target.value)} /></Field>
       </div>
       <div style={{ marginTop: 12 }}>
-        <Field label={`${t('f_final_name')} *`}><input style={inputStyle} value={nameRu} onChange={e => setNameRu(e.target.value)} /></Field>
+        <NameFields t={t} value={names} onChange={setNames}
+          standard={final ? finalName(stageCode, { ...final, name_he: null, name_en: null }, locale, tEdu) : undefined} />
       </div>
       <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
         <button type="button" onClick={() => setIsPositive(true)} style={{ ...btnGhost, borderColor: isPositive ? 'var(--success)' : 'var(--border-strong)', color: isPositive ? 'var(--success)' : 'var(--text-muted)', background: isPositive ? 'var(--success-tint)' : 'var(--surface)' }}>{t('positive')}</button>
@@ -407,6 +474,9 @@ export function TaskModal({ t, tCommon, stageId, task, roles, onClose, onSaved }
 export function TransitionModal({ t, tCommon, stages, finals, transition, onClose, onSaved }: {
   t: T; tCommon: T; stages: StageTemplate[]; finals: Final[]; transition: Transition | null; onClose: () => void; onSaved: () => void
 }) {
+  const { lang: locale } = useLang()
+  const tEdu = useTranslations('education')
+  const stageCodeById = useMemo(() => new Map(stages.map(s => [s.id, s.code])), [stages])
   const [fromStage, setFromStage] = useState<string>(transition?.from_stage_template_id ?? '')
   const [toStage, setToStage] = useState<string>(transition?.to_stage_template_id ?? '')
   const [triggerFinal, setTriggerFinal] = useState<string>(transition?.trigger_final_code ?? '')
@@ -450,19 +520,19 @@ export function TransitionModal({ t, tCommon, stages, finals, transition, onClos
         <Field label={t('f_from_stage')}>
           <select style={inputStyle} value={fromStage} onChange={e => { setFromStage(e.target.value); setTriggerFinal('') }}>
             <option value="">{t('from_start_option')}</option>
-            {stages.map(s => <option key={s.id} value={s.id}>{s.name_ru} ({s.code})</option>)}
+            {stages.map(s => <option key={s.id} value={s.id}>{stageName(s, locale, tEdu)}</option>)}
           </select>
         </Field>
         <Field label={`${t('f_to_stage')} *`}>
           <select style={inputStyle} value={toStage} onChange={e => setToStage(e.target.value)}>
             <option value="">—</option>
-            {stages.map(s => <option key={s.id} value={s.id}>{s.name_ru} ({s.code})</option>)}
+            {stages.map(s => <option key={s.id} value={s.id}>{stageName(s, locale, tEdu)}</option>)}
           </select>
         </Field>
         <Field label={t('f_trigger_final')}>
           <select style={inputStyle} value={triggerFinal} onChange={e => setTriggerFinal(e.target.value)} disabled={!fromStage}>
             <option value="">{t('any_final_option')}</option>
-            {fromFinals.map(f => <option key={f.id} value={f.code}>{f.name_ru} ({f.code})</option>)}
+            {fromFinals.map(f => <option key={f.id} value={f.code}>{finalName(stageCodeById.get(f.stage_template_id), f, locale, tEdu)}</option>)}
           </select>
         </Field>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
