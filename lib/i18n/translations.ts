@@ -292,7 +292,7 @@ const he: typeof ru = {
     view_students: 'צפייה בתלמידות', view_applicants: 'צפייה במועמדות',
     view_leads: 'צפייה בלידים', manage_leads: 'ניהול לידים', convert_lead: 'העברת ליד לקבלה',
     manage_students: 'ניהול תלמידות', manage_enrollments: 'ניהול שיבוצים',
-    manage_class_groups: 'ניהול כיתות', manage_class_teachers: 'ניהול מורות כיתה',
+    manage_class_groups: 'ניהול קבוצות כיתה', manage_class_teachers: 'ניהול מורות כיתה',
     manage_subjects: 'ניהול מקצועות', manage_specialties: 'ניהול מסלולים',
     manage_study_groups: 'ניהול קבוצות לימודים', mark_attendance: 'רישום נוכחות',
     set_grades: 'הזנת ציונים', set_lesson_topics: 'שיעורים ומערכת שעות',
