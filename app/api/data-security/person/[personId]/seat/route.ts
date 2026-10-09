@@ -86,18 +86,14 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
         continue
       }
       // position_ru в таблице NOT NULL. Должность как ТЕКСТ здесь не
-      // придумывается: если её не передали, ставим подпись единицы — экран
-      // всё равно показывает единицу, а не эту строку.
-      const { data: dept } = await sb
-        .from('departments')
-        .select('name, name_he')
-        .eq('id', u.department_id)
-        .maybeSingle()
+      // придумывается: если её не передали — пустая строка (экраны покажут
+      // «—»). Раньше сюда писалось имя подразделения, и колонка «תואר משרה»
+      // показывала отдел вместо должности.
       const { error } = await sb.from('staff_positions').insert({
         person_id: personId,
         department_id: u.department_id,
-        position_ru: dept?.name ?? '—',
-        position_he: u.position_he?.trim() || dept?.name_he || null,
+        position_ru: u.position_he?.trim() || '',
+        position_he: u.position_he?.trim() || null,
         position_id: null,
         is_head: !!u.is_head,
         start_date: today,

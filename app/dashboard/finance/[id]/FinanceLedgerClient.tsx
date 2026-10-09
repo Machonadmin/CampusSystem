@@ -13,6 +13,8 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatMoney } from '@/lib/finance/money'
+import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import { useMe } from '@/lib/hooks/useMe'
 
 // ── Types (mirror the ledger API response) ──────────────────────────────────
 
@@ -23,6 +25,8 @@ interface Discount {
   reason: string | null
   signer_name: string | null
   typed_name: string | null
+  /** Short-lived link to the drawn signature (M19); null for old records. */
+  signature_url: string | null
   signed_at: string | null
   created_at: string | null
 }
@@ -46,6 +50,8 @@ interface Payment {
   to_account: string | null
   signer_name: string | null
   typed_name: string | null
+  /** Short-lived link to the drawn signature (M19); null for old records. */
+  signature_url: string | null
   signed_at: string | null
   status: 'pending' | 'approved' | 'cancelled'
   approved_at: string | null
@@ -121,12 +127,14 @@ export default function FinanceLedgerClient({
   const [pDepositedTo, setPDepositedTo] = useState('')
   const [pFromAccount, setPFromAccount] = useState('')
   const [pToAccount, setPToAccount] = useState('')
-  const [pSignature, setPSignature] = useState('')
+  const [pSignature, setPSignature] = useState<SignaturePayload | null>(null)
   // discount form (per charge)
   const [discountChargeId, setDiscountChargeId] = useState<string | null>(null)
   const [dPercent, setDPercent] = useState('')
   const [dReason, setDReason] = useState('')
-  const [dSignature, setDSignature] = useState('')
+  const [dSignature, setDSignature] = useState<SignaturePayload | null>(null)
+  // Signing = drawing (M19). The server records who signed (the logged-in user) and when.
+  const me = useMe()
 
   const primary = getModuleColor('finance', 'primary')
 
@@ -157,6 +165,29 @@ export default function FinanceLedgerClient({
   }, [journeyId, t])
 
   useEffect(() => { load() }, [load])
+
+  // Загрузка рисунка подписи → серверный путь в папке подписей этой студентки.
+  const uploadSignature = useCallback(async (sig: SignaturePayload): Promise<string | null> => {
+    setBusy(true)
+    setActionError(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', sig.drawing_blob, 'signature.png')
+      const res = await fetch(`/api/finance/journeys/${journeyId}/signature/upload`, { method: 'POST', body: fd })
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({})) as { error?: string }
+        toastError(b.error ?? t('ledger.action_failed'))
+        return null
+      }
+      const { storage_path } = await res.json() as { storage_path: string }
+      return storage_path
+    } catch {
+      toastError(t('ledger.action_failed'))
+      return null
+    } finally {
+      setBusy(false)
+    }
+  }, [journeyId, t])
 
   // Универсальный вызов мутации + перезагрузка ПНК.
   const mutate = useCallback(async (
@@ -193,10 +224,12 @@ export default function FinanceLedgerClient({
     )
   }
   const pAmountNum = Number(pAmount)
-  const paymentValid = pAmount.trim() !== '' && Number.isFinite(pAmountNum) && pAmountNum > 0 && !!pDate && pSignature.trim() !== ''
+  const paymentValid = pAmount.trim() !== '' && Number.isFinite(pAmountNum) && pAmountNum > 0 && !!pDate && pSignature !== null
   const isTransfer = pMethod === 'transfer'
-  function submitPayment() {
-    if (!paymentValid) { setActionError(t('form.required')); return }
+  async function submitPayment() {
+    if (!paymentValid || !pSignature) { setActionError(t('form.required')); return }
+    const drawingPath = await uploadSignature(pSignature)
+    if (!drawingPath) return
     mutate(
       `/api/finance/journeys/${journeyId}/payments`, 'POST',
       {
@@ -204,14 +237,14 @@ export default function FinanceLedgerClient({
         paid_at: pDate,
         method: pMethod || null,
         reference: pRef.trim() || null,
-        typed_name: pSignature.trim(),
+        drawing_path: drawingPath,
         ...(isTransfer
           ? { from_account: pFromAccount.trim() || null, to_account: pToAccount.trim() || null }
           : { deposited_to: pDepositedTo.trim() || null }),
       },
       () => {
         setPAmount(''); setPDate(''); setPMethod('cash'); setPRef('')
-        setPDepositedTo(''); setPFromAccount(''); setPToAccount(''); setPSignature('')
+        setPDepositedTo(''); setPFromAccount(''); setPToAccount(''); setPSignature(null)
         setShowPayment(false)
         toastSuccess(tCommon('saved'))
       },
@@ -223,17 +256,19 @@ export default function FinanceLedgerClient({
     setActionError(null)
     // Предзаполняем рекомендованной скидкой из профиля (проверка еврейства).
     setDPercent(suggestedDiscount != null ? String(suggestedDiscount) : '')
-    setDReason(''); setDSignature('')
+    setDReason(''); setDSignature(null)
     setDiscountChargeId(prev => (prev === chargeId ? null : chargeId))
   }
   const dPercentNum = Number(dPercent)
   const discountValid = dPercent.trim() !== '' && Number.isFinite(dPercentNum) && dPercentNum > 0 && dPercentNum <= 100
-  function submitDiscount(chargeId: string) {
-    if (!discountValid || !dSignature.trim()) { setActionError(t('form.required')); return }
+  async function submitDiscount(chargeId: string) {
+    if (!discountValid || !dSignature) { setActionError(t('form.required')); return }
+    const drawingPath = await uploadSignature(dSignature)
+    if (!drawingPath) return
     mutate(
       `/api/finance/charges/${chargeId}/discount`, 'POST',
-      { percent: dPercentNum, reason: dReason.trim() || null, typed_name: dSignature.trim() },
-      () => { setDPercent(''); setDReason(''); setDSignature(''); setDiscountChargeId(null); toastSuccess(tCommon('saved')) },
+      { percent: dPercentNum, reason: dReason.trim() || null, drawing_path: drawingPath },
+      () => { setDPercent(''); setDReason(''); setDSignature(null); setDiscountChargeId(null); toastSuccess(tCommon('saved')) },
     )
   }
 
@@ -387,6 +422,7 @@ export default function FinanceLedgerClient({
                                 .replace('{name}', d.signer_name || d.typed_name || '—')
                                 .replace('{date}', formatDate((d.signed_at || '').slice(0, 10), lang))}
                             </span>
+                            {d.signature_url && <SignatureThumb url={d.signature_url} alt={t('ledger.signature')} />}
                           </div>
                         ))}
                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginTop: 2 }}>
@@ -418,8 +454,11 @@ export default function FinanceLedgerClient({
                           )}
                           <input aria-label={t('ledger.percent')} type="number" step="0.01" min="0" max="100" value={dPercent} onChange={e => setDPercent(e.target.value)} placeholder={t('ledger.percent')} style={inp(100)} />
                           <input aria-label={t('ledger.reason_ph')} value={dReason} onChange={e => setDReason(e.target.value)} placeholder={t('ledger.reason_ph')} style={inp(220)} />
-                          <input aria-label={t('ledger.signature')} value={dSignature} onChange={e => setDSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
-                          <SubmitButton onClick={() => submitDiscount(c.id)} loading={busy} disabled={busy || !discountValid || !dSignature.trim()} style={{ ...btn('var(--violet)'), opacity: (busy || !discountValid || !dSignature.trim()) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature.trim()) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
+                          <div style={{ flexBasis: '100%', display: 'grid', gap: 4 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('ledger.signature')}</div>
+                            <SignatureCapture signerName={me?.full_name} onChange={setDSignature} />
+                          </div>
+                          <SubmitButton onClick={() => submitDiscount(c.id)} loading={busy} disabled={busy || !discountValid || !dSignature} style={{ ...btn('var(--violet)'), opacity: (busy || !discountValid || !dSignature) ? 0.5 : 1, cursor: (busy || !discountValid || !dSignature) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
                           <button onClick={() => setDiscountChargeId(null)} disabled={busy} style={{ ...btn('var(--surface-2)'), color: 'var(--text)' }}>{tCommon('cancel')}</button>
                         </FormRow>
                       </td>
@@ -455,7 +494,10 @@ export default function FinanceLedgerClient({
                   <input aria-label={t('ledger.deposited_to')} value={pDepositedTo} onChange={e => setPDepositedTo(e.target.value)} placeholder={t('ledger.deposited_to')} style={inp(200)} />
                 )}
                 <input aria-label={t('form.reference')} value={pRef} onChange={e => setPRef(e.target.value)} placeholder={t('form.reference')} style={inp(150)} />
-                <input aria-label={t('ledger.signature')} value={pSignature} onChange={e => setPSignature(e.target.value)} placeholder={t('ledger.signature')} style={inp(200)} />
+                <div style={{ flexBasis: '100%', display: 'grid', gap: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('ledger.signature')} · {t('ledger.signature_on_receipt')}</div>
+                  <SignatureCapture signerName={me?.full_name} onChange={setPSignature} />
+                </div>
                 <SubmitButton onClick={submitPayment} loading={busy} disabled={busy || !paymentValid} style={{ ...btn(primary), opacity: (busy || !paymentValid) ? 0.5 : 1, cursor: (busy || !paymentValid) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
               </FormRow>
             )}
@@ -478,6 +520,7 @@ export default function FinanceLedgerClient({
                           {t('ledger.signed_by')
                             .replace('{name}', p.signer_name || p.typed_name || '—')
                             .replace('{date}', formatDate((p.signed_at || '').slice(0, 10), lang))}
+                          {p.signature_url && <div style={{ marginTop: 2 }}><SignatureThumb url={p.signature_url} alt={t('ledger.signature')} /></div>}
                         </div>
                       )}
                     </td>
@@ -553,6 +596,15 @@ function Section({ title, action, children }: {
       </div>
       {children}
     </div>
+  )
+}
+
+function SignatureThumb({ url, alt }: { url: string; alt: string }) {
+  return (
+    <a href={url} target="_blank" rel="noopener" title={alt}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt={alt} style={{ maxHeight: 32, maxWidth: 120, border: '1px solid var(--border)', borderRadius: 4, background: '#ffffff', verticalAlign: 'middle' }} />
+    </a>
   )
 }
 

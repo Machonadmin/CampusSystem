@@ -170,7 +170,7 @@ export default function TimetablePage() {
   })
 
   const removeSlot = useCallback(async (s: Slot) => {
-    if (!(await confirmDialog({ message: t('delete_confirm', 'למחוק את השיעור?'), tone: 'danger' }))) return
+    if (!(await confirmDialog({ message: t('delete_confirm', 'למחוק את השיעור השבועי מהמערכת?'), tone: 'danger' }))) return
     try {
       const res = await fetch(`/api/education/schedule/slots/${s.id}`, { method: 'DELETE' })
       if (!res.ok) {
@@ -251,7 +251,7 @@ export default function TimetablePage() {
         <span style={{ fontSize: 13, fontWeight: 600, color: conflicts.length ? 'var(--danger)' : 'var(--success)' }}>
           {conflicts.length === 0 ? t('conflicts_none') : t('conflicts_count', '{n}').replace('{n}', String(conflicts.length))}
         </span>
-        {canEdit && view === 'week' && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור ליום אחר')}</span>}
+        {canEdit && view === 'week' && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור שבועי ליום אחר')}</span>}
         <div style={{ flex: 1 }} />
         {/* Переключатель вида: по дням / взгляд менеджера (ось времени). */}
         <div style={{ display: 'inline-flex', border: '1px solid var(--border-strong)', borderRadius: 9, overflow: 'hidden' }}>
@@ -260,7 +260,7 @@ export default function TimetablePage() {
               fontSize: 12.5, fontWeight: 600, padding: '7px 14px', cursor: 'pointer', border: 'none',
               background: view === v ? 'var(--accent-strong)' : 'var(--surface)',
               color: view === v ? '#fff' : 'var(--text-muted)',
-            }}>{v === 'week' ? t('view_week', 'לפי יום') : t('view_manager', 'תצוגת מנהל')}</button>
+            }}>{v === 'week' ? t('view_week', 'שבוע') : t('view_manager', 'יום אחד (עומסים)')}</button>
           ))}
         </div>
         {/* Когда расписание пусто, эта кнопка не показывается: ниже, на пустом
@@ -270,7 +270,7 @@ export default function TimetablePage() {
           <button type="button" onClick={() => setFormSlot({ create: true })} style={{
             fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
             border: 'none', background: accent, color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
-          }}>+ {t('add_lesson', 'הוספת שיעור')}</button>
+          }}>+ {t('add_lesson', 'הוספת שיעור שבועי')}</button>
         )}
       </div>
 
@@ -299,7 +299,7 @@ export default function TimetablePage() {
             <button type="button" onClick={() => setFormSlot({ create: true })} style={{
               marginTop: 14, fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 8,
               border: 'none', background: accent, color: '#fff', cursor: 'pointer',
-            }}>+ {t('add_lesson', 'הוספת שיעור')}</button>
+            }}>+ {t('add_lesson', 'הוספת שיעור שבועי')}</button>
           )}
         </div>
       ) : view === 'week' ? (
@@ -369,7 +369,7 @@ export default function TimetablePage() {
               { label: t('mgr_lessons', 'שיעורים ביום'), value: daySummary.lessons },
               { label: t('mgr_peak', 'שיא במקביל'), value: daySummary.peak },
               { label: t('mgr_rooms', 'חדרים בשימוש'), value: daySummary.rooms },
-              { label: t('mgr_teachers', 'מורים פעילים'), value: daySummary.teachers },
+              { label: t('mgr_teachers', 'מורות פעילות'), value: daySummary.teachers },
             ].map(m => (
               <div key={m.label} style={{ flex: '1 1 130px', minWidth: 120, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 13px', boxShadow: 'var(--shadow)' }}>
                 <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--accent-strong)', fontVariantNumeric: 'tabular-nums' }}>{m.value}</div>

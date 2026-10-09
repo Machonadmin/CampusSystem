@@ -5,6 +5,7 @@ import { DateInput } from '@/components/ui/date-input'
 import { CitySelect } from '@/components/ui/city-select'
 import { CountrySelect } from '@/components/ui/country-select'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
+import { localizedRefName } from '@/lib/education/localized-ref'
 import { roleLabel } from '@/lib/roles/role-label'
 import { isDeprecatedRole } from '@/lib/roles/deprecated'
 import { toast } from '@/components/ui/toast'
@@ -25,6 +26,7 @@ interface Department {
 interface PositionOption {
   id: string
   name_ru: string
+  name_he?: string | null
   category: string
   is_teaching: boolean
 }
@@ -279,7 +281,7 @@ export default function AddEmployeeModal({
   // Match the position by name once the reference list has loaded.
   useEffect(() => {
     if (!editing?.position || positions.length === 0) return
-    const m = positions.find(p => p.name_ru === editing.position)
+    const m = positions.find(p => p.name_ru === editing.position || p.name_he === editing.position)
     if (m) setPositionId(m.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, positions])
@@ -674,21 +676,21 @@ export default function AddEmployeeModal({
                 {positions.filter(p => p.category === 'academic').length > 0 && (
                   <optgroup label={t('add_modal.category_academic')}>
                     {positions.filter(p => p.category === 'academic').map(p => (
-                      <option key={p.id} value={p.id}>{p.name_ru}</option>
+                      <option key={p.id} value={p.id}>{localizedRefName(p, lang)}</option>
                     ))}
                   </optgroup>
                 )}
                 {positions.filter(p => p.category === 'administrative').length > 0 && (
                   <optgroup label={t('add_modal.category_administrative')}>
                     {positions.filter(p => p.category === 'administrative').map(p => (
-                      <option key={p.id} value={p.id}>{p.name_ru}</option>
+                      <option key={p.id} value={p.id}>{localizedRefName(p, lang)}</option>
                     ))}
                   </optgroup>
                 )}
                 {positions.filter(p => p.category === 'support').length > 0 && (
                   <optgroup label={t('add_modal.category_support')}>
                     {positions.filter(p => p.category === 'support').map(p => (
-                      <option key={p.id} value={p.id}>{p.name_ru}</option>
+                      <option key={p.id} value={p.id}>{localizedRefName(p, lang)}</option>
                     ))}
                   </optgroup>
                 )}

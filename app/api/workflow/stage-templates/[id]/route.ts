@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { pickWorkflowI18n, STAGE_I18N_FIELDS } from '@/lib/workflow/i18n-fields'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
@@ -28,9 +29,9 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       sort_order?: number
       required_role_code?: string | null
       requires_signature?: boolean
-    }
+    } & Record<string, unknown>
 
-    const patch: Record<string, unknown> = {}
+    const patch: Record<string, unknown> = { ...pickWorkflowI18n(body, STAGE_I18N_FIELDS) }
     if (body.name_ru !== undefined) {
       if (!body.name_ru.trim())
         return apiError('name_ru_not_empty', 400)

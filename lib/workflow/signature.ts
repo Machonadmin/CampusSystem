@@ -1,39 +1,27 @@
-import type { SignatureMethod } from '@/lib/settings/app-settings'
 import { isValidSignaturePath } from './signature-storage'
 
 // ─── Валидация полезной нагрузки подписи (чистая функция) ────────────────────
 //
-// Личность подписанта здесь НЕ участвует — signed_by берётся из сессии на
-// сервере, никогда из этого payload. Здесь проверяются только: вид подписи,
-// соответствие настройке метода, привязка typed-подписи к реальному имени
-// подписанта и корректность пути рисунка (жёсткая привязка к этапу).
+// Решение владельца (M19, 2026-10-08): подпись — ТОЛЬКО рисунок. Печатной
+// подписи («введите имя») больше нет нигде, настройки «метод подписи» тоже нет.
+// Кто подписал и когда — система записывает сама (signed_by/signer_name из
+// сессии, signed_at — время сервера), никогда из этого payload. Здесь
+// проверяются только вид подписи и корректность пути рисунка (жёсткая
+// привязка к этапу).
 
 export interface SignatureInput {
   kind?: unknown
-  typed_name?: unknown
   drawing_path?: unknown
   metadata?: unknown
 }
 
 export interface ValidSignature {
-  kind: 'typed' | 'drawn'
-  typed_name: string | null
-  drawing_path: string | null
+  kind: 'drawn'
+  drawing_path: string
   metadata: Record<string, unknown>
 }
 
 export type SignatureValidation = { error: string } | { ok: ValidSignature }
-
-// Нормализация имени для сравнения typed-подписи: trim, схлопывание пробелов,
-// удаление огласовок иврита (никуд/теамим U+0591–U+05C7), нижний регистр.
-export function normalizeSignerName(name: string): string {
-  return name
-    .normalize('NFC')
-    .replace(/[\u0591-\u05C7]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
-}
 
 function metaOf(raw: SignatureInput): Record<string, unknown> {
   return raw.metadata && typeof raw.metadata === 'object'
@@ -42,45 +30,22 @@ function metaOf(raw: SignatureInput): Record<string, unknown> {
 }
 
 /**
- * Валидирует клиентский payload подписи. Возвращает { error: <apiError-код> }
+ * Валидирует клиентский payload подписи этапа. Возвращает { error: <apiError-код> }
  * либо { ok: ValidSignature }. Существование файла рисунка проверяется отдельно
- * (асинхронно) в маршруте.
+ * (асинхронно) в маршруте. Печатная подпись (kind 'typed') отвергается.
  */
 export function validateSignature(
   raw: SignatureInput | undefined | null,
-  opts: {
-    method: SignatureMethod
-    signerFullName: string | null
-    stageInstanceId: string
-    // Дополнительные допустимые имена подписанта (например, имя на иврите из persons)
-    signerAltNames?: string[]
-  },
+  opts: { stageInstanceId: string },
 ): SignatureValidation {
   if (!raw || typeof raw !== 'object') return { error: 'signature_required' }
 
   const kind = raw.kind
-  if (kind !== 'typed' && kind !== 'drawn') return { error: 'invalid_signature_kind' }
-
-  // Настройка метода принудительно применяется на сервере (UI обойти нельзя).
-  if (opts.method === 'typed' && kind !== 'typed') return { error: 'signature_kind_not_allowed' }
-  if (opts.method === 'drawn' && kind !== 'drawn') return { error: 'signature_kind_not_allowed' }
-
-  if (kind === 'typed') {
-    const typed = typeof raw.typed_name === 'string' ? raw.typed_name.trim() : ''
-    if (!typed) return { error: 'typed_name_required' }
-    // Typed-подпись привязывается к настоящему имени подписанта.
-    // Допускается совпадение с любым из известных имён (после нормализации).
-    const target = normalizeSignerName(typed)
-    const names = [opts.signerFullName, ...(opts.signerAltNames ?? [])]
-      .filter((n): n is string => typeof n === 'string')
-      .map(normalizeSignerName)
-      .filter(n => n.length > 0)
-    if (!target || !names.includes(target)) return { error: 'typed_name_mismatch' }
-    return { ok: { kind, typed_name: typed, drawing_path: null, metadata: metaOf(raw) } }
-  }
+  if (kind === 'typed') return { error: 'signature_kind_not_allowed' }
+  if (kind !== 'drawn') return { error: 'invalid_signature_kind' }
 
   const path = typeof raw.drawing_path === 'string' ? raw.drawing_path : ''
   if (!path) return { error: 'drawing_required' }
   if (!isValidSignaturePath(path, opts.stageInstanceId)) return { error: 'invalid_drawing_path' }
-  return { ok: { kind, typed_name: null, drawing_path: path, metadata: metaOf(raw) } }
+  return { ok: { kind: 'drawn', drawing_path: path, metadata: metaOf(raw) } }
 }

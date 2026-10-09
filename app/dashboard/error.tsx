@@ -33,7 +33,7 @@ export default function DashboardError({
         <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
         <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: 'var(--text)' }}>אירעה שגיאה בטעינת המסך</h1>
         <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '0 0 22px', lineHeight: 1.6 }}>
-          משהו השתבש בעת הצגת הדף. אפשר לנסות שוב או לחזור לדף הבית.
+          משהו השתבש בעת הצגת הדף. אפשר לנסות שוב או לחזור למסך הבית.
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button
@@ -46,7 +46,7 @@ export default function DashboardError({
             href="/dashboard"
             style={{ fontSize: 15, fontWeight: 600, padding: '11px 26px', borderRadius: 9, background: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border-strong)', textDecoration: 'none' }}
           >
-            לדף הבית
+            למסך הבית
           </Link>
         </div>
       </div>

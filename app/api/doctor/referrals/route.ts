@@ -4,7 +4,6 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasDoctorPrivilege } from '@/lib/doctor/permissions'
-import { getSignatureMethod } from '@/lib/settings/app-settings'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -63,8 +62,7 @@ export async function GET() {
     }>
 
     if (stages.length === 0) {
-      const signature_method = await getSignatureMethod()
-      return NextResponse.json({ referrals: [], finals: [], signature_method })
+      return NextResponse.json({ referrals: [], finals: [] })
     }
 
     const journeyIds = [...new Set(stages.map(s => s.process_instance?.journey_id).filter(Boolean) as string[])]
@@ -79,7 +77,6 @@ export async function GET() {
       { data: visits },
       { data: referStages },
       { data: finals },
-      signature_method,
     ] = await Promise.all([
       sb.from('education_journeys')
         .select(`
@@ -113,7 +110,6 @@ export async function GET() {
             .eq('stage_template_id', medicalTemplateId)
             .order('sort_order', { ascending: true })
         : Promise.resolve({ data: [] as { id: string; code: string; name_ru: string; is_positive: boolean; sort_order: number }[] }),
-      getSignatureMethod(),
     ])
 
     // Подписи направивших этапов (кто направил).
@@ -229,7 +225,7 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json({ referrals, finals: finals ?? [], signature_method })
+    return NextResponse.json({ referrals, finals: finals ?? [] })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)

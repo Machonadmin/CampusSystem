@@ -8,6 +8,8 @@ import { KODESH_DEPT_ID, loadKodeshExemptions } from '@/lib/education/kodesh-exc
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 
 /**
  * GET /api/education/units/[unitId]/report
@@ -90,9 +92,9 @@ export async function GET(request: NextRequest, props: { params: Promise<{ unitI
     const to = (request.nextUrl.searchParams.get('to') ?? '').trim()
 
     // 0. Единица существует?
-    const { data: dept } = await sb.from('departments').select('id, name').eq('id', params.unitId).maybeSingle()
+    const { data: dept } = await sb.from('departments').select('id, name, name_he, name_en').eq('id', params.unitId).maybeSingle()
     if (!dept) return apiError('not_found', 404)
-    const unitName = (dept as { name: string }).name
+    const unitName = localizedDeptName(dept as { name: string; name_he: string | null; name_en: string | null }, getCookieLocale())
 
     // 1. Активные учебные группы единицы.
     const { data: groupsRaw } = await sb

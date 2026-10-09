@@ -3,11 +3,18 @@
 import type { CSSProperties } from 'react'
 
 // ── Types (mirror API row shapes exactly) ────────────────────────────────────
+// name_he / name_en / description_he / description_en — переопределения на
+// иврите и английском (миграция 20261008120200). Пусто/нет колонки = показывать
+// стандартный перевод из словаря (lib/workflow/labels).
 export interface TemplateListRow {
   id: string
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
   description: string | null
+  description_he?: string | null
+  description_en?: string | null
   is_active: boolean
 }
 export interface StageTemplate {
@@ -15,7 +22,11 @@ export interface StageTemplate {
   process_template_id: string
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
   description: string | null
+  description_he?: string | null
+  description_en?: string | null
   has_tasks: boolean
   has_action_log: boolean
   is_optional: boolean
@@ -29,6 +40,8 @@ export interface Final {
   stage_template_id: string
   code: string
   name_ru: string
+  name_he?: string | null
+  name_en?: string | null
   is_positive: boolean
   closes_process: boolean
   process_finish_reason: string | null

@@ -234,7 +234,7 @@ export default function PersonView({
           <ScopeBadge scope="department" departments={deptNames} t={t} />
         )}
         <RiskBadge risk={item.risk} t={t} />
-        <LevelBadge level={item.level} t={t} />
+        <LevelBadge level={item.level} code={item.code} t={t} />
 
         <ThreeWay value={decision} disabled={!canGrant} onChange={v => setDecision(key, v)} t={t} />
       </div>
@@ -312,7 +312,7 @@ export default function PersonView({
                 <span style={{ flexGrow: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 13.5, fontWeight: active ? 700 : 600, color: 'var(--text)' }}>{s.name}</span>
                   <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-muted)', overflowWrap: 'anywhere' }}>
-                    {s.positionTitle ?? t('person_no_roles')}
+                    {s.positionTitle ?? t('person_no_position')}
                   </span>
                 </span>
                 {!s.isActive && (

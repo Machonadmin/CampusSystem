@@ -8,6 +8,7 @@ import { mapDbError } from '@/lib/finance/http'
 import { getActiveContract } from '@/lib/admission/benefits'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
+import { signatureImageUrls } from '@/lib/workflow/signature-storage'
 
 /**
  * GET /api/finance/journeys/[id]/ledger
@@ -86,11 +87,11 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       method: string | null; reference: string | null; status: string
       recorded_by: string | null; approved_by: string | null; approved_at: string | null
       deposited_to?: string | null; from_account?: string | null; to_account?: string | null
-      signer_name?: string | null; typed_name?: string | null; signed_at?: string | null
+      signer_name?: string | null; typed_name?: string | null; drawing_path?: string | null; signed_at?: string | null
       created_at: string; updated_at: string
     }
     const PAY_BASE = 'id, journey_id, amount, paid_at, method, reference, status, recorded_by, approved_by, approved_at, created_at, updated_at'
-    const PAY_FULL = `${PAY_BASE}, deposited_to, from_account, to_account, signer_name, typed_name, signed_at`
+    const PAY_FULL = `${PAY_BASE}, deposited_to, from_account, to_account, signer_name, typed_name, drawing_path, signed_at`
     // Деплой-безопасно: до применения миграции новых колонок нет (42703) → базовый набор.
     let payCols = PAY_FULL
     {
@@ -120,7 +121,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     type DiscountRow = {
       id: string; charge_id: string; percent: number | string; amount: number | string
       reason: string | null; signer_name: string | null; typed_name: string | null
-      signed_at: string | null; created_at: string
+      drawing_path?: string | null; signed_at: string | null; created_at: string
     }
     const discountsByCharge = new Map<string, DiscountRow[]>()
     const chargeIds = chargeRows.map(c => c.id)
@@ -128,7 +129,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       try {
         const { data, error } = await (sb)
           .from('finance_discounts')
-          .select('id, charge_id, percent, amount, reason, signer_name, typed_name, signed_at, created_at')
+          .select('id, charge_id, percent, amount, reason, signer_name, typed_name, drawing_path, signed_at, created_at')
           .in('charge_id', chargeIds)
           .order('created_at', { ascending: true })
         if (error) throw error
@@ -185,10 +186,20 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     // Действующий договор приёма (חוזה) — показываем сводку льгот. Деплой-безопасно.
     const contract = await getActiveContract(sb, params.id)
 
+    // Рисунки подписей (M19): короткоживущие ссылки; сам путь хранилища наружу не отдаём.
+    const sigPaths: string[] = []
+    for (const p of paymentRows) if (p.drawing_path) sigPaths.push(p.drawing_path)
+    for (const c of charges) for (const d of c.discounts) if (d.drawing_path) sigPaths.push(d.drawing_path)
+    const sigUrls = await signatureImageUrls(sigPaths)
+    const withSigUrl = <T extends { drawing_path?: string | null }>(row: T) => {
+      const { drawing_path, ...rest } = row
+      return { ...rest, signature_url: drawing_path ? (sigUrls.get(drawing_path) ?? null) : null }
+    }
+
     return NextResponse.json({
       journey,
-      charges,
-      payments: paymentRows,
+      charges: charges.map(c => ({ ...c, discounts: c.discounts.map(withSigUrl) })),
+      payments: paymentRows.map(withSigUrl),
       totals,
       suggested_discount_percent: suggestedDiscount,
       contract,

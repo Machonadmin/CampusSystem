@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
+import { acceptanceFinalKey } from '@/lib/i18n/acceptance-finals'
 
 interface Item {
   at: string
@@ -51,7 +52,7 @@ export default function JourneyTimeline({ journeyId }: { journeyId: string }) {
     }
     if (it.type === 'signature') {
       const stage = it.stage_code ? t(`acceptance_stages.${it.stage_code}`, it.stage_code) : ''
-      const decision = it.final_code ? t(`acceptance_finals.${it.final_code}`, it.final_code) : ''
+      const decision = it.final_code ? t(acceptanceFinalKey(it.stage_code, it.final_code), it.final_code) : ''
       return `${t('timeline.signed')}: ${stage}${decision ? ` — ${decision}` : ''}`
     }
     if (it.type === 'document') return `${t('timeline.document_added')}: ${it.title ?? ''}`

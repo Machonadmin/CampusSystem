@@ -6,12 +6,13 @@ import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
-import SignatureCapture, { type SignatureMethod, type SignaturePayload } from '@/components/workflow/SignatureCapture'
+import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 
-type Status = 'pending' | 'initial_checked' | 'verified' | 'rejected' | 'needs_review' | 'partial'
+// Ровно три статуса (владелец, M16): pending «בבדיקה» · verified «אושר» · rejected «לא אושר».
+type Status = 'pending' | 'verified' | 'rejected'
 
 interface ListStudent {
   journey_id: string
@@ -24,7 +25,7 @@ interface ListStudent {
   doc_count: number
   has_active_stage: boolean
 }
-interface Counts { pending: number; initial_checked: number; verified: number; rejected: number; needs_review: number; partial: number }
+interface Counts { pending: number; verified: number; rejected: number }
 
 interface DetailDoc { id: string; doc_type: string; title: string | null; file_name: string | null; created_at: string }
 interface HistoryItem { status: string; note: string | null; source: string | null; created_at: string; changed_by_name: string | null }
@@ -44,17 +45,13 @@ interface Detail {
   documents: DetailDoc[]
   active_stage_instance_id: string | null
   finals: Final[]
-  signature_method: SignatureMethod
 }
 
-/** Цвета статус-бейджа: verified=зелёный, rejected=красный, needs_review=янтарный, pending=серый. */
+/** Цвета статус-бейджа: verified=зелёный, rejected=красный, pending (בבדיקה)=серый. */
 function statusColors(s: string): { bg: string; fg: string } {
   switch (s) {
     case 'verified': return { bg: 'var(--success-tint)', fg: 'var(--success)' }
-    case 'initial_checked': return { bg: 'var(--accent-tint)', fg: 'var(--accent-strong)' }
-    case 'partial': return { bg: 'var(--accent-tint)', fg: 'var(--accent-strong)' }
     case 'rejected': return { bg: 'var(--danger-tint)', fg: 'var(--danger)' }
-    case 'needs_review': return { bg: 'var(--warn-tint)', fg: 'var(--warn)' }
     default: return { bg: 'var(--surface-2)', fg: 'var(--text-muted)' }
   }
 }
@@ -82,8 +79,7 @@ export default function JewishnessListClient() {
   const primary = getModuleColor('jewishness', 'primary')
 
   const [students, setStudents] = useState<ListStudent[]>([])
-  const [counts, setCounts] = useState<Counts>({ pending: 0, initial_checked: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
-  const [sigMethod, setSigMethod] = useState<SignatureMethod>('both')
+  const [counts, setCounts] = useState<Counts>({ pending: 0, verified: 0, rejected: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -109,8 +105,7 @@ export default function JewishnessListClient() {
       if (!res.ok) { setError(t('load_error')); setStudents([]); return }
       const b = await res.json()
       setStudents(b.students ?? [])
-      setCounts(b.counts ?? { pending: 0, initial_checked: 0, verified: 0, rejected: 0, needs_review: 0, partial: 0 })
-      setSigMethod((b.signature_method ?? 'both') as SignatureMethod)
+      setCounts(b.counts ?? { pending: 0, verified: 0, rejected: 0 })
     } catch {
       setError(t('load_error'))
     } finally {
@@ -120,18 +115,14 @@ export default function JewishnessListClient() {
 
   useEffect(() => { load() }, [load])
 
-  const total = counts.pending + counts.initial_checked + counts.verified + counts.partial + counts.rejected + counts.needs_review
+  const total = counts.pending + counts.verified + counts.rejected
   // Owner: чип с нулём — шум, скрываем (кроме «всех» и активного фильтра, чтобы
-  // с него можно было сойти). «partial» больше не назначается решениями — чип
-  // показываем только если такие записи ещё остались.
+  // с него можно было сойти).
   const chips: Array<{ key: Status | 'all'; label: string; count: number }> = ([
     { key: 'all' as const, label: t('filter_all'), count: total },
     { key: 'pending' as const, label: t('status_pending'), count: counts.pending },
-    { key: 'initial_checked' as const, label: t('status_initial_checked'), count: counts.initial_checked },
     { key: 'verified' as const, label: t('status_verified'), count: counts.verified },
-    { key: 'partial' as const, label: t('status_partial'), count: counts.partial },
     { key: 'rejected' as const, label: t('status_rejected'), count: counts.rejected },
-    { key: 'needs_review' as const, label: t('status_needs_review'), count: counts.needs_review },
   ]).filter(c => c.key === 'all' || c.key === statusFilter || c.count > 0)
 
   return (
@@ -198,7 +189,6 @@ export default function JewishnessListClient() {
       {selected && (
         <DetailModal
           journeyId={selected}
-          sigMethodFallback={sigMethod}
           primary={primary}
           onClose={() => setSelected(null)}
           onChanged={load}
@@ -258,10 +248,9 @@ function StudentRow({ student, primary, onOpen }: { student: ListStudent; primar
 }
 
 function DetailModal({
-  journeyId, sigMethodFallback, primary, onClose, onChanged,
+  journeyId, primary, onClose, onChanged,
 }: {
   journeyId: string
-  sigMethodFallback: SignatureMethod
   primary: string
   onClose: () => void
   onChanged: () => void
@@ -322,7 +311,7 @@ function DetailModal({
           ) : loading || !detail ? (
             <SkeletonRows />
           ) : (
-            <DetailBody detail={detail} sigMethodFallback={sigMethodFallback} primary={primary} light={light} reload={async () => { await loadDetail(); onChanged() }} />
+            <DetailBody detail={detail} primary={primary} light={light} reload={async () => { await loadDetail(); onChanged() }} />
           )}
         </div>
     </Modal>
@@ -330,10 +319,9 @@ function DetailModal({
 }
 
 function DetailBody({
-  detail, sigMethodFallback, primary, light, reload,
+  detail, primary, light, reload,
 }: {
   detail: Detail
-  sigMethodFallback: SignatureMethod
   primary: string
   light: string
   reload: () => Promise<void>
@@ -379,6 +367,7 @@ function DetailBody({
             {detail.history.map((h, i) => {
               const sourceLabel = h.source === 'module' ? t('source_module')
                 : h.source === 'acceptance_stage' ? t('source_acceptance_stage')
+                : h.source === 'initial_check' ? t('source_initial_check')
                 : (h.source ?? '')
               return (
                 <div key={i} style={{ borderInlineStart: `3px solid ${statusColors(h.status).fg}`, paddingInlineStart: 10, paddingTop: 2, paddingBottom: 2 }}>
@@ -402,13 +391,13 @@ function DetailBody({
       </Section>
 
       {/* Подписанное решение — только на активном этапе. Упрощено (запрос
-          владельца): «אישור מסמכים וחתימה» — оставляем только אישור/דחייה
-          (без «אישור חלקי») + подпись; отдельный модуль статусов без подписи убран. */}
+          владельца): «אישור מסמכים וחתימה» — только אושר/לא אושר + подпись.
+          Финал 'partial' упразднён (M16, миграция 20261009150000); фильтр
+          оставлен на случай, если миграция ещё не применена. */}
       {detail.active_stage_instance_id && (
         <AcceptanceDecisionSection
           stageInstanceId={detail.active_stage_instance_id}
           finals={detail.finals.filter(f => f.code !== 'partial')}
-          sigMethod={detail.signature_method ?? sigMethodFallback}
           primary={primary}
           reload={reload}
         />
@@ -522,11 +511,10 @@ function DocumentsSection({
 }
 
 function AcceptanceDecisionSection({
-  stageInstanceId, finals, sigMethod, primary, reload,
+  stageInstanceId, finals, primary, reload,
 }: {
   stageInstanceId: string
   finals: Final[]
-  sigMethod: SignatureMethod
   primary: string
   reload: () => Promise<void>
 }) {
@@ -543,7 +531,6 @@ function AcceptanceDecisionSection({
   function finalLabel(f: Final): string {
     if (f.code === 'approved') return t('final_approved')
     if (f.code === 'rejected') return t('final_rejected')
-    if (f.code === 'partial') return t('status_partial')
     return f.name_ru
   }
 
@@ -563,8 +550,6 @@ function AcceptanceDecisionSection({
           }
           const { storage_path } = await up.json() as { storage_path: string }
           signatureBody = { kind: 'drawn', drawing_path: storage_path }
-        } else if (sig.kind === 'typed' && sig.typed_name) {
-          signatureBody = { kind: 'typed', typed_name: sig.typed_name }
         }
       }
 
@@ -621,7 +606,7 @@ function AcceptanceDecisionSection({
             rows={2}
             style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
           />
-          <SignatureCapture method={sigMethod} defaultTypedName={me?.full_name ?? undefined} onChange={setSig} />
+          <SignatureCapture signerName={me?.full_name} onChange={setSig} />
           {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
           <button
             onClick={submit}
@@ -642,8 +627,9 @@ function AcceptanceDecisionSection({
 }
 
 /**
- * Двухшаговые действия (spec §3.3): Moshe — «первичная проверка» (→ initial_checked),
- * Chana — «финальное одобрение» (→ verified). Кнопки показываются по полномочиям,
+ * Двухшаговые действия (spec §3.3): Moshe — «первичная проверка» (статус остаётся
+ * «בבדיקה», фиксируется кто/когда), Chana — «финальное одобрение» (→ verified).
+ * Пока статус «בבדיקה» (или «לא אושר») его можно менять; после «אושר» — нет. Кнопки показываются по полномочиям,
  * присланным сервером (can_initial_check / can_final_approve). Сервер повторно
  * проверяет разделение полномочий.
  */
@@ -653,12 +639,12 @@ function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: 
   const [note, setNote] = useState('')
   const [error, setError] = useState('')
 
-  const setStatus = async (status: string) => {
+  const post = async (payload: { status: Status } | { action: 'initial_check' }) => {
     setBusy(true); setError('')
     try {
       const res = await fetch(`/api/jewishness/journeys/${detail.journey_id}/status`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, note: note.trim() || undefined }),
+        body: JSON.stringify({ ...payload, note: note.trim() || undefined }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; setError(d.error ?? t('action_failed')); return }
       setNote(''); await reload()
@@ -666,7 +652,7 @@ function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: 
   }
 
   const s = detail.status
-  const showInitial = detail.can_initial_check && s !== 'verified' && s !== 'initial_checked' && s !== 'rejected'
+  const showInitial = detail.can_initial_check && s === 'pending' && !detail.initial_checked_at
   const showFinal = detail.can_final_approve && s !== 'verified'
   const showReject = (detail.can_initial_check || detail.can_final_approve) && s !== 'verified' && s !== 'rejected'
   if (!showInitial && !showFinal && !showReject) return null
@@ -683,9 +669,9 @@ function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: 
       <input aria-label={t('note_optional')} value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_optional')}
         style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {showInitial && <button onClick={() => setStatus('initial_checked')} disabled={busy} style={btn(primary)}>{t('action_initial_check')}</button>}
-        {showFinal && <button onClick={() => setStatus('verified')} disabled={busy} style={btn('var(--success)')}>{t('action_final_approve')}</button>}
-        {showReject && <button onClick={() => setStatus('rejected')} disabled={busy} style={btn('var(--danger)', true)}>{t('action_reject')}</button>}
+        {showInitial && <button onClick={() => post({ action: 'initial_check' })} disabled={busy} style={btn(primary)}>{t('action_initial_check')}</button>}
+        {showFinal && <button onClick={() => post({ status: 'verified' })} disabled={busy} style={btn('var(--success)')}>{t('action_final_approve')}</button>}
+        {showReject && <button onClick={() => post({ status: 'rejected' })} disabled={busy} style={btn('var(--danger)', true)}>{t('action_reject')}</button>}
       </div>
       {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
     </div>

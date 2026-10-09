@@ -205,8 +205,8 @@ export default function SubjectModal({ mode, initial, tracks, defaults, onClose,
 
           {mode === 'create' && (
             <div style={{ marginBottom: 12 }}>
-              <label style={lbl}>{t('subjects.semester_price_label')}</label>
-              <input aria-label={t('subjects.semester_price_label')}
+              <label style={lbl}>{t('subjects.semester_price_new_label')}</label>
+              <input aria-label={t('subjects.semester_price_new_label')}
                 type="number" value={price} onChange={e => setPrice(e.target.value)}
                 style={inp} min={0}
               />

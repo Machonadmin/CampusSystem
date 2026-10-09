@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCookieLocale } from '@/lib/i18n/locale'
+import { localizedRefName } from '@/lib/education/localized-ref'
+import { localizedDeptName } from '@/lib/departments/localized-name'
 import { fetchAllPages, requireAuth, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -34,6 +37,8 @@ export async function GET(request: NextRequest) {
     // Лид ещё не привязан к מחלקה; распределение/сегментация происходит только
     // когда он становится студенткой (там уже действует scope по подразделению).
     const sb = createServerClient()
+    // Названия направлений/уровней/подразделений — на языке интерфейса.
+    const lang = getCookieLocale()
 
     const processStatus = request.nextUrl.searchParams.get('process_status') ?? 'active'
     const mineOnly = request.nextUrl.searchParams.get('mine') === '1'
@@ -125,7 +130,7 @@ export async function GET(request: NextRequest) {
         .select('id, full_name, hebrew_name, email, phones, photo_url')
         .in('id', filteredPersonIds),
       sb.from('lead_interests')
-        .select('person_id, free_text, direction:reference_directions(name_ru, department:departments(name)), level:reference_levels(name_ru)')
+        .select('person_id, free_text, direction:reference_directions(name_ru, name_he, name_en, department:departments(name, name_he, name_en)), level:reference_levels(name_ru, name_he, name_en)')
         .in('person_id', filteredPersonIds),
     ])
 
@@ -133,14 +138,14 @@ export async function GET(request: NextRequest) {
     type InterestOut = { free_text: string | null; direction_name: string | null; level_name: string | null; department_name: string | null }
     const interestMap = new Map<string, InterestOut[]>()
     for (const i of interests ?? []) {
-      const dir = (i.direction as unknown) as { name_ru: string; department: { name: string } | null } | null
-      const lvl = (i.level as unknown) as { name_ru: string } | null
+      const dir = (i.direction as unknown) as { name_ru: string; name_he: string | null; name_en: string | null; department: { name: string; name_he: string | null; name_en: string | null } | null } | null
+      const lvl = (i.level as unknown) as { name_ru: string; name_he: string | null; name_en: string | null } | null
       if (!interestMap.has(i.person_id)) interestMap.set(i.person_id, [])
       interestMap.get(i.person_id)!.push({
         free_text: i.free_text,
-        direction_name: dir?.name_ru ?? null,
-        level_name: lvl?.name_ru ?? null,
-        department_name: dir?.department?.name ?? null,
+        direction_name: dir ? localizedRefName(dir, lang) : null,
+        level_name: lvl ? localizedRefName(lvl, lang) : null,
+        department_name: dir?.department ? localizedDeptName(dir.department, lang) : null,
       })
     }
 

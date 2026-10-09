@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
+import { processName, stageName, finalName, workflowDescription } from '@/lib/workflow/labels'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -22,7 +23,11 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
   const t = useTranslations('settings.workflows')
   const tCommon = useTranslations('common')
   const tNav = useTranslations('navigation')
-  const { t: lang } = useLang()
+  const tEdu = useTranslations('education')
+  const { t: lang, lang: locale } = useLang()
+  // Названия — те же, что видит персонал (lib/workflow/labels), на языке
+  // интерфейса. Технические коды — только по кнопке «פרטים טכניים».
+  const [showTech, setShowTech] = useState(false)
 
   const [templates, setTemplates] = useState<TemplateListRow[]>([])
   const [roles, setRoles] = useState<Role[]>([])
@@ -137,7 +142,18 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
   function stageLabel(id: string | null): string {
     if (!id) return t('from_start_option')
     const s = stageById.get(id)
-    return s ? `${s.name_ru} (${s.code})` : id
+    if (!s) return id
+    const name = stageName(s, locale, tEdu)
+    return showTech ? `${name} (${s.code})` : name
+  }
+
+  // Исход-триггер перехода: его название у этапа «откуда», а не код.
+  function triggerLabel(tr: Transition): string {
+    if (!tr.trigger_final_code) return t('any_final_option')
+    const from = tr.from_stage_template_id ? stageById.get(tr.from_stage_template_id) : undefined
+    const f = detail?.finals.find(x => x.stage_template_id === tr.from_stage_template_id && x.code === tr.trigger_final_code)
+    const name = f ? finalName(from?.code, f, locale, tEdu) : tr.trigger_final_code
+    return `${t('f_trigger_final')}: ${name}`
   }
 
   return (
@@ -153,6 +169,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
         title={t('title')}
         subtitle={t('subtitle')}
         actions={<>
+          <button onClick={() => setShowTech(v => !v)} style={btnGhost}>{showTech ? t('hide_tech') : t('show_tech')}</button>
           {!canEdit && (
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '4px 10px', borderRadius: 8 }}>{t('readonly_badge')}</span>
           )}
@@ -185,10 +202,11 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                 opacity: tpl.is_active ? 1 : 0.55,
               }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
-                  {tpl.name_ru}
+                  {processName(tpl, locale, tEdu)}
                   {!tpl.is_active && <span style={{ marginInlineStart: 6, fontSize: 11, color: 'var(--text-faint)' }}>({t('status_inactive')})</span>}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'monospace', marginTop: 1 }}>{tpl.code}</div>
+                {workflowDescription(tpl, locale) && <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>{workflowDescription(tpl, locale)}</div>}
+                {showTech && <div style={{ fontSize: 11, color: 'var(--text-faint)', fontFamily: 'monospace', marginTop: 1 }}>{tpl.code}</div>}
               </div>
             )
           })}
@@ -210,13 +228,13 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>{detail.template.name_ru}</h2>
-                      <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 6 }}>{detail.template.code}</span>
+                      <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)' }}>{processName(detail.template, locale, tEdu)}</h2>
+                      {showTech && <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)', background: 'var(--surface-2)', padding: '2px 8px', borderRadius: 6 }}>{detail.template.code}</span>}
                       <span style={{ fontSize: 11, fontWeight: 600, color: detail.template.is_active ? 'var(--success)' : 'var(--text-faint)', background: detail.template.is_active ? 'var(--success-tint)' : 'var(--surface-2)', padding: '2px 8px', borderRadius: 6 }}>
                         {detail.template.is_active ? t('status_active') : t('status_inactive')}
                       </span>
                     </div>
-                    {detail.template.description && <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 6 }}>{detail.template.description}</p>}
+                    {workflowDescription(detail.template, locale) && <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 6 }}>{workflowDescription(detail.template, locale)}</p>}
                   </div>
                   {canEdit && (
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -248,16 +266,13 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                             <div style={{ minWidth: 0 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)' }}>#{s.sort_order}</span>
-                                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{s.name_ru}</span>
-                                <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)', background: 'var(--surface)', padding: '2px 6px', borderRadius: 5 }}>{s.code}</span>
+                                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{stageName(s, locale, tEdu)}</span>
+                                {showTech && <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)', background: 'var(--surface)', padding: '2px 6px', borderRadius: 5 }}>{s.code}</span>}
                               </div>
-                              {s.description && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{s.description}</p>}
+                              {workflowDescription(s, locale) && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{workflowDescription(s, locale)}</p>}
                               {/* flags */}
                               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
-                                {s.has_tasks && <Tag label={t('flag_has_tasks')} />}
-                                {s.has_action_log && <Tag label={t('flag_has_action_log')} />}
-                                {s.is_optional && <Tag label={t('flag_is_optional')} />}
-                                {s.is_addable && <Tag label={t('flag_is_addable')} />}
+                                {s.has_tasks && <Tag label={t('flag_has_tasks_tag')} />}
                                 {s.requires_signature && <Tag label={t('f_requires_signature')} accent />}
                               </div>
                               {/* who signs */}
@@ -289,9 +304,9 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                             ) : stageFinals.map(f => (
                               <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', flexWrap: 'wrap' }}>
                                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.is_positive ? 'var(--success)' : 'var(--danger)', flexShrink: 0 }} />
-                                <span style={{ fontSize: 12.5, color: 'var(--text)' }}>{f.name_ru}</span>
-                                <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{f.code}</span>
-                                {f.closes_process && <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--warn)', background: 'var(--warn-tint)', padding: '1px 6px', borderRadius: 5 }}>{t('f_closes_process')}{f.process_finish_reason ? `: ${f.process_finish_reason}` : ''}</span>}
+                                <span style={{ fontSize: 12.5, color: 'var(--text)' }}>{finalName(s.code, f, locale, tEdu)}</span>
+                                {showTech && <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{f.code}</span>}
+                                {f.closes_process && <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--warn)', background: 'var(--warn-tint)', padding: '1px 6px', borderRadius: 5 }}>{t('f_closes_process')}{f.process_finish_reason ? `: ${tEdu(`process.finals.${f.process_finish_reason}`, f.process_finish_reason)}` : ''}</span>}
                                 {canEdit && (
                                   <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
                                     <button onClick={() => setFinalModal({ stageId: s.id, final: f })} style={{ ...btnGhost, padding: '2px 8px', fontSize: 11.5 }}>{tCommon('edit')}</button>
@@ -313,8 +328,8 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                             ) : stageTasks.map(tk => (
                               <div key={tk.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0', flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: 12.5, color: 'var(--text)' }}>{tk.title}</span>
-                                <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{tk.code}</span>
-                                {tk.default_assignee_type && <span style={{ fontSize: 10.5, color: 'var(--text-muted)', background: 'var(--surface)', padding: '1px 6px', borderRadius: 5 }}>{t('at_' + tk.default_assignee_type, tk.default_assignee_type)}{tk.default_assignee_type === 'role' && tk.default_role_code ? `: ${tk.default_role_code}` : ''}{tk.default_assignee_type === 'department' && tk.default_department_id ? `: ${tk.default_department_id}` : ''}</span>}
+                                {showTech && <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-faint)' }}>{tk.code}</span>}
+                                {tk.default_assignee_type && <span style={{ fontSize: 10.5, color: 'var(--text-muted)', background: 'var(--surface)', padding: '1px 6px', borderRadius: 5 }}>{t('at_' + tk.default_assignee_type, tk.default_assignee_type)}{tk.default_assignee_type === 'role' && tk.default_role_code ? `: ${roleLabel(lang.roles, tk.default_role_code)}` : ''}{showTech && tk.default_assignee_type === 'department' && tk.default_department_id ? `: ${tk.default_department_id}` : ''}</span>}
                                 {tk.default_priority && <span style={{ fontSize: 10.5, color: 'var(--text-muted)', background: 'var(--surface)', padding: '1px 6px', borderRadius: 5 }}>{t('pr_' + tk.default_priority, tk.default_priority)}</span>}
                                 {tk.default_due_days != null && <span style={{ fontSize: 10.5, color: 'var(--text-faint)' }}>{t('f_due_days')}: {tk.default_due_days}</span>}
                                 {canEdit && (
@@ -351,7 +366,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
                         <span style={{ color: 'var(--text-faint)' }}>→</span>
                         <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{stageLabel(tr.to_stage_template_id)}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '1px 7px', borderRadius: 5 }}>
-                          {tr.trigger_final_code ? `${t('f_trigger_final')}: ${tr.trigger_final_code}` : t('any_final_option')}
+                          {triggerLabel(tr)}
                         </span>
                         <span style={{ fontSize: 11, color: 'var(--text-muted)', background: 'var(--surface-2)', padding: '1px 7px', borderRadius: 5 }}>
                           {tr.activation_mode === 'after_all' ? t('mode_after_all') : t('mode_after_one')}
@@ -377,13 +392,13 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
         <ProcessCreateModal t={t} tCommon={tCommon} onClose={() => setShowNewProcess(false)} onSaved={async () => { setShowNewProcess(false); await loadList() }} />
       )}
       {canEdit && showEditProcess && detail && (
-        <ProcessEditModal t={t} tCommon={tCommon} template={detail.template} onClose={() => setShowEditProcess(false)} onSaved={async () => { setShowEditProcess(false); await refetch() }} />
+        <ProcessEditModal t={t} tCommon={tCommon} template={detail.template} standardName={processName({ ...detail.template, name_he: null, name_en: null }, locale, tEdu)} onClose={() => setShowEditProcess(false)} onSaved={async () => { setShowEditProcess(false); await refetch() }} />
       )}
       {canEdit && stageModal && selectedId && (
         <StageModal t={t} tCommon={tCommon} processId={selectedId} stage={stageModal.stage} roles={roles} onClose={() => setStageModal(null)} onSaved={async () => { setStageModal(null); await refetch() }} />
       )}
       {canEdit && finalModal && (
-        <FinalModal t={t} tCommon={tCommon} stageId={finalModal.stageId} final={finalModal.final} onClose={() => setFinalModal(null)} onSaved={async () => { setFinalModal(null); await refetch() }} />
+        <FinalModal t={t} tCommon={tCommon} stageId={finalModal.stageId} stageCode={stageById.get(finalModal.stageId)?.code} final={finalModal.final} onClose={() => setFinalModal(null)} onSaved={async () => { setFinalModal(null); await refetch() }} />
       )}
       {canEdit && taskModal && (
         <TaskModal t={t} tCommon={tCommon} stageId={taskModal.stageId} task={taskModal.task} roles={roles} onClose={() => setTaskModal(null)} onSaved={async () => { setTaskModal(null); await refetch() }} />
