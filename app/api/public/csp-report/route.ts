@@ -9,7 +9,7 @@ import {
 
 /**
  * POST /api/public/csp-report — сюда браузер присылает нарушения политики
- * Content-Security-Policy-Report-Only (next.config.js). Публичный: браузер шлёт
+ * Content-Security-Policy (next.config.js). Публичный: браузер шлёт
  * отчёт без cookie. Сворачивается в сводку в app_settings (lib/security/csp-report.ts).
  *
  * GET /api/public/csp-report — сводка для superadmin (открыть в браузере).
