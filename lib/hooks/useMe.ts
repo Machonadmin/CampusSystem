@@ -13,6 +13,8 @@ export interface Me {
   is_chavruta_teacher?: boolean
   can_view_chavruta?: boolean
   can_view_staff_comp?: boolean
+  /** Кнопка «הצעה לשיפור או באג» в шапке (право feedback.submit). */
+  can_submit_feedback?: boolean
 }
 
 // Модульный кэш: /api/auth/me тянется один раз на всё приложение.

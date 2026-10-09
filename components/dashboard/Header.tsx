@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
 import ChangePasswordModal from '@/components/ChangePasswordModal'
+import FeedbackModal from '@/components/dashboard/FeedbackModal'
 import NotificationBell from '@/components/dashboard/NotificationBell'
 import GlobalSearch from '@/components/dashboard/GlobalSearch'
 import ThemeToggle from '@/components/dashboard/ThemeToggle'
@@ -22,10 +23,13 @@ export default function Header({ userName, roles }: HeaderProps) {
   const { lang, setLang, t, isRTL } = useLang()
   const tNav = useTranslations('navigation')
   const tSearch = useTranslations('search')
+  const tFeedback = useTranslations('feedback')
   const { toggle: toggleSidebar } = useSidebar()
   const router = useRouter()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [pwdOpen, setPwdOpen] = useState(false)
+  // «הצעה לשיפור או באג» — только у тех, кому владелец выдал feedback.submit.
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   // Мобильная панель поиска людей (на телефоне поле поиска в шапке скрыто).
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -142,6 +146,22 @@ export default function Header({ userName, roles }: HeaderProps) {
         {/* Notification bell */}
         <NotificationBell />
 
+        {/* «הצעה לשיפור או באג» — на телефоне кнопка живёт в меню пользователя */}
+        {me?.can_submit_feedback && (
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            aria-label={tFeedback('button')}
+            title={tFeedback('button')}
+            className="hidden sm:flex icon-ghost items-center justify-center rounded-lg transition flex-shrink-0"
+            style={{ width: 36, height: 36, color: 'var(--text-muted)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </button>
+        )}
+
         {/* Language switcher — на телефоне переносим в меню пользователя */}
         <div className="hidden sm:flex gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'var(--surface-2)' }}>
           {(['ru', 'he', 'en'] as Lang[]).map(l => (
@@ -240,6 +260,33 @@ export default function Header({ userName, roles }: HeaderProps) {
                 {t.nav.profile}
               </button>
 
+              {me?.can_submit_feedback && (
+                <>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); setFeedbackOpen(true) }}
+                    className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-faint)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    {tFeedback('button')}
+                  </button>
+                  <button
+                    onClick={() => { setUserMenuOpen(false); router.push('/dashboard/feedback') }}
+                    className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-faint)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    {t.nav.feedback}
+                  </button>
+                </>
+              )}
+
               <button
                 onClick={() => { setUserMenuOpen(false); setPwdOpen(true) }}
                 className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
@@ -295,6 +342,7 @@ export default function Header({ userName, roles }: HeaderProps) {
     )}
 
     {pwdOpen && <ChangePasswordModal onClose={() => setPwdOpen(false)} />}
+    {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
     </>
   )
 }

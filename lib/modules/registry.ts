@@ -118,6 +118,19 @@ export const MODULES = [
     inSidebar: false, isPrivilegeModule: true,
   },
 
+  {
+    code: 'feedback', navKey: 'feedback', href: '/dashboard/feedback',
+    routeGuard: false, pageGates: false, pagePrivilege: null,
+    gateExceptionReason:
+      'Личный экран «ההערות שלי»: показывает только СВОИ замечания (created_by = ' +
+      'person_id сессии); без права feedback.submit страница показывает «нет доступа». ' +
+      'Все замечания видит только superadmin.',
+    inAccessibleModules: false, hasColour: false, implemented: false,
+    inSidebar: false,
+    // Право feedback.submit выдаёт владелец людям на экране «אבטחת מידע».
+    isPrivilegeModule: true,
+  },
+
   // ── Люди и персонал ────────────────────────────────────────────────────────
   {
     code: 'persons', navKey: 'persons', href: '/dashboard/persons',
