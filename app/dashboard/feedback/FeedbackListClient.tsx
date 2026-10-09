@@ -60,7 +60,7 @@ export default function FeedbackListClient() {
 
   if (forbidden) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="p-4 md:p-6" style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
         <ModuleHeader module="dashboard" title={t('page_title')} />
         <ForbiddenState />
         <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-muted)', margin: 0 }}>{t('forbidden')}</p>
@@ -69,7 +69,7 @@ export default function FeedbackListClient() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="p-4 md:p-6" style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 900 }}>
       <ModuleHeader
         module="dashboard"
         title={isOwner ? t('page_title_owner') : t('page_title')}
