@@ -1819,7 +1819,7 @@ export interface UserPreferencesInsert {
 }
 export type UserPreferencesUpdate = Partial<Omit<UserPreferencesInsert, 'person_id'>>
 
-// ─── Замечания сотрудников («הצעה לשיפור או באג», миграция 20261008120000) ───
+// ─── Замечания сотрудников («הצעה לשיפור או באג», миграция 20261009160000) ───
 export interface FeedbackReportRow {
   id:                string
   kind:              'bug' | 'suggestion'

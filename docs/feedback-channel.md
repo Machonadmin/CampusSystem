@@ -31,7 +31,7 @@
 
 ## Установка
 
-1. Выполнить миграцию `supabase/migrations/20261008120000_feedback_reports.sql`
+1. Выполнить миграцию `supabase/migrations/20261009160000_feedback_reports.sql`
    в Supabase SQL Editor **до** мержа.
 2. Добавить `FEEDBACK_AGENT_TOKEN` (длинная случайная строка) в Vercel → Settings →
    Environment Variables и сделать redeploy. То же значение должно быть доступно
