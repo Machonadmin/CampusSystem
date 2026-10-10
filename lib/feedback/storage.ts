@@ -55,6 +55,17 @@ export async function signScreenshots(
   return shots.map(s => ({ ...s, url: byPath.get(s.path) ?? null }))
 }
 
+/**
+ * Сам файл скриншота — для /api/agent/feedback/[id]/screenshots/[index]:
+ * у Claude в проекте нет доступа к домену Supabase, поэтому подписанные
+ * ссылки он открыть не может, а через сайт — может. Бросает { status } при ошибке.
+ */
+export async function downloadScreenshot(path: string): Promise<Blob> {
+  const { data, error } = await createServerClient().storage.from(FEEDBACK_BUCKET).download(path)
+  if (error || !data) throw Object.assign(new Error(error?.message ?? 'download failed'), { status: 500 })
+  return data
+}
+
 /** screenshots из БД (JSONB) → типизированный список; мусор отбрасывается. */
 export function parseStoredScreenshots(v: unknown): StoredScreenshot[] {
   if (!Array.isArray(v)) return []

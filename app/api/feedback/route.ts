@@ -86,7 +86,12 @@ export async function POST(request: NextRequest) {
     if (problem === 'bad_type') return apiError('feedback_bad_screenshot_type', 400)
     if (problem === 'too_large') return apiError('feedback_screenshot_too_large', 400)
 
-    for (const f of files) uploaded.push(await uploadScreenshot(session.person_id, f))
+    // Все скриншоты грузим одновременно, а не по очереди. Загрузившиеся
+    // попадают в uploaded, чтобы catch убрал их, если что-то не удалось.
+    const results = await Promise.allSettled(files.map(f => uploadScreenshot(session.person_id, f)))
+    for (const r of results) if (r.status === 'fulfilled') uploaded.push(r.value)
+    const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected')
+    if (failed) throw failed.reason
 
     const sb = createServerClient({ actorPersonId: session.person_id })
     const { data, error } = await sb

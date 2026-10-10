@@ -14,6 +14,12 @@ export const MAX_REPLY_CHARS = 2000
 export const MAX_SCREENSHOTS = 5
 /** Один скриншот — до 5 МБ (снимок экрана телефона обычно 1–3 МБ). */
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
+/**
+ * Все скриншоты вместе — до 4 МБ: Vercel не пропускает в функцию запрос
+ * больше 4,5 МБ (отвечает 413 ещё до нашего кода). Форма заранее сжимает
+ * картинки (lib/feedback/shrink.ts), так что обычно это сотни килобайт.
+ */
+export const MAX_TOTAL_SCREENSHOT_BYTES = 4 * 1024 * 1024
 export const SCREENSHOT_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const
 
 export function isFeedbackKind(v: unknown): v is FeedbackKind {
@@ -58,10 +64,13 @@ export type ScreenshotProblem = 'too_many' | 'too_large' | 'bad_type' | null
 /** Проверка набора скриншотов до загрузки. */
 export function checkScreenshots(files: readonly ScreenshotCheck[]): ScreenshotProblem {
   if (files.length > MAX_SCREENSHOTS) return 'too_many'
+  let total = 0
   for (const f of files) {
     if (!isScreenshotMime(f.type)) return 'bad_type'
     if (f.size <= 0 || f.size > MAX_SCREENSHOT_BYTES) return 'too_large'
+    total += f.size
   }
+  if (total > MAX_TOTAL_SCREENSHOT_BYTES) return 'too_large'
   return null
 }
 

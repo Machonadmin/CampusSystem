@@ -10,10 +10,12 @@ import { toastError } from '@/components/ui/toast'
 import {
   MAX_BODY_CHARS, MAX_SCREENSHOTS, checkScreenshots, type FeedbackKind,
 } from '@/lib/feedback/validation'
+import { shrinkScreenshot } from '@/lib/feedback/shrink'
 
 /**
  * «הצעה לשיפור או באג» — форма замечания сотрудника. Открывается из шапки.
- * Текст + до 5 скриншотов (кнопкой или вставкой Ctrl+V прямо в поле текста).
+ * Текст + до 5 скриншотов (кнопкой или вставкой Ctrl+V прямо в поле текста);
+ * скриншоты сжимаются в браузере ещё до отправки (lib/feedback/shrink.ts).
  * Путь текущего экрана уходит вместе с замечанием, чтобы было видно, «где».
  * Замечание только сохраняется: решает владелец (см. app/api/feedback).
  */
@@ -26,6 +28,7 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [sending, setSending] = useState(false)
+  const [preparing, setPreparing] = useState(false)
   const [sent, setSent] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
 
@@ -36,20 +39,27 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
     return () => urls.forEach(u => URL.revokeObjectURL(u))
   }, [files])
 
-  function addFiles(incoming: File[]) {
+  async function addFiles(incoming: File[]) {
     const images = incoming.filter(f => f.type.startsWith('image/'))
-    if (images.length === 0) return
-    const next = [...files, ...images]
-    const problem = checkScreenshots(next)
-    if (problem === 'too_many') {
+    if (images.length === 0 || preparing) return
+    if (files.length + images.length > MAX_SCREENSHOTS) {
       toastError(t('too_many').replace('{max}', String(MAX_SCREENSHOTS)))
       return
     }
-    if (problem) {
-      toastError(t('bad_file'))
-      return
+    // Сжимаем сразу при добавлении: к нажатию «שליחה» картинки уже маленькие.
+    // Пока идёт сжатие, добавить/убрать картинку или отправить нельзя.
+    setPreparing(true)
+    try {
+      const shrunk = await Promise.all(images.map(shrinkScreenshot))
+      const next = [...files, ...shrunk]
+      if (checkScreenshots(next)) {
+        toastError(t('bad_file'))
+        return
+      }
+      setFiles(next)
+    } finally {
+      setPreparing(false)
     }
-    setFiles(next)
   }
 
   function onPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
@@ -57,12 +67,12 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
     if (pasted.length > 0) {
       // Картинку из буфера — в скриншоты; обычный текст вставляется как всегда.
       e.preventDefault()
-      addFiles(pasted)
+      void addFiles(pasted)
     }
   }
 
   async function submit() {
-    if (!body.trim() || sending) return
+    if (!body.trim() || sending || preparing) return
     setSending(true)
     try {
       const form = new FormData()
@@ -171,6 +181,7 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
                     />
                     <button
                       onClick={() => setFiles(files.filter((_, j) => j !== i))}
+                      disabled={preparing}
                       aria-label={t('remove_screenshot')}
                       title={t('remove_screenshot')}
                       style={{
@@ -184,8 +195,8 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
                   </div>
                 ))}
                 {files.length < MAX_SCREENSHOTS && (
-                  <Button variant="secondary" size="sm" onClick={() => fileInput.current?.click()}>
-                    {t('add_screenshot')}
+                  <Button variant="secondary" size="sm" onClick={() => fileInput.current?.click()} disabled={preparing}>
+                    {preparing ? t('preparing') : t('add_screenshot')}
                   </Button>
                 )}
                 <input
@@ -194,7 +205,7 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
                   accept="image/png,image/jpeg,image/webp"
                   multiple
                   hidden
-                  onChange={e => { addFiles(Array.from(e.target.files ?? [])); e.target.value = '' }}
+                  onChange={e => { void addFiles(Array.from(e.target.files ?? [])); e.target.value = '' }}
                 />
               </div>
             </div>
@@ -207,7 +218,7 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={onClose}>{tc('cancel')}</Button>
-              <Button variant="primary" onClick={submit} disabled={sending || !body.trim()}>
+              <Button variant="primary" onClick={submit} disabled={sending || preparing || !body.trim()}>
                 {sending ? t('sending') : t('send')}
               </Button>
             </div>
