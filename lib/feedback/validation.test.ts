@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   normalizeBody, normalizePagePath, checkScreenshots, parseStatusPatch,
-  isFeedbackKind, MAX_BODY_CHARS, MAX_SCREENSHOTS, MAX_SCREENSHOT_BYTES,
+  isFeedbackKind, MAX_BODY_CHARS, MAX_SCREENSHOTS, MAX_SCREENSHOT_BYTES, MAX_TOTAL_SCREENSHOT_BYTES,
 } from './validation'
 import { evaluateCronAuth } from '@/lib/cron/auth'
 
@@ -38,6 +38,12 @@ describe('feedback: скриншоты', () => {
     expect(checkScreenshots([{ type: 'application/pdf', size: 10 }])).toBe('bad_type')
     expect(checkScreenshots([{ type: 'image/svg+xml', size: 10 }])).toBe('bad_type')
     expect(checkScreenshots([{ type: 'image/jpeg', size: MAX_SCREENSHOT_BYTES + 1 }])).toBe('too_large')
+  })
+  it('вместе больше 4 МБ — отказ (иначе Vercel ответит 413 до нашего кода)', () => {
+    const mb = (n: number) => ({ type: 'image/png', size: n * 1024 * 1024 })
+    expect(checkScreenshots([mb(2), mb(2)])).toBeNull()
+    expect(MAX_TOTAL_SCREENSHOT_BYTES).toBeLessThan(4.5 * 1024 * 1024)
+    expect(checkScreenshots([mb(2), mb(2), mb(0.5)])).toBe('too_large')
   })
 })
 
