@@ -82,6 +82,8 @@ export default function AuditLogClient() {
     a === 'create' ? t('action_create') : a === 'update' ? t('action_update') : t('action_delete')
   // Человекочитаемый «тип записи» вместо имени таблицы; неизвестный тип — как есть.
   const entityLabel = (type: string) => t(`entity_${type}`, type)
+  // Название поля по-человечески (settings.audit.fields.*); неизвестное — техническое имя.
+  const fieldLabel = (field: string) => t(`fields.${field}`, field)
   const actionColor = (a: string) =>
     a === 'create' ? 'var(--success)' : a === 'delete' ? 'var(--danger)' : 'var(--accent-strong)'
   const actionTint = (a: string) =>
@@ -194,35 +196,55 @@ export default function AuditLogClient() {
                     }}>{actionLabel(e.action)}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{entityLabel(e.entity_type)}</span>
                     <span style={{ fontSize: 11.5, color: 'var(--text-faint)', fontFamily: 'monospace' }} dir="ltr">{e.entity_id.slice(0, 8)}</span>
-                    <span style={{ flex: 1 }} />
-                    <span style={{ fontSize: 12.5, color: e.changed_by_name ? 'var(--text)' : 'var(--text-faint)' }}>
-                      {e.changed_by_name || t('unknown_actor')}
-                    </span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)' }}>
-                      {open ? t('collapse') : t('expand')}
+                    {/* «кто» и «פירוט» — одной группой в конце строки: при переносе на
+                        узком экране они не прыгают с одной стороны на другую. */}
+                    <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <span style={{ fontSize: 12.5, color: e.changed_by_name ? 'var(--text)' : 'var(--text-faint)' }}>
+                        {e.changed_by_name || t('unknown_actor')}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)' }}>
+                        {open ? t('collapse') : t('expand')}
+                      </span>
                     </span>
                   </button>
 
                   {open && (
-                    <div className="anim-expand" style={{ padding: '0 14px 12px', overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, minWidth: 420 }}>
-                        <thead>
-                          <tr style={{ background: 'var(--surface-2)' }}>
-                            <th style={{ padding: '6px 10px', textAlign: isRTL ? 'right' : 'left', color: 'var(--text-muted)', fontWeight: 700 }}>{t('field')}</th>
-                            <th style={{ padding: '6px 10px', textAlign: isRTL ? 'right' : 'left', color: 'var(--text-muted)', fontWeight: 700 }}>{t('before')}</th>
-                            <th style={{ padding: '6px 10px', textAlign: isRTL ? 'right' : 'left', color: 'var(--text-muted)', fontWeight: 700 }}>{t('after')}</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {diff.map(d => (
-                            <tr key={d.field} style={{ borderTop: '1px solid var(--border)' }}>
-                              <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--text)' }} dir="ltr">{d.field}</td>
-                              <td style={{ padding: '6px 10px', color: 'var(--text-muted)', wordBreak: 'break-word' }} dir="auto">{stringify(d.before)}</td>
-                              <td style={{ padding: '6px 10px', color: 'var(--text)', wordBreak: 'break-word' }} dir="auto">{stringify(d.after)}</td>
+                    <div className="anim-expand" style={{ padding: '0 14px 12px' }}>
+                      {/* Телефон: каждое поле блоком — название, ниже «לפני» и «אחרי».
+                          Таблица шире экрана обрезала колонку «אחרי». */}
+                      <div className="sm:hidden" style={{ fontSize: 12.5 }}>
+                        {diff.map(d => (
+                          <div key={d.field} style={{ padding: '8px 0', borderTop: '1px solid var(--border)' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: 4 }} title={d.field}>{fieldLabel(d.field)}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '2px 10px' }}>
+                              <span style={{ color: 'var(--text-faint)' }}>{t('before')}</span>
+                              <span style={{ color: 'var(--text-muted)', wordBreak: 'break-word' }} dir="auto">{stringify(d.before)}</span>
+                              <span style={{ color: 'var(--text-faint)' }}>{t('after')}</span>
+                              <span style={{ color: 'var(--text)', wordBreak: 'break-word' }} dir="auto">{stringify(d.after)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="hidden sm:block" style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, minWidth: 420 }}>
+                          <thead>
+                            <tr style={{ background: 'var(--surface-2)' }}>
+                              <th style={{ padding: '6px 10px', textAlign: isRTL ? 'right' : 'left', color: 'var(--text-muted)', fontWeight: 700 }}>{t('field')}</th>
+                              <th style={{ padding: '6px 10px', textAlign: isRTL ? 'right' : 'left', color: 'var(--text-muted)', fontWeight: 700 }}>{t('before')}</th>
+                              <th style={{ padding: '6px 10px', textAlign: isRTL ? 'right' : 'left', color: 'var(--text-muted)', fontWeight: 700 }}>{t('after')}</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {diff.map(d => (
+                              <tr key={d.field} style={{ borderTop: '1px solid var(--border)' }}>
+                                <td style={{ padding: '6px 10px', fontWeight: 600, color: 'var(--text)' }} title={d.field}>{fieldLabel(d.field)}</td>
+                                <td style={{ padding: '6px 10px', color: 'var(--text-muted)', wordBreak: 'break-word' }} dir="auto">{stringify(d.before)}</td>
+                                <td style={{ padding: '6px 10px', color: 'var(--text)', wordBreak: 'break-word' }} dir="auto">{stringify(d.after)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   )}
                 </div>
