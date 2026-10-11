@@ -12,6 +12,8 @@ import { downloadCsv } from '@/lib/csv'
 import { firstPhone } from '@/lib/persons/phone'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { useSessionState } from '@/lib/hooks/useSessionState'
+import { usePersonPhotos } from '@/lib/hooks/usePersonPhotos'
+import { PhotoLightbox } from '@/components/persons/PhotoLightbox'
 
 type Tab = 'staff' | 'students' | 'leads'
 
@@ -87,6 +89,10 @@ export default function PersonsClient() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // «תמונת פרופיל» из документов — только с правом persons.view_photos
+  // (иначе пусто и в кружках инициалы). Нажатие на фото увеличивает его.
+  const photos = usePersonPhotos(rows.map(r => r.person_id))
+  const [zoom, setZoom] = useState<{ src: string; name: string } | null>(null)
 
   // Дебаунс запроса поиска: поиск делается на сервере (app-side), поэтому не
   // бьём БД на каждое нажатие клавиши.
@@ -270,6 +276,9 @@ export default function PersonsClient() {
               <PersonRow
                 key={isStudent(row) ? row.journey_id : isLead(row) ? row.lead_id : row.person_id}
                 row={row}
+                photoUrl={photos[row.person_id] ?? row.photo_url}
+                enlargeLabel={t('photo_enlarge')}
+                onPhotoClick={src => setZoom({ src, name: row.full_name })}
                 light={light}
                 primary={primary}
                 deptLabel={t('fields.department')}
@@ -301,14 +310,19 @@ export default function PersonsClient() {
           </div>
         )}
       </div>
+
+      {zoom && <PhotoLightbox src={zoom.src} name={zoom.name} onClose={() => setZoom(null)} />}
     </div>
   )
 }
 
 function PersonRow({
-  row, light, primary, deptLabel, studentLabel, leadLabel, onClick,
+  row, photoUrl, enlargeLabel, onPhotoClick, light, primary, deptLabel, studentLabel, leadLabel, onClick,
 }: {
   row: Row
+  photoUrl: string | null
+  enlargeLabel: string
+  onPhotoClick: (src: string) => void
   light: string
   primary: string
   deptLabel: string
@@ -337,7 +351,7 @@ function PersonRow({
       onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface-2)' }}
       onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = 'var(--surface)' }}
     >
-      <Avatar name={row.full_name} photoUrl={row.photo_url} light={light} primary={primary} />
+      <Avatar name={row.full_name} photoUrl={photoUrl} enlargeLabel={enlargeLabel} onOpen={onPhotoClick} light={light} primary={primary} />
       <div className="person-main" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {row.full_name}
@@ -360,12 +374,39 @@ function PersonRow({
   )
 }
 
-function Avatar({ name, photoUrl, light, primary }: { name: string; photoUrl: string | null; light: string; primary: string }) {
+function Avatar({ name, photoUrl, enlargeLabel, onOpen, light, primary }: {
+  name: string
+  photoUrl: string | null
+  enlargeLabel: string
+  onOpen: (src: string) => void
+  light: string
+  primary: string
+}) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
-  if (photoUrl) {
+  // Битая/просроченная ссылка → инициалы, а не пустой кружок.
+  const [failed, setFailed] = useState<string | null>(null)
+  if (photoUrl && failed !== photoUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={photoUrl} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+      // Своя кнопка внутри строки: клик и Enter не уходят в строку (та
+      // открывает карточку человека), а увеличивают фото.
+      <button
+        type="button"
+        aria-label={enlargeLabel}
+        title={enlargeLabel}
+        onClick={e => { e.stopPropagation(); onOpen(photoUrl) }}
+        onKeyDown={e => e.stopPropagation()}
+        style={{ padding: 0, border: 'none', background: 'none', borderRadius: '50%', flexShrink: 0, cursor: 'zoom-in', lineHeight: 0 }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photoUrl}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(photoUrl)}
+          style={{ display: 'block', width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+        />
+      </button>
     )
   }
   return (

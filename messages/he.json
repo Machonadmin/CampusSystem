@@ -4571,6 +4571,7 @@
       "financial": "מסמך פיננסי",
       "contract": "חוזה",
       "visa": "ויזה",
+      "photo": "תמונת פרופיל",
       "other": "אחר"
     },
     "status": {
@@ -4844,7 +4845,8 @@
       "pending_filter": "ממתין לאישור",
       "action_error": "הפעולה נכשלה",
       "unlink_confirm": "לבטל את הקישור לאדם במאגר?"
-    }
+    },
+    "photo_enlarge": "הגדלת התמונה"
   },
   "calendar": {
     "form_invitees": "משתתפים",

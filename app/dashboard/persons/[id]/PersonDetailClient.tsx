@@ -11,6 +11,8 @@ import { formatDate } from '@/lib/i18n/format-date'
 import { phoneList } from '@/lib/persons/phone'
 import { PhoneLink } from '@/components/ui/PhoneLink'
 import { Badge } from '@/components/ui/Badge'
+import { usePersonPhotos } from '@/lib/hooks/usePersonPhotos'
+import { PhotoLightbox } from '@/components/persons/PhotoLightbox'
 
 /**
  * Чипы в шапке карточки. Шапка (<ModuleHeader/>) больше НЕ цветной баннер с
@@ -54,6 +56,9 @@ export default function PersonDetailClient({
   const [data, setData] = useState<PersonDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // «תמונת פרופיל» из документов — только с правом persons.view_photos.
+  const photos = usePersonPhotos([personId])
+  const [zoomed, setZoomed] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
@@ -95,7 +100,12 @@ export default function PersonDetailClient({
         <>
           <ModuleHeader
             module="persons"
-            icon={<Avatar name={data.full_name} photoUrl={data.photo_url} />}
+            icon={<Avatar
+              name={data.full_name}
+              photoUrl={photos[personId] ?? data.photo_url}
+              enlargeLabel={t('photo_enlarge')}
+              onOpen={() => setZoomed(true)}
+            />}
             title={data.full_name}
             subtitle={<>
               {data.hebrew_name && (
@@ -144,6 +154,14 @@ export default function PersonDetailClient({
               <span aria-hidden>{isRTL ? '←' : '→'}</span>
             </Link>
           )}
+
+          {zoomed && (photos[personId] ?? data.photo_url) && (
+            <PhotoLightbox
+              src={(photos[personId] ?? data.photo_url) as string}
+              name={data.full_name}
+              onClose={() => setZoomed(false)}
+            />
+          )}
         </>
       )}
     </div>
@@ -161,12 +179,33 @@ function Info({ label, value }: { label: string; value: string | null }) {
   )
 }
 
-function Avatar({ name, photoUrl }: { name: string; photoUrl: string | null }) {
+function Avatar({ name, photoUrl, enlargeLabel, onOpen }: {
+  name: string
+  photoUrl: string | null
+  enlargeLabel: string
+  onOpen: () => void
+}) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase()
-  if (photoUrl) {
+  // Битая/просроченная ссылка → инициалы, а не пустой кружок.
+  const [failed, setFailed] = useState<string | null>(null)
+  if (photoUrl && failed !== photoUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={photoUrl} alt="" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid var(--border)' }} />
+      <button
+        type="button"
+        aria-label={enlargeLabel}
+        title={enlargeLabel}
+        onClick={onOpen}
+        style={{ padding: 0, border: 'none', background: 'none', borderRadius: '50%', flexShrink: 0, cursor: 'zoom-in', lineHeight: 0 }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photoUrl}
+          alt=""
+          decoding="async"
+          onError={() => setFailed(photoUrl)}
+          style={{ display: 'block', width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--border)' }}
+        />
+      </button>
     )
   }
   return (

@@ -4571,6 +4571,7 @@
       "financial": "Financial document",
       "contract": "Contract",
       "visa": "Visa",
+      "photo": "Profile photo",
       "other": "Other"
     },
     "status": {
@@ -4844,7 +4845,8 @@
       "pending_filter": "Pending confirmation",
       "action_error": "Action failed",
       "unlink_confirm": "Remove the link to the person in the database?"
-    }
+    },
+    "photo_enlarge": "Enlarge photo"
   },
   "calendar": {
     "form_invitees": "Participants",

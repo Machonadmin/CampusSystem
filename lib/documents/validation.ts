@@ -4,9 +4,11 @@
 // БД, а не долетал до CHECK/DATE колонки и падал 23514/22007 → 500 более общим
 // текстом. Зеркалит lib/doctor/validation.ts.
 
+// 'photo' — «תמונת פרופיל»: последнее такое фото показывается в кружке у имени
+// (lib/persons/profile-photos.ts, право persons.view_photos).
 export const DOC_TYPES = [
   'id_card', 'passport', 'certificate', 'medical',
-  'financial', 'contract', 'visa', 'other',
+  'financial', 'contract', 'visa', 'photo', 'other',
 ] as const
 export type DocType = (typeof DOC_TYPES)[number]
 
