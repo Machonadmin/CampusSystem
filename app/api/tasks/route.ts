@@ -8,6 +8,7 @@ import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } f
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import { extractStudentTag } from '@/lib/tasks/student-tag'
 import { attachStudentRefs, verifyStudentTag } from '@/lib/tasks/student-tag-server'
+import { TASK_SOURCES, isTaskView, mergeTaskLists, type TaskSource } from '@/lib/tasks/views'
 import type {
   TaskInsert, TaskStatus, TaskModule, TaskPriority, TaskAssigneeType,
 } from '@/types/database'
@@ -19,7 +20,8 @@ import type {
 const PAGE = 1000
 
 // ─── GET /api/tasks ───────────────────────────────────────────────────────────
-// ?view=assigned|created|department|watching  (default: assigned)
+// ?view=all|assigned|created|department|watching  (default: assigned)
+//   all — все задачи человека: объединение четырёх остальных без повторов
 // ?status=<TaskStatus>|active|all             (default: active)
 // ?module=<TaskModule>
 // ?priority=<TaskPriority>
@@ -30,7 +32,10 @@ export async function GET(request: NextRequest) {
     const personId = session.person_id
     const params = request.nextUrl.searchParams
 
-    const view = (params.get('view') ?? 'assigned') as 'assigned' | 'created' | 'department' | 'watching'
+    const view = params.get('view') ?? 'assigned'
+    if (!isTaskView(view)) {
+      throw Object.assign(new Error(serverT('unknown_view_mode')), { status: 400 })
+    }
     const statusFilter = params.get('status')
     const moduleFilter = params.get('module') as TaskModule | null
     const priorityFilter = params.get('priority') as TaskPriority | null
@@ -38,27 +43,31 @@ export async function GET(request: NextRequest) {
 
     const sb = createServerClient()
 
-    // ─── Режим просмотра: предвычисляем фильтры (могут дать ранний пустой ответ) ─
-    let watchingTaskIds: string[] | null = null
-    let myDeptIds: string[] | null = null
-    if (view === 'department') {
+    // ─── Режим просмотра: предвычисляем фильтры ──────────────────────────────
+    let watchingTaskIds: string[] = []
+    let myDeptIds: string[] = []
+    if (view === 'department' || view === 'all') {
       myDeptIds = await getPersonDepartments(personId)
-      if (myDeptIds.length === 0) return NextResponse.json({ tasks: [] })
-    } else if (view === 'watching') {
+    }
+    if (view === 'watching' || view === 'all') {
       const { data: watcherRows, error: wErr } = await sb
         .from('task_watchers')
         .select('task_id')
         .eq('person_id', personId)
       if (wErr) throw wErr
       watchingTaskIds = (watcherRows ?? []).map(r => r.task_id)
-      if (watchingTaskIds.length === 0) return NextResponse.json({ tasks: [] })
-    } else if (view !== 'assigned' && view !== 'created') {
-      throw Object.assign(new Error(serverT('unknown_view_mode')), { status: 400 })
     }
+
+    // Источники выдачи: один для обычного раздела, все четыре для «all».
+    // Отдел без отделов и наблюдение без наблюдаемых задач — пусто, не спрашиваем.
+    const sources = (view === 'all' ? [...TASK_SOURCES] : [view]).filter(src =>
+      (src !== 'department' || myDeptIds.length > 0) &&
+      (src !== 'watching' || watchingTaskIds.length > 0))
+    if (sources.length === 0) return NextResponse.json({ tasks: [] })
 
     // Собираем запрос заново на каждой странице (нельзя переиспользовать один
     // PostgrestBuilder для нескольких await-ов).
-    const buildQuery = () => {
+    const buildQuery = (source: TaskSource) => {
       let query = sb
         .from('tasks')
         .select(`
@@ -70,15 +79,15 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
         .order('id', { ascending: true })
 
-      if (view === 'assigned') {
+      if (source === 'assigned') {
         query = query.eq('assignee_id', personId)
-      } else if (view === 'created') {
+      } else if (source === 'created') {
         query = query.eq('creator_id', personId)
-      } else if (view === 'department') {
-        query = query.in('department_id', myDeptIds!)
-        if (departmentFilter) query = query.eq('department_id', departmentFilter)
-      } else if (view === 'watching') {
-        query = query.in('id', watchingTaskIds!)
+      } else if (source === 'department') {
+        query = query.in('department_id', myDeptIds)
+        if (departmentFilter && view === 'department') query = query.eq('department_id', departmentFilter)
+      } else if (source === 'watching') {
+        query = query.in('id', watchingTaskIds)
       }
 
       // ─── Фильтр по статусу ───────────────────────────────────────────────────
@@ -97,7 +106,9 @@ export async function GET(request: NextRequest) {
     }
 
     type TaskListRow = NonNullable<Awaited<ReturnType<typeof buildQuery>>['data']>[number]
-    const rows = await fetchAllPages<TaskListRow>((from, to) => buildQuery().range(from, to), PAGE)
+    const perSource = await Promise.all(sources.map(src =>
+      fetchAllPages<TaskListRow>((from, to) => buildQuery(src).range(from, to), PAGE)))
+    const rows = mergeTaskLists(perSource)
     // Имя תלמידה для чипа на карточке (только у задач с меткой).
     const tasks = await attachStudentRefs(sb, rows)
 

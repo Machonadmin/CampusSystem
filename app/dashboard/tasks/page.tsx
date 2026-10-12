@@ -15,8 +15,9 @@ import { Modal } from '@/components/ui/Modal'
 import type { TaskRow } from '@/types/database'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { isOpenTaskStatus } from '@/lib/tasks/status'
+import { TASK_VIEWS, type TaskView } from '@/lib/tasks/views'
 
-type ViewMode = 'assigned' | 'created' | 'department' | 'watching'
+type ViewMode = TaskView
 type StatusFilter = 'all' | 'active' | TaskRow['status']
 type PriorityFilter = 'all' | TaskRow['priority']
 
@@ -36,10 +37,10 @@ export default function TasksPage() {
   const tCommon = useTranslations('common')
 
   // Раздел в URL (?view=): «назад» из карточки задачи возвращает в тот же
-  // раздел (созданные мной / отдел / слежу), а не в «назначенные мне».
+  // фильтр, а не во «все задачи».
   const [view, setView] = useUrlTab<ViewMode>({
-    allowed: ['assigned', 'created', 'department', 'watching'],
-    fallback: 'assigned',
+    allowed: [...TASK_VIEWS],
+    fallback: 'all',
     key: 'view',
   })
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
@@ -113,6 +114,7 @@ export default function TasksPage() {
 
   function emptyMsg(): string {
     const map: Record<ViewMode, string> = {
+      all:        t('empty.all'),
       assigned:   t('empty.assigned'),
       created:    t('empty.created'),
       department: t('empty.department'),
@@ -200,26 +202,22 @@ export default function TasksPage() {
     setPriorityFilter('all')
   }
 
-  // Два главных раздела (то, что реально нужно): назначенные мне и созданные мной.
-  const PRIMARY_VIEWS: { key: ViewMode; label: string }[] = [
-    { key: 'assigned', label: t('filters.assigned') },
-    { key: 'created',  label: t('filters.created') },
-  ]
-  // Второстепенные — отдел и наблюдение — доступны, но не в фокусе.
-  const SECONDARY_VIEWS: { key: ViewMode; label: string }[] = [
+  // По умолчанию — все задачи человека; остальное — фильтры, сужающие список
+  // (решение владельца 2026-10-12).
+  const VIEW_CHIPS: { key: ViewMode; label: string }[] = [
+    { key: 'all',        label: t('filters.all_tasks') },
+    { key: 'assigned',   label: t('filters.assigned') },
+    { key: 'created',    label: t('filters.created') },
     { key: 'department', label: t('filters.department') },
     { key: 'watching',   label: t('filters.watching') },
   ]
-
-  // Список второстепенных вкладок для «спокойного» пустого экрана
-  const OTHER_VIEWS = ([...PRIMARY_VIEWS, ...SECONDARY_VIEWS]).filter(v => v.key !== view)
 
   // «Первозданное» пустое состояние: вкладка по умолчанию, без фильтров и
   // без выделения. Тогда показываем ТОЛЬКО спокойный герой — ни шапки,
   // ни вкладок, ни панели инструментов. Всё это появляется, как только
   // есть чем управлять (появились задачи / сменили фильтр или вкладку).
   const pristine =
-    view === 'assigned' && statusFilter === 'active' &&
+    view === 'all' && statusFilter === 'active' &&
     priorityFilter === 'all' && !selectMode
   const heroOnly = pristine && !loading && !error && tasks.length === 0
 
@@ -255,19 +253,6 @@ export default function TasksPage() {
         <div style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 340 }}>{t('empty.hint')}</div>
         <PageActionButton label={t('new_task')} onClick={() => setCreateOpen(true)} accentColor={accent} />
 
-        {/* Ненавязчивые ссылки на остальные разделы */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center', marginTop: 6 }}>
-          {OTHER_VIEWS.map(v => (
-            <button
-              key={v.key}
-              onClick={() => setView(v.key)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12.5, color: 'var(--text-faint)', padding: '4px 8px', borderRadius: 6 }}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
-
         {createOpen && currentUserId && (
           <TaskCreateModal
             currentUserId={currentUserId}
@@ -286,21 +271,27 @@ export default function TasksPage() {
         { label: t('title') },
       ]} />
 
-      {/* ── Основной ряд: два главных раздела + «Новая задача» ── */}
+      {/* ── Основной ряд: фильтры «чьи задачи» + «Новая задача». На телефоне
+          чипы прокручиваются вбок одной строкой, как фильтры в WhatsApp. ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'inline-flex', background: 'var(--surface-2)', borderRadius: 10, padding: 3, gap: 2 }}>
-          {PRIMARY_VIEWS.map(v => {
+        <div
+          role="tablist"
+          style={{ display: 'flex', gap: 6, overflowX: 'auto', flex: '1 1 320px', minWidth: 0, paddingBottom: 2, scrollbarWidth: 'none' }}
+        >
+          {VIEW_CHIPS.map(v => {
             const on = view === v.key
             return (
               <button
                 key={v.key}
+                role="tab"
+                aria-selected={on}
                 onClick={() => switchView(v.key)}
                 style={{
-                  border: 'none', cursor: 'pointer', borderRadius: 8,
-                  padding: '7px 16px', fontSize: 13.5, fontWeight: 600,
-                  background: on ? 'var(--surface)' : 'transparent',
-                  color: on ? accent : 'var(--text-muted)',
-                  boxShadow: on ? 'var(--shadow)' : 'none',
+                  flex: '0 0 auto', whiteSpace: 'nowrap', cursor: 'pointer',
+                  borderRadius: 999, padding: '6px 14px', fontSize: 13, fontWeight: 600,
+                  border: `1px solid ${on ? accent : 'var(--border)'}`,
+                  background: on ? accent : 'var(--surface)',
+                  color: on ? '#fff' : 'var(--text-muted)',
                 }}
               >
                 {v.label}
@@ -309,31 +300,11 @@ export default function TasksPage() {
           })}
         </div>
 
-        <div style={{ flex: 1 }} />
-
         <PageActionButton label={t('new_task')} onClick={() => setCreateOpen(true)} accentColor={accent} />
       </div>
 
-      {/* ── Тонкая второстепенная полоса: доп. разделы · статус · всего · фильтры ── */}
+      {/* ── Тонкая второстепенная полоса: статус · всего · фильтры ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 12.5, color: 'var(--text-muted)' }}>
-        {SECONDARY_VIEWS.map(v => {
-          const on = view === v.key
-          return (
-            <button
-              key={v.key}
-              onClick={() => switchView(v.key)}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
-                fontSize: 12.5, fontWeight: on ? 700 : 500,
-                color: on ? accent : 'var(--text-faint)',
-              }}
-            >
-              {v.label}
-            </button>
-          )
-        })}
-
-        <span style={{ color: 'var(--border-strong)' }}>·</span>
 
         <select
           value={statusFilter}
