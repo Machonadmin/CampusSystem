@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { hasEducationPrivilege, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { canDoEducationInAny, getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
 import { detectScheduleConflicts, type SlotForConflict } from '@/lib/education/schedule-conflicts'
 import { effectiveTeacherIds } from '@/lib/education/slot-fields'
 import { errorResponse } from '@/lib/api/handler'
@@ -47,10 +47,12 @@ export async function GET(request: NextRequest) {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
     const isSuper = session.roles.includes('superadmin')
-    if (!isSuper && !(await hasEducationPrivilege(session, 'view_students'))) return apiError('forbidden', 403)
+    // canDoEducationInAny, а не hasEducationPrivilege без цели: иначе scope='own'
+    // (только преподаватель) получал 403, хотя ниже для него есть фильтр по своим группам.
+    if (!isSuper && !(await canDoEducationInAny(session, 'view_students'))) return apiError('forbidden', 403)
     // Может ли двигать слоты (drag-drop). Точную проверку по каждому слоту делает
     // PATCH; это лишь признак «показывать ли перетаскивание».
-    const canEdit = isSuper || await hasEducationPrivilege(session, 'set_lesson_topics')
+    const canEdit = isSuper || await canDoEducationInAny(session, 'set_lesson_topics')
 
     const sb = createServerClient()
     const unit = (request.nextUrl.searchParams.get('unit') ?? '').trim()

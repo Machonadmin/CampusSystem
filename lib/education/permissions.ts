@@ -4,7 +4,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode, PrivilegeModule } from '@/types/database'
-import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 
@@ -68,6 +68,9 @@ export interface PrivilegeTarget {
   teacher_ids?: string[]
   /** См. AccessTarget.unassigned в lib/permissions/scope.ts. */
   unassigned?: boolean
+  /** Для scope='own': студентка / группа, см. AccessTarget в lib/permissions/scope.ts. */
+  journey_id?: string
+  class_group_id?: string
 }
 
 // ─── In-memory кэш ────────────────────────────────────────────────────────────
@@ -103,8 +106,52 @@ function setCached(personId: string, privileges: PrivilegesMap, departmentIds: s
  * Использовать с осторожностью — каждый вызов даст 2 запроса к БД на каждый персон.
  */
 export function clearPermissionsCache(personId?: string): void {
-  if (personId) cache.delete(personId)
-  else cache.clear()
+  if (personId) { cache.delete(personId); ownCache.delete(personId) }
+  else { cache.clear(); ownCache.clear() }
+}
+
+// ─── «Мои группы» для scope='own' ─────────────────────────────────────────────
+
+export interface OwnTeaching {
+  /** Группы, которые человек ведёт (class_teachers.teacher_id). */
+  classGroupIds: string[]
+  /** journey_id студенток, записанных в эти группы (class_enrollments). */
+  journeyIds: string[]
+}
+
+const ownCache = new Map<string, { value: OwnTeaching; expiresAt: number }>()
+
+/**
+ * Группы преподавателя и студентки этих групп — то, что видит scope='own'.
+ * Та же связка class_teachers → class_enrollments, что в /api/education/journeys.
+ * Ошибка чтения → пустой набор (запрет, а не расширение).
+ */
+export async function getOwnTeaching(personId: string): Promise<OwnTeaching> {
+  const hit = ownCache.get(personId)
+  if (hit && hit.expiresAt >= Date.now()) return hit.value
+
+  const sb = createServerClient()
+  const empty: OwnTeaching = { classGroupIds: [], journeyIds: [] }
+  const { data: ct, error: ctErr } = await sb
+    .from('class_teachers')
+    .select('class_group_id')
+    .eq('teacher_id', personId)
+  if (ctErr || !ct) return empty
+  const classGroupIds = [...new Set(ct.map((r: { class_group_id: string }) => r.class_group_id))]
+
+  let journeyIds: string[] = []
+  if (classGroupIds.length > 0) {
+    const { data: enr, error: enrErr } = await sb
+      .from('class_enrollments')
+      .select('journey_id')
+      .in('class_group_id', classGroupIds)
+    if (enrErr || !enr) return { classGroupIds, journeyIds: [] }
+    journeyIds = [...new Set(enr.map((r: { journey_id: string }) => r.journey_id))]
+  }
+
+  const value = { classGroupIds, journeyIds }
+  ownCache.set(personId, { value, expiresAt: Date.now() + CACHE_TTL_MS })
+  return value
 }
 
 // ─── Загрузчики ───────────────────────────────────────────────────────────────
@@ -244,8 +291,15 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
     privileges['view_students'] = 'all'
   }
 
-  setCached(session.person_id, privileges, departmentIds)
-  return { privileges, departmentIds, expiresAt: Date.now() + CACHE_TTL_MS }
+  // «Только преподаватель» (роль teacher, не секретарь и не глава подразделения)
+  // видит и ведёт только СВОИ группы: права преподавателя из 'department' → 'own'
+  // (решение владельца 2026-10-12). Главы, секретари и superadmin не затрагиваются.
+  const effective = isTeacherOnly(session.roles, headedUnitIds)
+    ? narrowToOwn<EducationPrivilege>(privileges, TEACHER_OWN_PRIVILEGES)
+    : privileges
+
+  setCached(session.person_id, effective, departmentIds)
+  return { privileges: effective, departmentIds, expiresAt: Date.now() + CACHE_TTL_MS }
 }
 
 // ─── Главная функция проверки прав ────────────────────────────────────────────
@@ -260,8 +314,8 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
  *        - target.department_id обязателен (иначе false)
  *        - target.department_id должен быть в моих staff_positions
  *   4. Если scope='own':
- *        - target.teacher_ids обязателен (иначе false)
- *        - мой person_id должен быть в этом массиве
+ *        - мой person_id в target.teacher_ids, либо
+ *        - target.class_group_id / target.journey_id — моя группа / её студентка
  *
  * Вызовы без target (например, "может ли пользователь в принципе видеть лидов?") —
  * вернут true только если scope='all'. Для проверки "может ли хоть где-то"
@@ -279,9 +333,16 @@ export async function hasEducationPrivilege(
   const access = await getUserAccess(session)
   const scope = access.privileges[privilege]
 
+  // Для 'own' по студентке/группе нужен список своих групп — грузим только тогда.
+  const own = scope === 'own' && (target?.journey_id || target?.class_group_id)
+    ? await getOwnTeaching(session.person_id)
+    : null
+
   return grantsAccess(scope, target, {
     departmentIds: access.departmentIds,
     personId: session.person_id,
+    ownClassGroupIds: own?.classGroupIds,
+    ownJourneyIds: own?.journeyIds,
   })
 }
 
@@ -368,7 +429,9 @@ export async function getEducationDeptFilter(
   if (session.principal === 'student') return []
   if (session.roles.includes('superadmin')) return null
   const scope = await getEducationPrivilegeScope(session, privilege)
-  if (scope !== 'department') return null
+  // 'own' (только преподаватель): структуры видны в пределах подразделения, как
+  // раньше; студентки ограничиваются отдельно (списки/карточки по своим группам).
+  if (scope !== 'department' && scope !== 'own') return null
   return await getUserDepartmentIds(session.person_id)
 }
 
@@ -388,7 +451,9 @@ export async function getEducationContainerDeptFilter(
   if (session.principal === 'student') return []
   if (session.roles.includes('superadmin')) return null
   const scope = await getEducationPrivilegeScope(session, privilege)
-  if (scope !== 'department') return null
+  // 'own' (только преподаватель): структуры видны в пределах подразделения, как
+  // раньше; студентки ограничиваются отдельно (списки/карточки по своим группам).
+  if (scope !== 'department' && scope !== 'own') return null
   const deptIds = await getUserDepartmentIds(session.person_id)
   if (deptIds.length === 0) return []
   try {
@@ -439,7 +504,9 @@ export async function getEducationStructureDeptFilter(session: SessionPayload): 
   // [] (пусто), а не null (null = «без фильтра», запрос шёл бы по всему институту).
   if (session.principal === 'student') return []
   const scope = await getStructureScope(session)
-  if (scope !== 'department') return null
+  // 'own' (только преподаватель): структуры видны в пределах подразделения, как
+  // раньше; студентки ограничиваются отдельно (списки/карточки по своим группам).
+  if (scope !== 'department' && scope !== 'own') return null
   return await getUserDepartmentIds(session.person_id)
 }
 
@@ -452,7 +519,9 @@ export async function getEducationStructureContainerFilter(session: SessionPaylo
   // [] (пусто), а не null (null = «без фильтра», запрос шёл бы по всему институту).
   if (session.principal === 'student') return []
   const scope = await getStructureScope(session)
-  if (scope !== 'department') return null
+  // 'own' (только преподаватель): структуры видны в пределах подразделения, как
+  // раньше; студентки ограничиваются отдельно (списки/карточки по своим группам).
+  if (scope !== 'department' && scope !== 'own') return null
   const deptIds = await getUserDepartmentIds(session.person_id)
   if (deptIds.length === 0) return []
   try {
@@ -535,7 +604,8 @@ async function getPersonEducationDepartments(personId: string): Promise<string[]
 /**
  * Может ли пользователь ПРОЧИТАТЬ карточку person через образовательный доступ.
  * superadmin / scope='all' → любой человек. scope='department' → только если
- * человек относится к одному из подразделений пользователя. Нет образовательной
+ * человек относится к одному из подразделений пользователя. scope='own' → только
+ * студентка из групп, которые пользователь ведёт. Нет образовательной
  * просмотровой привилегии → false. Чувствительные PII здесь НЕ выдаются — их
  * по-прежнему гейтит persons.view_sensitive на самом маршруте.
  */
@@ -558,6 +628,19 @@ export async function canReadPersonInEducationScope(
   if (personDepts.length === 0) return false // человек без образовательной привязки
 
   if (scope === 'all') return true // доступ ко всем образовательным людям
+  if (scope === 'own') {
+    // Только преподаватель: человек — студентка одной из её групп.
+    const own = await getOwnTeaching(session.person_id)
+    if (own.journeyIds.length === 0) return false
+    const sb = createServerClient()
+    const { data: jr, error } = await sb
+      .from('education_journeys')
+      .select('id')
+      .eq('person_id', personId)
+      .in('id', own.journeyIds)
+      .limit(1)
+    return !error && (jr ?? []).length > 0
+  }
   if (scope !== 'department') return false
 
   const myDepts = await getUserDepartmentIds(session.person_id)

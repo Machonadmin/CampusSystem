@@ -29,14 +29,18 @@ export function journeyScopeDepartment(row: {
  *     department-ограниченный сотрудник доступа не получает, только scope='all'.
  */
 export function journeyTarget(row: {
+  id?: string | null
   education_status?: string | null
   primary_department_id?: string | null
   desired_department_id?: string | null
 }): PrivilegeTarget {
+  // journey_id нужен только scope='own' (преподаватель: студентка её группы);
+  // для 'department'/'all' он ничего не меняет.
+  const own: PrivilegeTarget = row.id ? { journey_id: row.id } : {}
   const dept = journeyScopeDepartment(row)
-  if (dept) return { department_id: dept }
-  if (row.education_status === 'lead') return {}
-  return { unassigned: true }
+  if (dept) return { ...own, department_id: dept }
+  if (row.education_status === 'lead') return own
+  return { ...own, unassigned: true }
 }
 
 /**
@@ -60,5 +64,5 @@ export async function journeyDeptTarget(
   // Нет такой journey → «unassigned»: department-scope не проходит (раньше —
   // undefined, т.е. пропуск для любого department-сотрудника).
   if (!data) return { unassigned: true }
-  return journeyTarget(data as Parameters<typeof journeyTarget>[0])
+  return journeyTarget({ ...(data as Parameters<typeof journeyTarget>[0]), id: journeyId })
 }
