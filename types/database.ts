@@ -1728,7 +1728,7 @@ export type PsychSessionUpdate = Partial<Omit<PsychSessionInsert, 'journey_id' |
 export interface DocumentRecordRow {
   id: string
   journey_id: string
-  doc_type: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'other'
+  doc_type: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'photo' | 'other'
   title: string
   issued_date: string | null       // ISO date 'YYYY-MM-DD' | null
   expiry_date: string | null        // ISO date 'YYYY-MM-DD' | null
@@ -1746,7 +1746,7 @@ export interface DocumentRecordRow {
 export interface DocumentRecordInsert {
   id?: string
   journey_id: string
-  doc_type?: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'other'
+  doc_type?: 'id_card' | 'passport' | 'certificate' | 'medical' | 'financial' | 'contract' | 'visa' | 'photo' | 'other'
   title: string
   issued_date?: string | null
   expiry_date?: string | null

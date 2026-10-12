@@ -5,7 +5,8 @@ import type { Scope } from '@/lib/permissions/scope'
 // (см. lib/permissions/module-factory.ts). Публичный API (имена функций и
 // сигнатуры) сохранён 1:1, поэтому вызывающий код не меняется.
 
-export type PersonsPrivilege = 'view' | 'manage' | 'view_sensitive'
+// view_photos — фото профиля в кружке у имени (lib/persons/profile-photos.ts).
+export type PersonsPrivilege = 'view' | 'manage' | 'view_sensitive' | 'view_photos'
 export type { Scope }
 
 const perms = makeModulePermissions<PersonsPrivilege>('persons')

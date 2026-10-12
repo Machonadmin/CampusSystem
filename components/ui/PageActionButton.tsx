@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
+import { useLang } from '@/lib/i18n/LanguageContext'
 
 interface Props {
   label: string
@@ -14,12 +15,16 @@ interface Props {
 export default function PageActionButton({
   label, onClick, accentColor, icon, disabled, style,
 }: Props) {
+  // Значок («+») всегда слева от текста (решение владельца): в иврите это
+  // после текста, в ru/en — как было, перед ним. Одинаково во всех экранах.
+  const { isRTL } = useLang()
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
+        flexDirection: isRTL ? 'row-reverse' : 'row',
         padding: '10px 18px', fontSize: 13, fontWeight: 500,
         background: accentColor, color: '#fff',
         border: 'none', borderRadius: 8,
