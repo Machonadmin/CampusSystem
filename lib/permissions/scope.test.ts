@@ -255,7 +255,7 @@ describe('только преподаватель: own по своим груп�
   })
 
   it('narrowToOwn: department → own только для прав преподавателя; all и прочие не трогает', () => {
-    const out = narrowToOwn(
+    const out = narrowToOwn<string>(
       { view_students: 'department', mark_attendance: 'department', set_grades: 'all', manage_students: 'department' },
       TEACHER_OWN_PRIVILEGES,
     )
