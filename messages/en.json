@@ -2483,11 +2483,16 @@
       "quality_control": "Teaching Evaluation"
     },
     "empty": {
-      "assigned": "No tasks assigned to you",
+      "assigned": "No tasks for you",
       "created": "You haven't created any tasks yet",
       "department": "No tasks in your department pool",
       "watching": "You are not watching any tasks",
-      "hint": "This is where all your tasks live"
+      "hint": "This is where all your tasks live",
+      "links": {
+        "created": "Personal tasks",
+        "department": "Department-wide tasks",
+        "watching": "Tasks I follow"
+      }
     },
     "detail": {
       "load_error": "Failed to load task",

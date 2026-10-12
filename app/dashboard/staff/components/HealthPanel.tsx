@@ -13,9 +13,11 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 interface HealthPerson { person_id: string; name: string; login_email: string }
 
-export default function HealthPanel({ refreshSignal, onOpenMerge }: {
+export default function HealthPanel({ refreshSignal, onOpenMerge, onDuplicates }: {
   refreshSignal: number
   onOpenMerge: () => void
+  /** Сколько групп дублей найдено — родитель прячет «מיזוג כפילויות», когда 0. */
+  onDuplicates?: (count: number) => void
 }) {
   const t = useTranslations('staff.health')
   const [blankScreen, setBlankScreen] = useState<HealthPerson[]>([])
@@ -32,10 +34,12 @@ export default function HealthPanel({ refreshSignal, onOpenMerge }: {
       if (!alive) return
       setBlankScreen(Array.isArray(health?.blank_screen) ? health.blank_screen : [])
       setNoSeat(Array.isArray(health?.no_seat) ? health.no_seat : [])
-      setDupClusters(Array.isArray(dups?.clusters) ? dups.clusters.length : 0)
+      const dupCount = Array.isArray(dups?.clusters) ? dups.clusters.length : 0
+      setDupClusters(dupCount)
+      onDuplicates?.(dupCount)
     })
     return () => { alive = false }
-  }, [refreshSignal])
+  }, [refreshSignal, onDuplicates])
 
   const total = blankScreen.length + noSeat.length + (dupClusters > 0 ? 1 : 0)
   if (total === 0) return null

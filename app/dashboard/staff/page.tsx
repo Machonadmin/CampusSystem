@@ -30,6 +30,7 @@ import { RowActionsMenu, type RowAction } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { groupSeatsByPerson } from '@/lib/staff/group-employees'
 
 interface Department {
   id: string
@@ -125,6 +126,9 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const [addPerson, setAddPerson] = useState<PersonResult | null | undefined>(undefined) // undefined=закрыто, null=новый
   const [wizardOpen, setWizardOpen] = useState(false)
   const [mergeOpen, setMergeOpen] = useState(false)
+  // Сколько групп вероятных дублей нашла самопроверка: кнопка «מיזוג כפילויות»
+  // видна только когда есть что сливать (замечание владельца).
+  const [dupCount, setDupCount] = useState(0)
   // «Карточка сотрудника» — всё об одном человеке в одном месте; открывается
   // кликом по строке (запрос владельца: «ניהול עובדים» вместо скрытого меню).
   const [cardTarget, setCardTarget] = useState<Employee | null>(null)
@@ -232,37 +236,41 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
       {/* Самопроверка: пустые экраны / логины без посадки / дубли. Рендерится
           только когда есть что чинить. */}
       {isSuperadmin && (
-        <HealthPanel refreshSignal={refreshSignal + localRefresh} onOpenMerge={() => setMergeOpen(true)} />
+        <HealthPanel refreshSignal={refreshSignal + localRefresh} onOpenMerge={() => setMergeOpen(true)} onDuplicates={setDupCount} />
       )}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input aria-label={t('search_by')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
-          style={{ flex: '1 1 220px', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }} />
+        {/* Поиск и «הוספת עובד» — одной парой: на телефоне кнопка стоит рядом
+            с поиском, а не отдельной строкой ниже (замечание владельца). */}
+        <div style={{ display: 'flex', gap: 10, flex: '1 1 320px', minWidth: 0 }}>
+          <input aria-label={t('search_by')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
+            style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }} />
+          {/* ОДНА кнопка добавления (запрос владельца: раньше было три —
+              «сотрудник» / «бейл-тафкид» / «пользователь», и было непонятно, чем
+              они отличаются). Единый экран делает всё: человек + должность +
+              подразделение + вход (права — только в «אבטחת מידע»). Детальная форма осталась только как
+              «עריכת כל הפרטים» из карточки, логин — «צור התחברות» там же. */}
+          {isSuperadmin ? (
+            <PageActionButton
+              label={t('wizard.launch')}
+              onClick={() => setWizardOpen(true)}
+              accentColor={getModuleColor('staff')}
+            />
+          ) : (
+            /* Не-superadmin не может звать /api/staff/onboard — ему детальная форма. */
+            <button
+              onClick={() => onAdd()}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}`, whiteSpace: 'nowrap' }}
+            >
+              {t('add_employee')}
+            </button>
+          )}
+        </div>
         <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
           style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', color: deptFilter ? 'var(--text)' : 'var(--text-faint)', minWidth: 200 }}>
           <option value="">{t('all_depts')}</option>
           {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
         </select>
-        {/* ОДНА кнопка добавления (запрос владельца: раньше было три —
-            «сотрудник» / «бейл-тафкид» / «пользователь», и было непонятно, чем
-            они отличаются). Единый экран делает всё: человек + должность +
-            подразделение + вход (права — только в «אבטחת מידע»). Детальная форма осталась только как
-            «עריכת כל הפרטים» из карточки, логин — «צור התחברות» там же. */}
-        {isSuperadmin ? (
-          <PageActionButton
-            label={t('wizard.launch')}
-            onClick={() => setWizardOpen(true)}
-            accentColor={getModuleColor('staff')}
-          />
-        ) : (
-          /* Не-superadmin не может звать /api/staff/onboard — ему детальная форма. */
-          <button
-            onClick={() => onAdd()}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: getModuleColor('staff'), border: `1px solid ${getModuleColor('staff')}` }}
-          >
-            {t('add_employee')}
-          </button>
-        )}
-        {isSuperadmin && (
+        {isSuperadmin && dupCount > 0 && (
           <button
             onClick={() => setMergeOpen(true)}
             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border-strong)' }}
@@ -294,12 +302,17 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
               </tr>
             </thead>
             <tbody>
-              {employees.map(emp => {
+              {/* Одна строка на человека: все его должности — внутри строки
+                  (раньше строка на каждую должность, и человек повторялся). */}
+              {groupSeatsByPerson(employees).map(({ person: emp, seats }) => {
                 const statusKey = emp.status ?? 'active'
                 const sc = STATUS_COLORS[statusKey] ?? STATUS_COLORS.active
                 const user = usersByPerson.get(emp.person_id)
+                // Профиль сотрудника (детали, статус, «סיום העסקה») — общий для
+                // всех его посадок; берём посадку, у которой он есть.
+                const editable = seats.find(se => se.profile_id) ?? emp
                 return (
-                  <tr key={emp.position_id} style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer' }}
+                  <tr key={emp.person_id} style={{ borderBottom: '1px solid var(--surface-2)', cursor: 'pointer' }}
                     onClick={() => setCardTarget(emp)}
                     onMouseEnter={e => { (e.currentTarget as HTMLTableRowElement).style.background = 'var(--surface-2)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}>
@@ -319,17 +332,28 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                               </span>
                             )}
                           </div>
-                          {emp.is_head && <div style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500 }}>{t('dept.head_label')}</div>}
                         </div>
                       </div>
                     </td>
                     <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
-                      <div>{emp.position || '—'}</div>
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        {seats.map(se => <div key={se.position_id}>{se.position || '—'}</div>)}
+                      </div>
                       {emp.employment_type && emp.employment_type !== 'staff' && (
                         <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
                       )}
                     </td>
-                    <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.department_name ?? '—'}</td>
+                    <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
+                      <div style={{ display: 'grid', gap: 4 }}>
+                        {seats.map(se => (
+                          <div key={se.position_id}>
+                            {se.department_name ?? '—'}
+                            {/* «ראש המחלקה» — у того подразделения, где человек глава. */}
+                            {se.is_head && <span style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500, marginInlineStart: 6, whiteSpace: 'nowrap' }}>{t('dept.head_label')}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
                     <td data-label={t('table.phone')} onClick={e => e.stopPropagation()} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ? <PhoneLink phone={emp.phone} /> : '—'}</td>
                     <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? user?.login_email ?? '—'}</td>
                     {isSuperadmin && (
@@ -358,14 +382,14 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                             onClick: () => setAddPerson({ id: emp.person_id, full_name: emp.full_name, hebrew_name: emp.hebrew_name, email: emp.email }),
                             hidden: !isSuperadmin || !!user,
                           },
-                          { key: 'edit', label: t('edit_employee_details'), onClick: () => onAdd(emp), disabled: !emp.profile_id },
+                          { key: 'edit', label: t('edit_employee_details'), onClick: () => onAdd(editable), disabled: !editable.profile_id },
                           {
                             // Честный ярлык: API закрывает посадки (end_date), человек и
                             // логин остаются — «מחיקה» вводила владельца в заблуждение.
                             key: 'delete',
                             label: t('end_employment'),
-                            onClick: () => emp.profile_id && handleDeleteEmployee(emp.profile_id, emp.full_name),
-                            disabled: !emp.profile_id,
+                            onClick: () => editable.profile_id && handleDeleteEmployee(editable.profile_id, emp.full_name),
+                            disabled: !editable.profile_id,
                             danger: true,
                           },
                         ]}
