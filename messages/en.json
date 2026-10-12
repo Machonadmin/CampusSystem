@@ -2400,8 +2400,9 @@
       "all": "All",
       "active": "Open",
       "my": "My",
+      "all_tasks": "All tasks",
       "department": "Department-wide tasks",
-      "assigned": "Assigned to me",
+      "assigned": "Tasks for me",
       "created": "Personal tasks",
       "watching": "Tasks I follow"
     },
@@ -2481,7 +2482,8 @@
       "quality_control": "Teaching Evaluation"
     },
     "empty": {
-      "assigned": "No tasks for you",
+      "all": "No tasks for you",
+      "assigned": "No tasks were created for you",
       "created": "You haven't created any tasks yet",
       "department": "No tasks in your department pool",
       "watching": "You are not watching any tasks",
