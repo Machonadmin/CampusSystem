@@ -718,9 +718,7 @@
       },
       "names": {
         "recruitment": "Recruitment",
-        "acceptance": "Admission",
-        "acceptance_v2": "Admission",
-        "admission": "Admission"
+        "acceptance_v2": "Admission"
       },
       "stage_waiting_hint": "This stage activates automatically once the previous stage is completed — the relevant task (e.g. \"request documents\") is created then.",
       "history_curtain": "Process start",
@@ -2402,10 +2400,10 @@
       "all": "All",
       "active": "Open",
       "my": "My",
-      "department": "Department",
+      "department": "Department-wide tasks",
       "assigned": "Assigned to me",
-      "created": "Created by me",
-      "watching": "Watching"
+      "created": "Personal tasks",
+      "watching": "Tasks I follow"
     },
     "filter_labels": {
       "status": "Status:",
@@ -2487,12 +2485,7 @@
       "created": "You haven't created any tasks yet",
       "department": "No tasks in your department pool",
       "watching": "You are not watching any tasks",
-      "hint": "This is where all your tasks live",
-      "links": {
-        "created": "Personal tasks",
-        "department": "Department-wide tasks",
-        "watching": "Tasks I follow"
-      }
+      "hint": "This is where all your tasks live"
     },
     "detail": {
       "load_error": "Failed to load task",

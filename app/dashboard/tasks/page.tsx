@@ -211,12 +211,8 @@ export default function TasksPage() {
     { key: 'watching',   label: t('filters.watching') },
   ]
 
-  // Список второстепенных вкладок для «спокойного» пустого экрана. Подписи
-  // ссылок там свои, полные («משימות אישיות» и т.д. — формулировки владельца);
-  // короткие вкладки полного экрана не меняются.
-  const OTHER_VIEWS = ([...PRIMARY_VIEWS, ...SECONDARY_VIEWS])
-    .filter(v => v.key !== view)
-    .map(v => ({ ...v, label: t(`empty.links.${v.key}`, v.label) }))
+  // Список второстепенных вкладок для «спокойного» пустого экрана
+  const OTHER_VIEWS = ([...PRIMARY_VIEWS, ...SECONDARY_VIEWS]).filter(v => v.key !== view)
 
   // «Первозданное» пустое состояние: вкладка по умолчанию, без фильтров и
   // без выделения. Тогда показываем ТОЛЬКО спокойный герой — ни шапки,
