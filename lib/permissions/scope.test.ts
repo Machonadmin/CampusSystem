@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors } from './scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES } from './scope'
 import type { DepartmentEdge } from './scope'
 
 describe('applyPersonGrants', () => {
@@ -234,5 +234,50 @@ describe('expandWithAncestors (видимость заведения-конте�
 
   it('неизвестный узел возвращается как есть', () => {
     expect(expandWithAncestors(['Z'], edges)).toEqual(['Z'])
+  })
+})
+
+describe('только преподаватель: own по своим группам', () => {
+  const ctx = {
+    departmentIds: ['d1'],
+    personId: 'me',
+    ownClassGroupIds: ['g1'],
+    ownJourneyIds: ['j1'],
+  }
+
+  it('isTeacherOnly: роль teacher без секретаря и без главенства', () => {
+    expect(isTeacherOnly(['teacher'], [])).toBe(true)
+    expect(isTeacherOnly(['teacher'], ['d1'])).toBe(false)
+    expect(isTeacherOnly(['teacher', 'studies_secretary'], [])).toBe(false)
+    expect(isTeacherOnly(['teacher', 'superadmin'], [])).toBe(false)
+    expect(isTeacherOnly(['studies_secretary'], [])).toBe(false)
+    expect(isTeacherOnly([], [])).toBe(false)
+  })
+
+  it('narrowToOwn: department → own только для прав преподавателя; all и прочие не трогает', () => {
+    const out = narrowToOwn(
+      { view_students: 'department', mark_attendance: 'department', set_grades: 'all', manage_students: 'department' },
+      TEACHER_OWN_PRIVILEGES,
+    )
+    expect(out).toEqual({ view_students: 'own', mark_attendance: 'own', set_grades: 'all', manage_students: 'department' })
+  })
+
+  it('own: своя студентка / своя группа — да; чужие и одно подразделение — нет', () => {
+    expect(grantsAccess('own', { journey_id: 'j1', department_id: 'd1' }, ctx)).toBe(true)
+    expect(grantsAccess('own', { class_group_id: 'g1' }, ctx)).toBe(true)
+    expect(grantsAccess('own', { journey_id: 'j2', department_id: 'd1' }, ctx)).toBe(false)
+    expect(grantsAccess('own', { class_group_id: 'g2', department_id: 'd1' }, ctx)).toBe(false)
+    expect(grantsAccess('own', { department_id: 'd1' }, ctx)).toBe(false)
+    expect(grantsAccess('own', undefined, ctx)).toBe(false)
+  })
+
+  it('own: teacher_ids по-прежнему работает; без списка своих групп journey не проходит', () => {
+    expect(grantsAccess('own', { teacher_ids: ['me'] }, ctx)).toBe(true)
+    expect(grantsAccess('own', { journey_id: 'j1' }, { departmentIds: [], personId: 'me' })).toBe(false)
+  })
+
+  it('department: journey_id / class_group_id ничего не меняют', () => {
+    expect(grantsAccess('department', { journey_id: 'x', department_id: 'd1' }, ctx)).toBe(true)
+    expect(grantsAccess('department', { journey_id: 'j1', department_id: 'd2' }, ctx)).toBe(false)
   })
 })

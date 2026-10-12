@@ -104,7 +104,8 @@ export async function GET(request: NextRequest) {
       : ((await getEducationPrivilegeScope(session, 'manage_class_groups'))
         ?? (await getEducationPrivilegeScope(session, 'view_students')))
     let myDepts: string[] | null = null
-    if (scope === 'department') {
+    // 'own' (только преподаватель): семестры — структура, видны в пределах подразделения.
+    if (scope === 'department' || scope === 'own') {
       myDepts = await getUserDepartmentIds(session.person_id)
       if (myDepts.length === 0) return NextResponse.json({ semester_groups: [] })
     }

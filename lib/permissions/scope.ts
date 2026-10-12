@@ -61,12 +61,55 @@ export interface AccessTarget {
    * лиды — общий пул по решению владельца, 2026-09-25), где доступ остаётся.
    */
   unassigned?: boolean
+  /**
+   * Для scope='own': конкретная студентка (journey) или учебная группа, о которой
+   * идёт речь. Доступ есть, если она входит в группы, которые человек ведёт
+   * (class_teachers). Для 'department'/'all' эти поля ничего не меняют.
+   */
+  journey_id?: string
+  class_group_id?: string
 }
 
 /** Контекст пользователя: его подразделения и его person_id. */
 export interface AccessContext {
   departmentIds: string[]
   personId: string
+  /** Для scope='own': группы, которые человек ведёт (class_teachers). */
+  ownClassGroupIds?: string[]
+  /** Для scope='own': journey_id студенток, записанных в эти группы. */
+  ownJourneyIds?: string[]
+}
+
+/**
+ * Права преподавателя, которые для «только преподавателя» сужаются до 'own'
+ * (решение владельца 2026-10-12: מורה видит только студенток своих групп, а не
+ * всё подразделение). Это тот же набор, что когда-то был у роли teacher со
+ * scope='own' (миграции 20260511175354 §4.8, 20260708140000 §3).
+ */
+export const TEACHER_OWN_PRIVILEGES = ['view_students', 'mark_attendance', 'set_grades', 'set_lesson_topics'] as const
+
+/**
+ * «Только преподаватель»: есть роль teacher, но нет управленческого положения —
+ * не superadmin, не секретарь/заместитель (studies_secretary) и не глава ни одного
+ * подразделения. Такому человеку права преподавателя сужаются до 'own'.
+ */
+export function isTeacherOnly(roles: string[], headedUnitIds: string[]): boolean {
+  if (!roles.includes('teacher')) return false
+  if (roles.includes('superadmin') || roles.includes('studies_secretary')) return false
+  return headedUnitIds.length === 0
+}
+
+/**
+ * Сужает scope='department' до 'own' для перечисленных привилегий. 'all' не
+ * трогается (его даёт только явное решение), остальные коды — тоже.
+ */
+export function narrowToOwn<P extends string>(
+  privileges: Partial<Record<P, Scope>>,
+  codes: readonly P[],
+): Partial<Record<P, Scope>> {
+  const out: Partial<Record<P, Scope>> = { ...privileges }
+  for (const c of codes) if (out[c] === 'department') out[c] = 'own'
+  return out
 }
 
 /**
@@ -78,7 +121,8 @@ export interface AccessContext {
  *                        видит только 'all'); без target.department_id доступ
  *                        разрешён (создание / общий пул лидов); иначе подразделение
  *                        должно быть у пользователя
- *   - own              → нужен непустой teacher_ids, и в нём должен быть personId
+ *   - own              → personId есть в teacher_ids, ЛИБО class_group_id — одна из
+ *                        групп человека, ЛИБО journey_id — студентка из этих групп
  */
 export function grantsAccess(
   scope: Scope | undefined,
@@ -93,8 +137,10 @@ export function grantsAccess(
     return ctx.departmentIds.includes(target.department_id)
   }
   if (scope === 'own') {
-    if (!target?.teacher_ids || target.teacher_ids.length === 0) return false
-    return target.teacher_ids.includes(ctx.personId)
+    if (target?.teacher_ids && target.teacher_ids.includes(ctx.personId)) return true
+    if (target?.class_group_id && ctx.ownClassGroupIds?.includes(target.class_group_id)) return true
+    if (target?.journey_id && ctx.ownJourneyIds?.includes(target.journey_id)) return true
+    return false
   }
   return false
 }

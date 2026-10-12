@@ -36,8 +36,10 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     if (!group) return apiError('group_not_found', 404)
 
     const groupDept = (group as { department_id?: string | null }).department_id ?? null
+    // class_group_id — для scope='own': преподаватель открывает только свою группу.
     const canView = await hasEducationPrivilege(
-      session, 'view_students', groupDept ? { department_id: groupDept } : undefined,
+      session, 'view_students',
+      groupDept ? { department_id: groupDept, class_group_id: params.id } : { class_group_id: params.id },
     )
     if (!canView) return apiError('forbidden', 403)
 

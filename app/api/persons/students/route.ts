@@ -4,7 +4,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { hasPersonsPrivilege } from '@/lib/persons/permissions'
 import { getSession } from '@/lib/auth/session'
-import { getEducationPrivilegeScope, getUserDepartmentIds } from '@/lib/education/permissions'
+import { getEducationPrivilegeScope, getUserDepartmentIds, getOwnTeaching } from '@/lib/education/permissions'
 import { mapDbError } from '@/lib/persons/http'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -42,12 +42,18 @@ export async function GET(request: NextRequest) {
     const session = await getSession()
     if (!session) throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
     let deptFilter: string[] | null = null
+    let ownJourneyIds: string[] | null = null
     if (!(await hasPersonsPrivilege(session, 'view'))) {
       const scope = await getEducationPrivilegeScope(session, 'view_students')
       if (!scope) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
       if (scope === 'department') {
         deptFilter = await getUserDepartmentIds(session.person_id)
         if (deptFilter.length === 0) return NextResponse.json({ students: [], total: 0, page: 1, pageSize: DEFAULT_PAGE_SIZE })
+      }
+      // scope='own' (только преподаватель): лишь студентки её групп.
+      if (scope === 'own') {
+        ownJourneyIds = (await getOwnTeaching(session.person_id)).journeyIds
+        if (ownJourneyIds.length === 0) return NextResponse.json({ students: [], total: 0, page: 1, pageSize: DEFAULT_PAGE_SIZE })
       }
     }
 
@@ -73,6 +79,7 @@ export async function GET(request: NextRequest) {
         `)
         .eq('education_status', 'student')
       if (deptFilter) q = q.in('primary_department_id', deptFilter)
+      if (ownJourneyIds) q = q.in('id', ownJourneyIds)
       const { data, error } = await q
         .order('opened_at', { ascending: false })
         .order('id', { ascending: true })
