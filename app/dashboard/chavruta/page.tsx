@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth/session'
 import ChavrutaTeacherClient from './ChavrutaTeacherClient'
+import { isIsoDate } from '@/lib/dates'
 
 /**
  * Страница преподавателя хеврута (§B): «с кем я занимаюсь сегодня» + журнал
@@ -8,9 +9,11 @@ import ChavrutaTeacherClient from './ChavrutaTeacherClient'
  * (GET /api/chavruta/students) сам вернёт 403 не-преподавателю, и клиент
  * покажет «эта страница для преподавателей хеврута».
  */
-export default async function ChavrutaTeacherPage() {
+export default async function ChavrutaTeacherPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const session = await getSession()
   if (!session) redirect('/login')
 
-  return <ChavrutaTeacherClient />
+  // ?date= — из уведомлений «חברותא קבועה»: открыть журнал на день встречи.
+  const { date } = await searchParams
+  return <ChavrutaTeacherClient initialDate={date && isIsoDate(date) ? date : undefined} />
 }

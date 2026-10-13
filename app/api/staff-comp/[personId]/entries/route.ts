@@ -13,7 +13,9 @@ import { errorResponse } from '@/lib/api/handler'
  *          amount = hours × персональная hourly_rate.
  * Деплой-безопасно (42P01).
  */
-const TYPES = ['teaching', 'meeting', 'chavruta', 'chavruta_plus', 'shabbat_host', 'shabbat_family', 'other']
+// chavruta_plus не создаётся с 2026-10-13: хеврута одна, оплата за встречу
+// (старые записи этого типа остаются в своих месяцах).
+const TYPES = ['teaching', 'meeting', 'chavruta', 'shabbat_host', 'shabbat_family', 'other']
 
 
 export async function GET(request: NextRequest, props: { params: Promise<{ personId: string }> }) {

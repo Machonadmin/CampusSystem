@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { materializeAllDueReminders, materializeAllTaskDeadlines, materializeStageTaskNudges } from '@/lib/notifications/reminders'
 import { materializeChavrutaReminders } from '@/lib/chavruta/reminder'
+import { materializeChavrutaSchedule } from '@/lib/chavruta/schedule'
 import { materializeAbsenceThresholdAlerts } from '@/lib/education/absence-alerts'
 import { cronAuthGuard } from '@/lib/cron/auth'
 
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
   const taskDeadlinesCreated = await materializeAllTaskDeadlines(sb)
   const stageTaskNudges = await materializeStageTaskNudges(sb) // задачи этапов без срока: одно напоминание
   const chavrutaReminders = await materializeChavrutaReminders(sb) // только по средам
+  const chavrutaSchedule = await materializeChavrutaSchedule(sb) // «קבועות»: утро дня + вопрос о вчерашних
   const absenceAlerts = await materializeAbsenceThresholdAlerts(sb) // порог пропусков, с дедупом
 
   return NextResponse.json({
@@ -40,6 +42,7 @@ export async function GET(request: NextRequest) {
     task_deadlines_created: taskDeadlinesCreated,
     stage_task_nudges: stageTaskNudges,
     chavruta_reminders: chavrutaReminders,
+    chavruta_schedule: chavrutaSchedule,
     absence_alerts: absenceAlerts,
   })
 }

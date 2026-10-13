@@ -3,6 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { materializeDueReminders, materializeTaskDeadlines } from '@/lib/notifications/reminders'
+import { materializeChavrutaSchedule } from '@/lib/chavruta/schedule'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -26,6 +27,8 @@ export async function GET() {
     // Материализуем созревшие напоминания календаря + дедлайны задач (best-effort).
     await materializeDueReminders(sb, session.person_id)
     await materializeTaskDeadlines(sb, session.person_id)
+    // «חברותא קבועה» этой моры: вопрос «была ли встреча» — вовремя, пока сайт открыт.
+    if (session.principal !== 'student') await materializeChavrutaSchedule(sb, { teacherId: session.person_id })
 
     const { data, error } = await sb
       .from('notifications')

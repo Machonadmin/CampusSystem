@@ -13,20 +13,19 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
-import ChavrutaPlusPanel from './ChavrutaPlusPanel'
 import ShabbatPanel from './ShabbatPanel'
 import { formatMoney } from '@/lib/finance/money'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+// chavruta_plus — только у старых записей (до 2026-10-13 хеврута-плюс платилась
+// помесячно). Новых не создаём: хеврута одна, оплата — за встречу.
 type EntryType = 'teaching' | 'meeting' | 'chavruta' | 'chavruta_plus' | 'shabbat_host' | 'shabbat_family' | 'other'
-const ENTRY_TYPES: EntryType[] = ['teaching', 'meeting', 'chavruta', 'chavruta_plus', 'shabbat_host', 'shabbat_family', 'other']
+const ENTRY_TYPES: EntryType[] = ['teaching', 'meeting', 'chavruta', 'shabbat_host', 'shabbat_family', 'other']
 
 interface Rate {
   hourly_rate: number | string | null
   chavruta_rate: number | string | null
-  chavruta_plus_rate: number | string | null
-  chavruta_plus_basis: string | null
 }
 
 interface Entry {
@@ -223,7 +222,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
       const res = await fetch(`/api/staff-comp/${personId}/rate`)
       if (!res.ok) return
       const body = await res.json()
-      const r: Rate = body.rate ?? { hourly_rate: null, chavruta_rate: null, chavruta_plus_rate: null, chavruta_plus_basis: 'per_hour' }
+      const r: Rate = body.rate ?? { hourly_rate: null, chavruta_rate: null }
       setRate(r)
       setRateDraft(r)
     } catch { /* тарифы необязательны для отображения листа */ }
@@ -266,8 +265,6 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
         body: JSON.stringify({
           hourly_rate: rateDraft.hourly_rate === '' ? null : num(rateDraft.hourly_rate),
           chavruta_rate: rateDraft.chavruta_rate === '' ? null : num(rateDraft.chavruta_rate),
-          chavruta_plus_rate: rateDraft.chavruta_plus_rate === '' ? null : num(rateDraft.chavruta_plus_rate),
-          chavruta_plus_basis: rateDraft.chavruta_plus_basis ?? 'per_hour',
         }),
       })
       if (!res.ok) { toast(await readError(res), 'error'); return }
@@ -432,20 +429,6 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                 value={rateDraft.chavruta_rate ?? ''}
                 onChange={e => setRateDraft({ ...rateDraft, chavruta_rate: e.target.value })} style={inp} />
             </div>
-            <div>
-              <label style={lbl}>{t('chavruta_plus_rate')}</label>
-              <input aria-label={t('chavruta_plus_rate')} type="number" step="0.01" min="0" disabled={!canManage}
-                value={rateDraft.chavruta_plus_rate ?? ''}
-                onChange={e => setRateDraft({ ...rateDraft, chavruta_plus_rate: e.target.value })} style={inp} />
-            </div>
-            <div>
-              <label style={lbl}>{t('basis')}</label>
-              <select aria-label={t('basis')} disabled={!canManage} value={rateDraft.chavruta_plus_basis ?? 'per_hour'}
-                onChange={e => setRateDraft({ ...rateDraft, chavruta_plus_basis: e.target.value })} style={inp}>
-                <option value="per_student_month">{t('basis_per_student_month')}</option>
-                <option value="per_hour">{t('basis_per_hour')}</option>
-              </select>
-            </div>
           </div>
           {canManage && (
             <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
@@ -472,8 +455,6 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
         <SkeletonRows avatar={false} />
       ) : (
         <>
-          {/* Chavruta Plus (mentorship) assignments */}
-          <ChavrutaPlusPanel personId={personId} canManage={canManage} year={year} month={month} onGenerated={loadMonth} />
           <ShabbatPanel personId={personId} canManage={canManage} year={year} month={month} onChanged={loadMonth} />
 
           {/* Payslip summary */}

@@ -2195,6 +2195,7 @@ export interface Database {
       buildings: Gen<'buildings'>
       chavruta_pairs: Gen<'chavruta_pairs'>
       chavruta_plus_assignments: Gen<'chavruta_plus_assignments'>
+      chavruta_skips: Gen<'chavruta_skips'>
       chavruta_teachers: Gen<'chavruta_teachers'>
       finance_access_grants: Gen<'finance_access_grants'>
       finance_discounts: Gen<'finance_discounts'>
