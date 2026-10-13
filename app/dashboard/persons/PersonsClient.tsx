@@ -248,7 +248,7 @@ export default function PersonsClient() {
             type="button"
             onClick={exportCsv}
             disabled={rows.length === 0}
-            style={{ fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: rows.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: rows.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: rows.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: rows.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
           >
             <DownloadIcon /> {tCommon('export_csv')}
           </button>

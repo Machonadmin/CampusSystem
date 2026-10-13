@@ -218,7 +218,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <Button type="button" onClick={exportCsv} disabled={filtered.length === 0}>
+          <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <DownloadIcon /> {tCommon('export_csv')}
           </Button>
         }
