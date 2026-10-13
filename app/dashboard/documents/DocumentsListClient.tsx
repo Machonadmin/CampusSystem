@@ -7,6 +7,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
@@ -142,23 +143,20 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
         </div>
       )}
 
-      {/* Search */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input aria-label={t('list.search_placeholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('list.search_placeholder')}
-          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
-        />
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={filtered.length === 0}
-          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-        >
-          <DownloadIcon /> {tCommon('export_csv')}
-        </button>
-      </div>
+      {/* Общая шапка списков: поиск и экспорт — одной строкой. */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
+        actions={
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={filtered.length === 0}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+          >
+            <DownloadIcon /> {tCommon('export_csv')}
+          </button>
+        }
+      />
 
       {/* Students list */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>

@@ -6,11 +6,12 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { getModuleColor } from '@/lib/module-colors'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import type { BuiltTree, TreeNode, CatalogEntry } from '@/lib/data-security/tree'
 import { countPrivileges } from '@/lib/data-security/tree'
 import { changedFields } from '@/lib/data-security/edit-patch'
 import type { UnitNode } from '@/lib/data-security/units'
-import type { StaffSummary } from '@/lib/data-security/load'
+import type { StaffSummary, PrivilegeHolders } from '@/lib/data-security/load'
 import UnitsPanel from './UnitsPanel'
 import {
   LevelBadge, RiskBadge, ScopeBadge, PrivilegeName, MissingDescription,
@@ -407,42 +408,38 @@ export default function GeneralView({
           </div>
         )}
 
-        <div className="ds-row" style={{ marginBottom: 12 }}>
-          <input
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={t('search_privilege')}
-            aria-label={t('search_privilege')}
-            className="ds-grow"
-            style={{
-              padding: '9px 13px', borderRadius: 9,
-              border: '1px solid var(--border)', background: 'var(--surface)',
-              color: 'var(--text)', fontSize: 13,
-            }}
+        {/* Общая шапка списков: поиск и «+ новый раздел» — одной строкой,
+            показ устаревших — второй. */}
+        <div style={{ marginBottom: 12 }}>
+          <ListToolbar
+            search={<ListSearchInput value={query} onChange={setQuery} placeholder={t('search_privilege')} />}
+            actions={
+              canManageTree && (
+                <button
+                  onClick={() => setEditing('new')}
+                  style={{
+                    padding: '8px 16px', borderRadius: 9, border: 0,
+                    background: getModuleColor('data_security'), color: '#fff',
+                    fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+                  }}
+                >+ {t('new_node')}</button>
+              )
+            }
+            filters={
+              legacyCount > 0 && (
+                <button
+                  onClick={() => setShowLegacy(v => !v)}
+                  style={{
+                    padding: '8px 14px', borderRadius: 9, border: '1px solid var(--border)',
+                    background: 'var(--surface)', color: 'var(--text-muted)', fontSize: 12.5,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('legacy_hidden').replace('{n}', String(legacyCount))} · {showLegacy ? t('legacy_hide') : t('legacy_show')}
+                </button>
+              )
+            }
           />
-          {legacyCount > 0 && (
-            <button
-              onClick={() => setShowLegacy(v => !v)}
-              style={{
-                padding: '8px 14px', borderRadius: 9, border: '1px solid var(--border)',
-                background: 'var(--surface)', color: 'var(--text-muted)', fontSize: 12.5,
-                cursor: 'pointer',
-              }}
-            >
-              {t('legacy_hidden').replace('{n}', String(legacyCount))} · {showLegacy ? t('legacy_hide') : t('legacy_show')}
-            </button>
-          )}
-          {canManageTree && (
-            <button
-              onClick={() => setEditing('new')}
-              style={{
-                padding: '8px 16px', borderRadius: 9, border: 0,
-                background: getModuleColor('data_security'), color: '#fff',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
-              }}
-            >+ {t('new_node')}</button>
-          )}
         </div>
 
         {query.trim() ? (
@@ -603,7 +600,8 @@ function DetailPanel({ node, item, supersededLabel, departments, onClose, t, lan
   t: T
   lang: string
 }) {
-  const [holders, setHolders] = useState<{ roles: string[]; people: string[] } | null>(null)
+  const [holders, setHolders] = useState<(PrivilegeHolders & { can_revoke: boolean }) | null>(null)
+  const [removing, setRemoving] = useState(false)
   const [showTech, setShowTech] = useState(false)
 
   // Именно useEffect: это загрузка, а не вычисление. useMemo с setState
@@ -615,6 +613,39 @@ function DetailPanel({ node, item, supersededLabel, departments, onClose, t, lan
       .then(d => setHolders(d))
       .catch(() => setHolders(null))
   }, [item])
+
+  // Крестик у держателя: снять право прямо отсюда, после «האם אתה בטוח».
+  // У роли окно называет, у скольких людей право пропадёт.
+  async function removeHolder(target: { kind: 'person'; id: string; name: string } | { kind: 'role'; id: string; name: string; members: number }) {
+    if (!item || removing) return
+    const privilege = item.name ?? item.code
+    const message = target.kind === 'person'
+      ? t('holders_remove_person_confirm').replace('{privilege}', privilege).replace('{name}', target.name)
+      : t('holders_remove_role_confirm').replace('{privilege}', privilege).replace('{role}', target.name).replace('{n}', String(target.members))
+    if (!(await confirmDialog({ message, confirmLabel: t('holders_remove'), tone: 'danger' }))) return
+    setRemoving(true)
+    try {
+      const res = await fetch('/api/data-security/holders', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          module: item.module, code: item.code,
+          ...(target.kind === 'person' ? { person_id: target.id } : { role_id: target.id }),
+        }),
+      })
+      const d = await res.json().catch(() => null) as ((PrivilegeHolders & { can_revoke: boolean }) | { error?: string } | null)
+      if (!res.ok || !d || !('people' in d)) {
+        toastError((d && 'error' in d && d.error) || t('holders_remove_failed'))
+        return
+      }
+      setHolders(d)
+      toastSuccess(t('holders_removed'))
+    } catch {
+      toastError(t('holders_remove_failed'))
+    } finally {
+      setRemoving(false)
+    }
+  }
 
   const dept = node.departmentId ? departments.find(d => d.id === node.departmentId) : null
 
@@ -655,12 +686,23 @@ function DetailPanel({ node, item, supersededLabel, departments, onClose, t, lan
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {holders.roles.map(r => (
-                <span key={`r-${r}`} style={{ padding: '4px 10px', borderRadius: 7, background: 'var(--surface-2)', fontSize: 12, color: 'var(--text)' }}>{r}</span>
+                <HolderChip key={`r-${r.id}`} name={r.name} tone="role" t={t}
+                  onRemove={holders.can_revoke && r.removable && !removing
+                    ? () => removeHolder({ kind: 'role', id: r.id, name: r.name, members: r.members })
+                    : undefined} />
               ))}
               {holders.people.map(p => (
-                <span key={`p-${p}`} style={{ padding: '4px 10px', borderRadius: 7, background: 'var(--success-tint)', fontSize: 12, color: 'var(--success)' }}>{p}</span>
+                <HolderChip key={`p-${p.id}`} name={p.name} tone="person" t={t}
+                  onRemove={holders.can_revoke && !removing
+                    ? () => removeHolder({ kind: 'person', id: p.id, name: p.name })
+                    : undefined} />
               ))}
             </div>
+          )}
+          {holders.superadmins.length > 0 && (
+            <p style={{ margin: '9px 0 0', fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              <span style={{ fontWeight: 700 }}>{t('holders_superadmins')}:</span> {holders.superadmins.join(', ')}
+            </p>
           )}
         </div>
       )}
@@ -785,5 +827,37 @@ function NodeEditor({ node, departments, t, busy, onClose, onSave }: {
         >{t('save')}</SubmitButton>
       </div>
     </Modal>
+  )
+}
+
+// ─── Держатель права в карточке: имя и, если можно снять, крестик ────────────
+function HolderChip({ name, tone, onRemove, t }: {
+  name: string
+  tone: 'role' | 'person'
+  onRemove?: () => void
+  t: T
+}) {
+  const color = tone === 'person' ? 'var(--success)' : 'var(--text)'
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      paddingBlock: 4, paddingInlineStart: 10, paddingInlineEnd: onRemove ? 4 : 10,
+      borderRadius: 7, fontSize: 12, color,
+      background: tone === 'person' ? 'var(--success-tint)' : 'var(--surface-2)',
+    }}>
+      {name}
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`${t('holders_remove')}: ${name}`}
+          title={t('holders_remove')}
+          style={{
+            border: 0, background: 'none', cursor: 'pointer', color,
+            fontSize: 14, lineHeight: 1, padding: '0 4px', opacity: 0.7,
+          }}
+        >×</button>
+      )}
+    </span>
   )
 }

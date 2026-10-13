@@ -83,12 +83,12 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
       const res = await fetch('/api/feedback', { method: 'POST', body: form })
       if (!res.ok) {
         const d = await res.json().catch(() => null) as { error?: string } | null
-        toastError(d?.error ?? t('send'))
+        toastError(d?.error ?? t('send_failed'))
         return
       }
       setSent(true)
     } catch {
-      toastError(t('send'))
+      toastError(t('send_failed'))
     } finally {
       setSending(false)
     }

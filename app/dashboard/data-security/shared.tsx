@@ -146,6 +146,7 @@ export function AreaTile({ name, accent, caption, active, onClick, onDragOver, o
   onDrop?: (e: React.DragEvent) => void
   dropActive?: boolean
 }) {
+  const frame = dropActive ? 'var(--accent)' : active ? accent : 'var(--border)'
   return (
     <button
       onClick={onClick}
@@ -157,9 +158,14 @@ export function AreaTile({ name, accent, caption, active, onClick, onDragOver, o
         display: 'block', width: '100%', textAlign: 'start',
         padding: '12px 14px',
         borderRadius: 11,
-        border: `1px solid ${dropActive ? 'var(--accent)' : active ? accent : 'var(--border)'}`,
-        borderInlineStartWidth: 4,
-        borderInlineStartColor: accent,
+        // Каждая сторона рамки задаётся отдельно. Раньше здесь был `border` +
+        // borderInlineStart*: при смене рамки (выбор плитки, перетаскивание над
+        // ней) React заново ставил `border`, тот сбрасывал цветную полосу, а
+        // её свойства не менялись и повторно не ставились — полоса пропадала.
+        borderBlockStart: `1px solid ${frame}`,
+        borderBlockEnd: `1px solid ${frame}`,
+        borderInlineEnd: `1px solid ${frame}`,
+        borderInlineStart: `4px solid ${accent}`,
         background: dropActive ? 'var(--accent-tint)' : active ? 'var(--surface-2)' : 'var(--surface)',
         cursor: 'pointer',
       }}

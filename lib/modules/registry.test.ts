@@ -149,8 +149,10 @@ describe('производные списки не изменились посл
     // Прежний union из types/database.ts. Реестр его РАСШИРЯЕТ (staff,
     // quality_control, recruitment, admission, studies реально живут в
     // role_privileges, но в типе отсутствовали) — сузить он не имеет права.
+    // 'applicants' удалён намеренно (решение владельца 2026-10-13, миграция
+    // 20261013130000): его права не читал никакой код.
     const previousUnion = [
-      'persons', 'applicants', 'education', 'jewishness', 'finance', 'dormitory',
+      'persons', 'education', 'jewishness', 'finance', 'dormitory',
       'food', 'maintenance', 'security', 'doctor', 'psychologist', 'alumni',
       'sponsors', 'tasks', 'documents', 'reports', 'settings', 'contacts', 'chavruta',
     ]

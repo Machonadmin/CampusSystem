@@ -7,6 +7,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -106,21 +107,11 @@ export default function AlumniPage() {
       {/* Header */}
       <ModuleHeader module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
 
-      {/* Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <input aria-label={t('list.search_placeholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('list.search_placeholder')}
-          style={{
-            flex: 1, maxWidth: 360, fontSize: 13, padding: '8px 12px',
-            border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
-          }}
-        />
-        <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
-          {t('list.count')}: {filtered.length}
-        </span>
-      </div>
+      {/* Поиск, счётчик под ним (общая шапка списков). */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
+        count={`${t('list.count')}: ${filtered.length}`}
+      />
 
       {/* Body */}
       {error ? (

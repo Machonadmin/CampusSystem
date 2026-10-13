@@ -48,13 +48,12 @@ const PUBLIC_PREFIXES = ['auth/', 'dev-login', 'public/', 'portal/login', 'cron/
 const isPublic = (r: string) => PUBLIC_PREFIXES.some(p => r.startsWith(p))
 
 // Чувствительные модули: их обработчики обязаны проверять привилегию/роль, а не
-// только факт логина. Совпадает с PROTECTED_MODULES из middleware (+ education,
-// applicants — образовательные данные), имена — как директории в app/api.
+// только факт логина. Совпадает с PROTECTED_MODULES из middleware (+ education —
+// образовательные данные), имена — как директории в app/api.
 const SENSITIVE_MODULES = new Set([
   'doctor', 'psychologist', 'finance', 'jewishness', 'sponsors', 'documents',
   'persons', 'dormitory', 'food', 'security', 'maintenance', 'reports',
   'contacts', 'staff', 'staff-comp', 'quality-control', 'settings', 'alumni', 'education',
-  'applicants',
   // Модуль управления самими правами: голой сессии здесь заведомо мало.
   'data-security',
 ])
