@@ -9,6 +9,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { MiniBar } from '@/components/ui/MiniBar'
 import { formatMoney } from '@/lib/finance/money'
 import { useSessionState } from '@/lib/hooks/useSessionState'
@@ -267,67 +268,61 @@ export default function FinancePage() {
         </div>
       )}
 
-      {/* Search */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <input aria-label={t('list.search_placeholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('list.search_placeholder')}
-          style={{
-            flex: 1, maxWidth: 360, fontSize: 13, padding: '8px 12px',
-            border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)',
-          }}
-        />
-        <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
-          {t('list.count')}: {filtered.length}
-        </span>
-        <button
-          onClick={() => setDebtorsOnly(v => !v)}
-          style={{
-            fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 999, cursor: 'pointer',
-            border: `1px solid ${debtorsOnly ? 'var(--danger)' : 'var(--border-strong)'}`,
-            background: debtorsOnly ? 'var(--danger-tint)' : 'var(--surface)',
-            color: debtorsOnly ? 'var(--danger)' : 'var(--text-muted)', whiteSpace: 'nowrap',
-          }}
-        >
-          {t('list.debtors_only')}
-        </button>
-        <select
-          value={sortBy}
-          onChange={e => setSortBy(e.target.value as 'name' | 'balance' | 'overdue')}
-          style={{ fontSize: 12.5, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
-        >
-          <option value="name">{t('list.sort_name')}</option>
-          <option value="balance">{t('list.sort_balance')}</option>
-          <option value="overdue">{t('list.sort_overdue')}</option>
-        </select>
-        <button
-          onClick={exportDebtors}
-          disabled={filtered.length === 0}
-          style={{
-            fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 8,
-            cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap',
-            border: '1px solid var(--border-strong)', background: 'var(--surface)',
-            color: 'var(--text-muted)', opacity: filtered.length === 0 ? 0.5 : 1,
-          }}
-        >
-          {t('list.export_csv')}
-        </button>
-        <div style={{ flex: 1 }} />
-        {canCharge && (
+      {/* Общая шапка списков: поиск и кнопки — одной строкой, фильтры — второй,
+          счётчик под ними. */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
+        actions={<>
           <button
-            onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
+            onClick={exportDebtors}
+            disabled={filtered.length === 0}
             style={{
-              fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
-              background: selectMode ? 'var(--success-tint)' : 'var(--surface)',
-              color: selectMode ? 'var(--success)' : 'var(--text)',
-              border: `1px solid ${selectMode ? 'var(--success)' : 'var(--border-strong)'}`,
+              fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 8,
+              cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid var(--border-strong)', background: 'var(--surface)',
+              color: 'var(--text-muted)', opacity: filtered.length === 0 ? 0.5 : 1,
             }}
           >
-            {selectMode ? t('bulk.exit') : t('bulk.select')}
+            {t('list.export_csv')}
           </button>
-        )}
-      </div>
+          {canCharge && (
+            <button
+              onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
+              style={{
+                fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
+                background: selectMode ? 'var(--success-tint)' : 'var(--surface)',
+                color: selectMode ? 'var(--success)' : 'var(--text)',
+                border: `1px solid ${selectMode ? 'var(--success)' : 'var(--border-strong)'}`,
+              }}
+            >
+              {selectMode ? t('bulk.exit') : t('bulk.select')}
+            </button>
+          )}
+        </>}
+        filters={<>
+          <button
+            onClick={() => setDebtorsOnly(v => !v)}
+            style={{
+              fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 999, cursor: 'pointer',
+              border: `1px solid ${debtorsOnly ? 'var(--danger)' : 'var(--border-strong)'}`,
+              background: debtorsOnly ? 'var(--danger-tint)' : 'var(--surface)',
+              color: debtorsOnly ? 'var(--danger)' : 'var(--text-muted)', whiteSpace: 'nowrap',
+            }}
+          >
+            {t('list.debtors_only')}
+          </button>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value as 'name' | 'balance' | 'overdue')}
+            style={{ fontSize: 12.5, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
+          >
+            <option value="name">{t('list.sort_name')}</option>
+            <option value="balance">{t('list.sort_balance')}</option>
+            <option value="overdue">{t('list.sort_overdue')}</option>
+          </select>
+        </>}
+        count={`${t('list.count')}: ${filtered.length}`}
+      />
 
       {/* Панель массового начисления */}
       {selectMode && (

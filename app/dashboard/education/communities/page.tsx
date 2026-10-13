@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -223,18 +224,16 @@ export default function CommunitiesPage() {
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <input aria-label={t('search_placeholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('search_placeholder')}
-          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
-        />
-        <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer' }}>
-          <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
-          {t('show_inactive')}
-        </label>
-      </div>
+      {/* Общая шапка списков: поиск, фильтр — второй строкой. */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('search_placeholder')} />}
+        filters={
+          <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center', fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
+            {t('show_inactive')}
+          </label>
+        }
+      />
 
       {loading ? (
         <SkeletonRows rows={6} />

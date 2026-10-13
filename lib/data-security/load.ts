@@ -221,14 +221,27 @@ export async function loadPersonAccess(personId: string, lang: Lang): Promise<Pe
 
 /**
  * Кто СЕЙЧАС держит конкретное право — для карточки права на общем экране.
- * Возвращает подписи ролей и имена людей, а не технические коды.
+ * Возвращает подписи ролей и имена людей, а не технические коды; id нужны,
+ * чтобы снять право прямо из карточки (крестик, DELETE /api/data-security/holders).
+ *
+ * superadmins — все, у кого роль superadmin: она пропускает любую проверку
+ * в коде, даже без строки права. Раньше карточка их не показывала, и владелец
+ * видел право «закрытым» для двух других супер-админов (замечание 2026-10-13).
  */
+export interface PrivilegeHolders {
+  roles: { id: string; name: string; members: number; removable: boolean }[]
+  people: { id: string; name: string }[]
+  superadmins: string[]
+}
+
 export async function loadPrivilegeHolders(
   module: string,
   code: string,
   lang: Lang,
-): Promise<{ roles: string[]; people: string[] }> {
+): Promise<PrivilegeHolders> {
   const sb = createServerClient()
+  const personName = (p: { full_name: string | null; hebrew_name: string | null }) =>
+    (lang === 'he' && p.hebrew_name) ? p.hebrew_name : (p.full_name ?? '')
 
   const { data: rp } = await sb
     .from('role_privileges')
@@ -238,10 +251,17 @@ export async function loadPrivilegeHolders(
   const roleIds = [...new Set((rp ?? []).map(r => r.role_id))]
 
   const { data: roles } = roleIds.length
-    ? await sb.from('roles').select('id, name').in('id', roleIds)
-    : { data: [] as { id: string; name: string }[] }
+    ? await sb.from('roles').select('id, code, name').in('id', roleIds)
+    : { data: [] as { id: string; code: string; name: string }[] }
 
-  let people: string[] = []
+  // Сколько людей в каждой роли — снятие права с роли снимает его со всех них.
+  const members = new Map<string, number>()
+  if (roleIds.length) {
+    const { data: pr } = await sb.from('person_roles').select('role_id').in('role_id', roleIds)
+    for (const r of pr ?? []) members.set(r.role_id, (members.get(r.role_id) ?? 0) + 1)
+  }
+
+  let people: { id: string; name: string }[] = []
   try {
     const { data: pp } = await sb
       .from('person_privileges')
@@ -255,13 +275,29 @@ export async function loadPrivilegeHolders(
       .map(p => p.person_id))]
     if (ids.length) {
       const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', ids)
-      people = (persons ?? []).map(p => (lang === 'he' && p.hebrew_name) ? p.hebrew_name : (p.full_name ?? ''))
+      people = (persons ?? []).map(p => ({ id: p.id, name: personName(p) }))
     }
   } catch { /* таблицы нет — личных держателей нет */ }
 
+  let superadmins: string[] = []
+  const { data: saRole } = await sb.from('roles').select('id').eq('code', 'superadmin').maybeSingle()
+  if (saRole) {
+    const { data: saRows } = await sb.from('person_roles').select('person_id').eq('role_id', saRole.id)
+    const saIds = [...new Set((saRows ?? []).map(r => r.person_id))]
+    if (saIds.length) {
+      const { data: persons } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', saIds)
+      superadmins = (persons ?? []).map(personName)
+    }
+  }
+
   return {
-    roles: (roles ?? []).map(r => r.name).sort((a, b) => a.localeCompare(b)),
-    people: people.sort((a, b) => a.localeCompare(b)),
+    // Строки роли superadmin сохранены по просьбе владельца (миграция
+    // 20260917180000) и ни на что не влияют — снимать их крестиком незачем.
+    roles: (roles ?? [])
+      .map(r => ({ id: r.id, name: r.name, members: members.get(r.id) ?? 0, removable: r.code !== 'superadmin' }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    people: people.sort((a, b) => a.name.localeCompare(b.name)),
+    superadmins: superadmins.sort((a, b) => a.localeCompare(b)),
   }
 }
 

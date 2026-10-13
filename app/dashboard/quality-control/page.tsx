@@ -9,6 +9,7 @@ import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import type { FeatureAccess, FeaturePerms } from '@/lib/permissions'
 import { getModuleColor } from '@/lib/module-colors'
@@ -188,22 +189,17 @@ export default function QualityControlPage() {
             {/* Search toolbar */}
             <div style={{
               padding: '12px 16px', borderBottom: '1px solid var(--surface-2)', backgroundColor: 'var(--surface-2)',
-              display: 'flex', alignItems: 'center', gap: 8,
             }}>
-              <input aria-label={t('list.search_placeholder')}
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder={t('list.search_placeholder')}
-                style={{ padding: '7px 12px', fontSize: 13, border: '1px solid var(--border)', borderRadius: 6, outline: 'none', width: 280 }}
+              <ListToolbar
+                search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
+                actions={canCreateCheck && (
+                  <PageActionButton
+                    label={t('list.new_check_button')}
+                    onClick={() => setShowCreate(true)}
+                    accentColor={getModuleColor('quality_control')}
+                  />
+                )}
               />
-              <div style={{ flex: 1 }} />
-              {canCreateCheck && (
-                <PageActionButton
-                  label={t('list.new_check_button')}
-                  onClick={() => setShowCreate(true)}
-                  accentColor={getModuleColor('quality_control')}
-                />
-              )}
             </div>
 
             {/* Table */}

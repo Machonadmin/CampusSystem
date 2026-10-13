@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import QuickLeadModal from './QuickLeadModal'
 import RecruitmentSummary from './RecruitmentSummary'
@@ -201,47 +202,48 @@ export default function RecruitmentTab() {
         ))}
       </div>
 
-      {/* Toolbar — только поиск, «Фильтры», создать, экспорт всегда видимы */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input aria-label={t('leads.search_placeholder')}
-          value={search} onChange={e => setSearch(e.target.value)}
-          placeholder={t('leads.search_placeholder')}
-          style={{ flex: '1 1 220px', padding: '10px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }}
-        />
-        <button
-          type="button"
-          onClick={() => setFiltersOpen(v => !v)}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', fontSize: 13,
-            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
-            background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
-            color: filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--text-muted)',
-          }}
-        >
-          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-          </svg>
-          {t('study.students.filters_label')}
-          {activeFilters > 0 && (
-            <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
-          )}
-          <Caret open={filtersOpen} variant="toggle" color="currentColor" />
-        </button>
-        <PageActionButton
-          label={t('leads.create_button')}
-          onClick={() => setAddOpen('quick')}
-          accentColor={getModuleColor('education')}
-        />
-        <button
-          type="button"
-          onClick={exportLeads}
-          disabled={filtered.length === 0}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-        >
-          <DownloadIcon /> {tCommon('export_csv')}
-        </button>
-      </div>
+      {/* Общая шапка списков: поиск и «создать» — одной строкой, «Фильтры» и
+          экспорт — второй. */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('leads.search_placeholder')} />}
+        actions={
+          <PageActionButton
+            label={t('leads.create_button')}
+            onClick={() => setAddOpen('quick')}
+            accentColor={getModuleColor('education')}
+          />
+        }
+        filters={<>
+          <button
+            type="button"
+            onClick={() => setFiltersOpen(v => !v)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', fontSize: 13,
+              cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+              border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+              background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
+              color: filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--text-muted)',
+            }}
+          >
+            <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+            </svg>
+            {t('study.students.filters_label')}
+            {activeFilters > 0 && (
+              <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
+            )}
+            <Caret open={filtersOpen} variant="toggle" color="currentColor" />
+          </button>
+          <button
+            type="button"
+            onClick={exportLeads}
+            disabled={filtered.length === 0}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+          >
+            <DownloadIcon /> {tCommon('export_csv')}
+          </button>
+        </>}
+      />
 
       {/* Свёрнутые фильтры */}
       {filtersOpen && (

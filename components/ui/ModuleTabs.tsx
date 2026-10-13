@@ -23,11 +23,18 @@ export default function ModuleTabs({ tabs, active, onChange, accentColor, varian
   const underline = variant === 'underline'
 
   return (
+    // Всегда одна строка (замечание владельца 2026-10-13: в «הערכת הוראה» три
+    // вкладки занимали в телефоне две строки). На узком экране отступы внутри
+    // вкладок меньше, а если всё равно не влезает — ряд листается вбок, как
+    // фильтры в «משימות».
     <div style={{
       display: 'flex',
       borderBottom: '1px solid var(--border)',
       gap: underline ? 6 : 4,
-      flexWrap: 'wrap',
+      flexWrap: 'nowrap',
+      overflowX: 'auto',
+      overflowY: 'hidden',
+      scrollbarWidth: 'none',
     }}>
       {visibleTabs.map(t => {
         const isActive = t.key === active
@@ -46,7 +53,7 @@ export default function ModuleTabs({ tabs, active, onChange, accentColor, varian
             transition: 'all 0.15s ease',
           }
           : {
-            padding: '10px 28px',
+            padding: '10px clamp(14px, 4vw, 28px)',
             fontSize: 13,
             fontWeight: isActive ? 600 : 500,
             color: isActive ? accentColor : 'var(--text-muted)',
@@ -59,7 +66,7 @@ export default function ModuleTabs({ tabs, active, onChange, accentColor, varian
             transition: 'all 0.15s ease',
           }
         return (
-          <button key={t.key} onClick={() => onChange(t.key)} style={style}>
+          <button key={t.key} onClick={() => onChange(t.key)} style={{ ...style, whiteSpace: 'nowrap', flexShrink: 0 }}>
             {t.label}
             {t.badge !== undefined && t.badge > 0 && (
               <span style={{ marginInlineStart: 6, opacity: 0.7 }}>({t.badge})</span>

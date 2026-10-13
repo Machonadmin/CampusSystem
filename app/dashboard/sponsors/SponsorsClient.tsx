@@ -9,6 +9,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Button } from '@/components/ui/Button'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donations'
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
@@ -213,41 +214,40 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         </div>
       )}
 
-      {/* Search + type filter */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input aria-label={t('list.search_placeholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('list.search_placeholder')}
-          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
-        />
-        <select
-          value={typeFilter}
-          onChange={e => setTypeFilter(e.target.value)}
-          style={{ fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
-        >
-          <option value="">{t('list.all_types')}</option>
-          {SPONSOR_TYPES.map(tp => (
-            <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
-          ))}
-        </select>
-        <button
-          type="button"
-          aria-pressed={pendingOnly}
-          onClick={() => setPendingOnly(v => !v)}
-          style={{
-            fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
-            border: `1px solid ${pendingOnly ? primary : 'var(--border-strong)'}`,
-            background: pendingOnly ? light : 'var(--surface)',
-            color: pendingOnly ? primary : 'var(--text)',
-          }}
-        >
-          {tPersons('person_link.pending_filter')} · {pendingCount}
-        </button>
-        <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ marginInlineStart: 'auto' }}>
-          <DownloadIcon /> {tCommon('export_csv')}
-        </Button>
-      </div>
+      {/* Общая шапка списков: поиск и экспорт — одной строкой, фильтры — второй. */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
+        actions={
+          <Button type="button" onClick={exportCsv} disabled={filtered.length === 0}>
+            <DownloadIcon /> {tCommon('export_csv')}
+          </Button>
+        }
+        filters={<>
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value)}
+            style={{ fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }}
+          >
+            <option value="">{t('list.all_types')}</option>
+            {SPONSOR_TYPES.map(tp => (
+              <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            aria-pressed={pendingOnly}
+            onClick={() => setPendingOnly(v => !v)}
+            style={{
+              fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
+              border: `1px solid ${pendingOnly ? primary : 'var(--border-strong)'}`,
+              background: pendingOnly ? light : 'var(--surface)',
+              color: pendingOnly ? primary : 'var(--text)',
+            }}
+          >
+            {tPersons('person_link.pending_filter')} · {pendingCount}
+          </button>
+        </>}
+      />
 
       {/* Create form */}
       {canManage && creating && (

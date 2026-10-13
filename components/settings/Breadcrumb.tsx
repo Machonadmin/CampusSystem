@@ -13,11 +13,18 @@ interface Props {
   items: Item[]
 }
 
+// Всегда одна строка (замечание владельца 2026-10-13: в телефоне «מסך הבית»
+// и «תלושי שכר» ломались на две строки). Ссылки не переносятся и не
+// сжимаются; если места не хватает, обрезается многоточием последний пункт —
+// текущий экран, чьё имя и так крупно стоит в шапке страницы.
 export function Breadcrumb({ items }: Props) {
   const { isRTL } = useLang()
   return (
     <div style={{
       display: 'inline-flex', alignItems: 'center', gap: 8,
+      maxWidth: '100%',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
       padding: '8px 14px',
       background: 'var(--surface-2)',
       borderRadius: 8,
@@ -29,10 +36,13 @@ export function Breadcrumb({ items }: Props) {
         return (
           <Fragment key={idx}>
             {idx > 0 && (
-              <span style={{ color: 'var(--text-faint)', fontSize: 12 }}>{isRTL ? '‹' : '›'}</span>
+              <span style={{ color: 'var(--text-faint)', fontSize: 12, flexShrink: 0 }}>{isRTL ? '‹' : '›'}</span>
             )}
             {isLast ? (
-              <span style={{ color: 'var(--text)', fontWeight: 600 }}>
+              <span
+                title={item.label}
+                style={{ color: 'var(--text)', fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}
+              >
                 {item.label}
               </span>
             ) : item.href ? (
@@ -41,12 +51,13 @@ export function Breadcrumb({ items }: Props) {
                 style={{
                   color: 'var(--text-muted)',
                   textDecoration: 'none',
+                  flexShrink: 0,
                 }}
               >
                 {item.label}
               </Link>
             ) : (
-              <span style={{ color: 'var(--text-muted)' }}>{item.label}</span>
+              <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>{item.label}</span>
             )}
           </Fragment>
         )

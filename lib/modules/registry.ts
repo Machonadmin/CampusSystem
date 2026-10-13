@@ -192,14 +192,6 @@ export const MODULES = [
     inSidebar: false, isPrivilegeModule: true,
   },
   {
-    code: 'applicants', navKey: 'applicants', href: null,
-    routeGuard: false, pageGates: false, pagePrivilege: null,
-    gateExceptionReason:
-      'Устаревший код каталога: маршрута /dashboard/applicants нет, код модуля — education.',
-    inAccessibleModules: false, hasColour: false, implemented: false,
-    inSidebar: false, isPrivilegeModule: true,
-  },
-  {
     code: 'chavruta', navKey: 'chavruta', href: '/dashboard/chavruta',
     routeGuard: false, pageGates: false, pagePrivilege: null,
     gateExceptionReason:

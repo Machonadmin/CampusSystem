@@ -6,6 +6,7 @@ import { useUrlTab } from '@/lib/nav/useUrlTab'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
@@ -239,28 +240,21 @@ export default function PersonsClient() {
         })}
       </div>
 
-      {/* Search */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input aria-label={t('list.search_placeholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('list.search_placeholder')}
-          style={{ flex: '1 1 260px', maxWidth: 420, fontSize: 13, padding: '9px 12px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }}
-        />
-        {!loading && !error && (
-          <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
-            {t('list.count').replace('{count}', String(total))}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={rows.length === 0}
-          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: rows.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: rows.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-        >
-          <DownloadIcon /> {tCommon('export_csv')}
-        </button>
-      </div>
+      {/* Поиск и кнопка — одной строкой, счётчик под ними (общая шапка списков). */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
+        actions={
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={rows.length === 0}
+            style={{ fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: rows.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: rows.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
+          >
+            <DownloadIcon /> {tCommon('export_csv')}
+          </button>
+        }
+        count={!loading && !error ? t('list.count').replace('{count}', String(total)) : null}
+      />
 
       {/* List */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 12 }}>

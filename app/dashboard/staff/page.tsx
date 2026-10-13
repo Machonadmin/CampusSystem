@@ -25,6 +25,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import ModuleTabs from '@/components/ui/ModuleTabs'
 import PageActionButton from '@/components/ui/PageActionButton'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { toast } from '@/components/ui/toast'
 import { RowActionsMenu, type RowAction } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -238,12 +239,11 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
       {isSuperadmin && (
         <HealthPanel refreshSignal={refreshSignal + localRefresh} onOpenMerge={() => setMergeOpen(true)} onDuplicates={setDupCount} />
       )}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {/* Поиск и «הוספת עובד» — одной парой: на телефоне кнопка стоит рядом
-            с поиском, а не отдельной строкой ниже (замечание владельца). */}
-        <div style={{ display: 'flex', gap: 10, flex: '1 1 320px', minWidth: 0 }}>
-          <input aria-label={t('search_by')} value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_by')}
-            style={{ flex: '1 1 auto', minWidth: 0, padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }} />
+      {/* Общая шапка списков: поиск и «הוספת עובד» — одной строкой (на телефоне
+          кнопка стоит рядом с поиском, замечание владельца), фильтры — второй. */}
+      <ListToolbar
+        search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('search_by')} />}
+        actions={<>
           {/* ОДНА кнопка добавления (запрос владельца: раньше было три —
               «сотрудник» / «бейл-тафкид» / «пользователь», и было непонятно, чем
               они отличаются). Единый экран делает всё: человек + должность +
@@ -264,21 +264,23 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
               {t('add_employee')}
             </button>
           )}
-        </div>
-        <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
-          style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', color: deptFilter ? 'var(--text)' : 'var(--text-faint)', minWidth: 200 }}>
-          <option value="">{t('all_depts')}</option>
-          {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
-        </select>
-        {isSuperadmin && dupCount > 0 && (
-          <button
-            onClick={() => setMergeOpen(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border-strong)' }}
-          >
-            {t('merge.launch')}
-          </button>
-        )}
-      </div>
+        </>}
+        filters={<>
+          <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)}
+            style={{ padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none', color: deptFilter ? 'var(--text)' : 'var(--text-faint)', minWidth: 200 }}>
+            <option value="">{t('all_depts')}</option>
+            {deptOptions.map(d => <option key={d.id} value={d.id}>{d.label}</option>)}
+          </select>
+          {isSuperadmin && dupCount > 0 && (
+            <button
+              onClick={() => setMergeOpen(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer', background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border-strong)' }}
+            >
+              {t('merge.launch')}
+            </button>
+          )}
+        </>}
+      />
 
       <div className="anim-rise" style={{ background: 'var(--surface)', borderRadius: 14, boxShadow: 'var(--shadow)', overflowX: 'auto' }}>
         {loading ? (

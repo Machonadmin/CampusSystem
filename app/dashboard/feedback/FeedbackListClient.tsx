@@ -112,11 +112,13 @@ function ReportCard({ item, isOwner, lang, onSaved }: {
       })
       if (!res.ok) {
         const d = await res.json().catch(() => null) as { error?: string } | null
-        toastError(d?.error ?? t('save'))
+        toastError(d?.error ?? t('save_failed'))
         return
       }
-      toastSuccess(t('save'))
+      toastSuccess(t('saved'))
       onSaved()
+    } catch {
+      toastError(t('save_failed'))
     } finally {
       setSaving(false)
     }

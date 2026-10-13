@@ -8,6 +8,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Caret } from '@/components/ui/Caret'
+import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { localizedName } from '@/lib/i18n/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
@@ -308,80 +309,82 @@ export default function StudentsTab() {
 
   return (
     <div>
-      {/* Тулбар — спокойный: поиск + «Фильтры» (за кнопкой) + экспорт. */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: filtersOpen ? 10 : 16, flexWrap: 'wrap' }}>
-        <input aria-label={t('students.search_placeholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('students.search_placeholder')}
-          style={{ ...inp, minWidth: 220, flex: '1 1 240px' }}
+      {/* Общая шапка списков: поиск и «Фильтры» — одной строкой, выбор, экспорт
+          и импорт — второй. */}
+      <div style={{ marginBottom: filtersOpen ? 10 : 16 }}>
+        <ListToolbar
+          search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('students.search_placeholder')} />}
+          actions={
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(v => !v)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+                cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+                border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+                background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
+                color: filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--text-muted)',
+              }}
+            >
+              <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+              </svg>
+              {t('students.filters_label')}
+              {activeFilters > 0 && (
+                <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
+              )}
+              <Caret open={filtersOpen} variant="toggle" color="currentColor" />
+            </button>
+          }
+          filters={<>
+            <button
+              type="button"
+              onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
+              style={{
+                padding: '7px 12px', fontSize: 13, cursor: 'pointer', borderRadius: 8, fontWeight: 600,
+                fontFamily: 'inherit', whiteSpace: 'nowrap',
+                border: `1px solid ${selectMode ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
+                background: selectMode ? 'var(--accent-tint)' : 'var(--surface)',
+                color: selectMode ? 'var(--accent-strong)' : 'var(--text-muted)',
+              }}
+            >
+              {selectMode ? t('students.bulk.exit') : t('students.bulk.select')}
+            </button>
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={students.length === 0}
+              title={t('students.export_button')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+                cursor: students.length === 0 ? 'not-allowed' : 'pointer', borderRadius: 8, fontWeight: 600,
+                fontFamily: 'inherit', whiteSpace: 'nowrap', border: '1px solid var(--border-strong)',
+                background: 'var(--surface)', color: 'var(--text-muted)', opacity: students.length === 0 ? 0.5 : 1,
+              }}
+            >
+              <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+              {t('students.export_button')}
+            </button>
+            {/* Импорт студенток — здесь, рядом с экспортом (перенесён из «Настроек»:
+                owner — меньше карточек; импорт = операция над списком студенток). */}
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/education/students/import')}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
+                cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+                border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)',
+              }}
+            >
+              <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              {tEdu('import.title')}
+            </button>
+          </>}
         />
-        <button
-          type="button"
-          onClick={() => setFiltersOpen(v => !v)}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
-            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            border: `1px solid ${filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
-            background: filtersOpen || activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)',
-            color: filtersOpen || activeFilters > 0 ? 'var(--accent-strong)' : 'var(--text-muted)',
-          }}
-        >
-          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-          </svg>
-          {t('students.filters_label')}
-          {activeFilters > 0 && (
-            <span style={{ minWidth: 16, height: 16, padding: '0 4px', borderRadius: 99, background: 'var(--accent-strong)', color: '#fff', fontSize: 10.5, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{activeFilters}</span>
-          )}
-          <Caret open={filtersOpen} variant="toggle" color="currentColor" />
-        </button>
-        <button
-          type="button"
-          onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
-          style={{
-            padding: '7px 12px', fontSize: 13, cursor: 'pointer', borderRadius: 8, fontWeight: 600,
-            fontFamily: 'inherit', whiteSpace: 'nowrap',
-            border: `1px solid ${selectMode ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
-            background: selectMode ? 'var(--accent-tint)' : 'var(--surface)',
-            color: selectMode ? 'var(--accent-strong)' : 'var(--text-muted)',
-          }}
-        >
-          {selectMode ? t('students.bulk.exit') : t('students.bulk.select')}
-        </button>
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={students.length === 0}
-          title={t('students.export_button')}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
-            cursor: students.length === 0 ? 'not-allowed' : 'pointer', borderRadius: 8, fontWeight: 600,
-            fontFamily: 'inherit', whiteSpace: 'nowrap', border: '1px solid var(--border-strong)',
-            background: 'var(--surface)', color: 'var(--text-muted)', opacity: students.length === 0 ? 0.5 : 1,
-          }}
-        >
-          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-          </svg>
-          {t('students.export_button')}
-        </button>
-        {/* Импорт студенток — здесь, рядом с экспортом (перенесён из «Настроек»:
-            owner — меньше карточек; импорт = операция над списком студенток). */}
-        <button
-          type="button"
-          onClick={() => router.push('/dashboard/education/students/import')}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
-            cursor: 'pointer', borderRadius: 8, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
-            border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text-muted)',
-          }}
-        >
-          <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-          </svg>
-          {tEdu('import.title')}
-        </button>
       </div>
 
       {/* Свёрнутые фильтры — открываются по кнопке «Фильтры». */}

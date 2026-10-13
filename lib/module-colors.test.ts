@@ -11,7 +11,6 @@ describe('isModuleImplemented', () => {
   })
 
   it('пока не реализованные модули → false', () => {
-    expect(isModuleImplemented('applicants')).toBe(false)
     expect(isModuleImplemented('nonexistent')).toBe(false)
   })
 })
