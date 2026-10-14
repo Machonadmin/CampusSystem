@@ -12,6 +12,8 @@ import SemesterCourses from './SemesterCourses'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { yearLevelTitle } from '@/lib/education/year-level'
 import { toast } from '@/components/ui/toast'
+import { Modal } from '@/components/ui/Modal'
+import KodeshLevelsManager from '@/components/education/KodeshLevelsManager'
 
 // ─── Рабочее пространство «Учёба» — drill-down ───────────────────────────────
 //   Структура (מבנה) → Год (שנה) → Набор/еврейский год (מחזור) → Семестры
@@ -103,8 +105,14 @@ export default function StudiesWorkspace() {
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editingInitial, setEditingInitial] = useState<SemesterGroupInitial | null>(null)
 
-  const loadData = useCallback(async () => {
-    setLoading(true); setError(null)
+  // Окно «עריכה» уровней кодеша (владелец 2026-10-14: кнопка у «לימודי קודש»
+  // открывает добавление/переименование/скрытие рамот, а не экран שיבוץ).
+  const [kodeshEditOpen, setKodeshEditOpen] = useState(false)
+
+  // quiet — перечитать без скелетона (после правки уровней в окне).
+  const loadData = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true)
+    setError(null)
     try {
       const [gResp, dResp, tResp, kResp, laResp] = await Promise.all([
         fetch('/api/education/semester-groups'),
@@ -342,7 +350,7 @@ export default function StudiesWorkspace() {
                 <div style={{ marginTop: 26 }}>
                   <SectionHeader
                     label={t('workspace.section_kodesh')}
-                    action={{ label: t('workspace.kodesh_manage'), onClick: () => router.push('/dashboard/education/kodesh') }}
+                    action={{ label: t('workspace.kodesh_manage'), onClick: () => setKodeshEditOpen(true) }}
                   />
                   <p style={hint}>{t('workspace.kodesh_hint')}</p>
                   {kodeshLevels.length === 0
@@ -409,6 +417,19 @@ export default function StudiesWorkspace() {
           onClose={() => { setModalMode(null); setEditingInitial(null) }}
           onSaved={handleSaved}
         />
+      )}
+
+      {kodeshEditOpen && (
+        <Modal onClose={() => setKodeshEditOpen(false)} maxWidth={520} ariaLabel={t('workspace.kodesh_levels_title')} closeOnBackdrop>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <h3 style={{ margin: 0, flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('workspace.kodesh_levels_title')}</h3>
+            <button type="button" onClick={() => setKodeshEditOpen(false)} aria-label="✕" style={{ fontSize: 16, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+          </div>
+          <KodeshLevelsManager
+            groups={kodeshLevels.map(l => ({ id: l.id, name: l.name, name_he: l.name_he, name_en: l.name_en }))}
+            onChanged={() => loadData(true)}
+          />
+        </Modal>
       )}
     </div>
   )

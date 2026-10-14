@@ -26,7 +26,9 @@ function dayName(lang: string, iso: number): string {
 
 // embedded=true — рендер внутри объединённой страницы «מורים» (без хлебных
 // крошек и своего заголовка: они у обёртки TeachersClient).
-export default function TeachersHoursClient({ embedded = false }: { embedded?: boolean } = {}) {
+// leading — узел в начале строки фильтров (вкладки обёртки «מורים»), чтобы
+// вкладки и месяц занимали одну строку.
+export default function TeachersHoursClient({ embedded = false, leading }: { embedded?: boolean; leading?: React.ReactNode } = {}) {
   const t = useTranslations('education.teachers_hours')
   const tNav = useTranslations('navigation')
   const tCommon = useTranslations('common')
@@ -70,13 +72,17 @@ export default function TeachersHoursClient({ embedded = false }: { embedded?: b
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        {leading}
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--text-muted)' }}>
-          {t('month_label')}
+          {/* На телефоне подпись «חודש» скрыта — поле месяца понятно и так. */}
+          <span className="th-month-label">{t('month_label')}</span>
           <input type="month" value={ym} onChange={e => { if (e.target.value) setYm(e.target.value) }}
+            aria-label={t('month_label')}
             style={{ fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }} />
         </label>
         <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>{t('actual_hint')}</span>
       </div>
+      <style>{`@media (max-width: 640px){ .th-month-label{ display:none } }`}</style>
       {loaded && !error && noEndTime > 0 && (
         <div style={{ fontSize: 12.5, color: 'var(--warn)', background: 'var(--warn-tint)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px' }}>
           {t('no_end_time_warning').replace('{n}', String(noEndTime))}

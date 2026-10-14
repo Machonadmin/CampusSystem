@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth/session'
 import {
   getEducationStructureDeptFilter,
   canDoEducationInAny,
-  requireEducationPrivilege,
+  requireTracksCatalogPrivilege,
 } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     // Экран управления каталогом: полный список (incl. inactive) только для
     // manage_tracks, без фильтра по подразделению (маршруты — институтские).
     if (includeInactive) {
-      await requireEducationPrivilege('manage_tracks')
+      await requireTracksCatalogPrivilege()
       const build = (select: string) =>
         sb.from('study_tracks').select(select).order('sort_order', { ascending: true })
       const { data, error } = await build(cols)
@@ -98,7 +98,7 @@ const createSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await parseBody(request, createSchema)
-    await requireEducationPrivilege('manage_tracks')
+    await requireTracksCatalogPrivilege()
     const sb = createServerClient()
 
     const { data, error } = await sb

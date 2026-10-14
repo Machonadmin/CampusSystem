@@ -543,6 +543,29 @@ export async function getEducationStructureContainerFilter(session: SessionPaylo
  * Пример:
  *   const session = await requireEducationPrivilege('manage_subjects', { department_id: body.department_id })
  */
+/**
+ * Каталог маршрутов (מסלולי חול) — институтский (spec §3.2): управлять им может
+ * только тот, у кого manage_tracks со scope='all' (или superadmin). Право со
+ * scope='department' (напр. попавшее в должность главы кафедры кодеша) каталог
+ * не открывает — иначе ответственная за кодеш правила/удаляла маршруты всего
+ * института (владелец, 2026-10-14).
+ */
+export async function canManageTracksCatalog(session: SessionPayload | null): Promise<boolean> {
+  return (await getEducationPrivilegeScope(session, 'manage_tracks')) === 'all'
+}
+
+/** Как requireEducationPrivilege('manage_tracks'), но только для scope='all'. */
+export async function requireTracksCatalogPrivilege(): Promise<SessionPayload> {
+  const session = await getSession()
+  if (!session) {
+    throw Object.assign(new Error(serverT('unauthorized')), { status: 401 })
+  }
+  if (!(await canManageTracksCatalog(session))) {
+    throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
+  }
+  return session
+}
+
 export async function requireEducationPrivilege(
   privilege: EducationPrivilege,
   target?: PrivilegeTarget,

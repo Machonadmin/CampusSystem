@@ -128,7 +128,10 @@ export default function StudentsTab() {
       const resp = await fetch(`/api/education/students?${params}`)
       if (!resp.ok) throw new Error(t('students.load_error').replace('{status}', String(resp.status)))
       const json = await resp.json()
-      setStudents(json.students ?? [])
+      // Список по алфавиту (по отображаемому имени), а не по дате открытия.
+      const list = (json.students ?? []) as Student[]
+      list.sort((a, b) => (a.person?.full_name ?? '').localeCompare(b.person?.full_name ?? '', ['ru', 'he', 'en']))
+      setStudents(list)
     } catch (e) {
       setError(e instanceof Error ? e.message : t('common.error_unknown'))
     } finally {
