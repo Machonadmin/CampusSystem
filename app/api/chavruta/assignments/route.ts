@@ -5,18 +5,22 @@ import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import type { JourneyStatus } from '@/types/database'
-import { isMissingTable } from '@/lib/supabase/errors'
+import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
 
 /**
  * Управляющая сводка пар хавруты (шиюх) для «мרכз חברותא» в модуле лимудим.
  *
- * Пары хранятся в chavruta_pairs. Решение владельца #6 (заменяет прежнее
- * «שיוך חברותא נפרד ללא שכר»): пары ведутся ТОЛЬКО здесь, и каждая активная
- * пара оплачивается как хеврута-плюс (generate-chavruta-plus читает эту
- * таблицу). Финансы только показывают пары и задают тариф.
+ * Пары хранятся в chavruta_pairs. Решение владельца 2026-10-13 (заменяет #6,
+ * по которому каждая пара оплачивалась помесячно как хеврута-плюс): хеврута
+ * одна, оплата — за записанную встречу по chavruta_rate. Пара = «חברותא קבועה»
+ * моры: ученица стоит в её журнале, и мора одной кнопкой отмечает каждую
+ * встречу. Мора может отмечать/снимать «קבועה» и сама (/api/chavruta/recurring).
  *
  *   GET  → { assignments: [{ id, teacher_person_id, teacher_name,
- *            student_journey_id, student_name }], students: [{ journey_id, name }] }
+ *            student_journey_id, student_name, weekday, start_time }],
+ *            students: [{ journey_id, name }] }
+ *          weekday/start_time — день и время встречи, их ставит мора (null — не
+ *          задано или ещё нет миграции 20261013140000).
  *          Право: view chavruta (staff-comp ЛИБО manage_students). students —
  *          активные ученицы для пикера.
  *   POST → создать/реактивировать пару { teacher_person_id, student_journey_id }.
@@ -62,17 +66,25 @@ export async function GET() {
     }
 
     // Активные пары.
-    let rows: Array<{ id: string; teacher_person_id: string; student_journey_id: string }> = []
+    type PairRow = { id: string; teacher_person_id: string; student_journey_id: string; weekday: number | null; start_time: string | null }
+    let rows: PairRow[] = []
     try {
+      const { data, error } = await sb.from('chavruta_pairs')
+        .select('id, teacher_person_id, student_journey_id, weekday, start_time')
+        .eq('is_active', true)
+        .order('created_at', { ascending: true })
+      if (error) throw error
+      rows = (data ?? []) as PairRow[]
+    } catch (e) {
+      if (isMissingTable(e)) return NextResponse.json({ assignments: [], students })
+      if (!isMissingRelation(e)) throw e
+      // Колонок дня/времени ещё нет — пары без расписания.
       const { data, error } = await sb.from('chavruta_pairs')
         .select('id, teacher_person_id, student_journey_id')
         .eq('is_active', true)
         .order('created_at', { ascending: true })
       if (error) throw error
-      rows = (data ?? []) as typeof rows
-    } catch (e) {
-      if (isMissingTable(e)) return NextResponse.json({ assignments: [], students })
-      throw e
+      rows = ((data ?? []) as Array<Omit<PairRow, 'weekday' | 'start_time'>>).map(r => ({ ...r, weekday: null, start_time: null }))
     }
 
     const teacherNames = await personNames(sb, rows.map(r => r.teacher_person_id))
@@ -94,6 +106,8 @@ export async function GET() {
       teacher_name: teacherNames.get(r.teacher_person_id) ?? '',
       student_journey_id: r.student_journey_id,
       student_name: studentNameByJourney.get(r.student_journey_id) ?? '',
+      weekday: r.weekday,
+      start_time: r.start_time,
     }))
 
     return NextResponse.json({ assignments, students })

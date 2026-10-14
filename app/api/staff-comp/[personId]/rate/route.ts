@@ -1,3 +1,4 @@
+import type { Database } from '@/types/database'
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -9,8 +10,11 @@ import { errorResponse } from '@/lib/api/handler'
 /**
  * Персональные тарифы сотрудника.
  *   GET  → { rate } (или дефолт-нули, если ещё не задано). Право: view.
- *   PUT  → задать { hourly_rate, chavruta_rate, chavruta_plus_rate,
- *          chavruta_plus_basis }. Право: manage. Upsert по person_id.
+ *   PUT  → задать { hourly_rate, chavruta_rate }. Право: manage. Upsert по person_id.
+ * chavruta_rate — единый тариф хеврута за встречу (решение владельца 2026-10-13).
+ * chavruta_plus_rate / chavruta_plus_basis больше не используются (хеврута-плюс
+ * упразднена); экран их не шлёт, и PUT их не трогает, если они не переданы явно,
+ * — старые значения остаются в базе для справки.
  * Деплой-безопасно к отсутствию таблицы (42P01).
  */
 const DEFAULT_RATE = { hourly_rate: 0, chavruta_rate: 0, chavruta_plus_rate: 0, chavruta_plus_basis: 'per_student_month' as const }
@@ -57,19 +61,20 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
       hourly_rate?: number; chavruta_rate?: number; chavruta_plus_rate?: number; chavruta_plus_basis?: string
     }
     const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) && n >= 0 ? n : 0 }
-    const basis = body.chavruta_plus_basis === 'per_hour' ? 'per_hour' : 'per_student_month'
+
+    const row: Database['public']['Tables']['staff_compensation']['Insert'] = {
+      person_id: params.personId,
+      hourly_rate: num(body.hourly_rate),
+      chavruta_rate: num(body.chavruta_rate),
+      updated_by: session.person_id,
+      updated_at: new Date().toISOString(),
+    }
+    if (body.chavruta_plus_rate !== undefined) row.chavruta_plus_rate = num(body.chavruta_plus_rate)
+    if (body.chavruta_plus_basis !== undefined) row.chavruta_plus_basis = body.chavruta_plus_basis === 'per_hour' ? 'per_hour' : 'per_student_month'
 
     const sb = createServerClient()
     const { data, error } = await comp(sb)
-      .upsert({
-        person_id: params.personId,
-        hourly_rate: num(body.hourly_rate),
-        chavruta_rate: num(body.chavruta_rate),
-        chavruta_plus_rate: num(body.chavruta_plus_rate),
-        chavruta_plus_basis: basis,
-        updated_by: session.person_id,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'person_id' })
+      .upsert(row, { onConflict: 'person_id' })
       .select('person_id, hourly_rate, chavruta_rate, chavruta_plus_rate, chavruta_plus_basis, updated_at')
       .single()
     if (error) {

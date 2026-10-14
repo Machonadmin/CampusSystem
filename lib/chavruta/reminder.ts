@@ -1,5 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { effectiveChavrutaTeacherIds } from './teachers'
+import { teachersWithChavrutaToday } from './schedule'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { pushNotificationRows } from '@/lib/notifications/create'
 
@@ -9,6 +10,8 @@ type SB = ReturnType<typeof createServerClient>
  * Напоминание о хавруте по СРЕДАМ: каждой море хавруты (кодеш ∪ ручные) —
  * уведомление «עם מי את עושה חברותא היום?». Вызывается из cron ежедневно, но
  * срабатывает только в среду. Дедуп по (type='chavruta_reminder', metadata.date).
+ * Мора, у которой сегодня «חברותא קבועה» с днём и временем, общего вопроса не
+ * получает: ей приходит своё напоминание с именами (lib/chavruta/schedule.ts).
  * Best-effort, деплой-безопасно (нет notifications/таблиц → 0). Возвращает число.
  */
 export async function materializeChavrutaReminders(sb: SB): Promise<number> {
@@ -19,7 +22,8 @@ export async function materializeChavrutaReminders(sb: SB): Promise<number> {
     const p = (n: number) => String(n).padStart(2, '0')
     const today = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`
 
-    const teacherIds = [...await effectiveChavrutaTeacherIds(sb)]
+    const scheduledToday = await teachersWithChavrutaToday(sb, now)
+    const teacherIds = [...await effectiveChavrutaTeacherIds(sb)].filter(id => !scheduledToday.has(id))
     if (teacherIds.length === 0) return 0
 
     let created = 0

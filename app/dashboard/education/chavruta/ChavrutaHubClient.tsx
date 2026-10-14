@@ -22,6 +22,8 @@ interface Assignment {
   teacher_name: string
   student_journey_id: string
   student_name: string
+  weekday: number | null
+  start_time: string | null
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -220,6 +222,7 @@ export default function ChavrutaHubClient({ canManage, isTeacher }: { canManage:
                     <tr>
                       <th style={th}>{t('col_teacher')}</th>
                       <th style={th}>{t('col_student')}</th>
+                      <th style={th}>{t('col_schedule')}</th>
                       {canManage && <th style={{ ...th, textAlign: 'end' }}></th>}
                     </tr>
                   </thead>
@@ -228,6 +231,11 @@ export default function ChavrutaHubClient({ canManage, isTeacher }: { canManage:
                       <tr key={a.id}>
                         <td data-label={t('col_teacher')} style={{ ...td, fontWeight: 500 }}>{a.teacher_name || '—'}</td>
                         <td data-label={t('col_student')} style={td}>{a.student_name || '—'}</td>
+                        <td data-label={t('col_schedule')} style={{ ...td, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                          {a.weekday != null && a.start_time
+                            ? t('recurring_schedule').replace('{day}', t(`weekday_${a.weekday}`)).replace('{time}', a.start_time.slice(0, 5))
+                            : '—'}
+                        </td>
                         {canManage && (
                           <td data-label="" style={{ ...td, textAlign: 'end' }}>
                             <button
