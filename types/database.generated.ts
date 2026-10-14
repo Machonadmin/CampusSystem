@@ -649,24 +649,30 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean
+          start_time: string | null
           student_journey_id: string
           teacher_person_id: string
+          weekday: number | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
           id?: string
           is_active?: boolean
+          start_time?: string | null
           student_journey_id: string
           teacher_person_id: string
+          weekday?: number | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
           id?: string
           is_active?: boolean
+          start_time?: string | null
           student_journey_id?: string
           teacher_person_id?: string
+          weekday?: number | null
         }
         Relationships: [
           {
@@ -737,6 +743,42 @@ export type Database = {
             columns: ["teacher_person_id"]
             isOneToOne: false
             referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chavruta_skips: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          pair_id: string
+          skip_date: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          pair_id: string
+          skip_date: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          pair_id?: string
+          skip_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chavruta_skips_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "persons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chavruta_skips_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: false
+            referencedRelation: "chavruta_pairs"
             referencedColumns: ["id"]
           },
         ]

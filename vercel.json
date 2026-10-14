@@ -10,6 +10,10 @@
     {
       "path": "/api/cron/generate-lessons",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/chavruta",
+      "schedule": "0 17 * * *"
     }
   ]
 }
