@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope, hasEducationPrivilege } from '@/lib/education/permissions'
+import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope, hasEducationPrivilege, canManageTracksCatalog } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { canManageKodesh } from '@/lib/education/kodesh-access'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
@@ -33,7 +33,7 @@ import { errorResponse } from '@/lib/api/handler'
  *   kodesh_home     → canManageKodesh (GET /api/education/kodesh/home)
  *   kodesh_rav      → GET teacher-approvals ИЛИ GET teacher-quotas (экран =
  *                     ForbiddenState только если закрыты оба)
- *   track_catalog   → hasEducationPrivilege manage_tracks (GET study-tracks?includeInactive=1)
+ *   track_catalog   → manage_tracks со scope='all' (каталог институтский) (GET study-tracks?includeInactive=1)
  *   no_lesson_days  → canManageEducationInAny manage_class_groups (GET no-lesson-days)
  *   student_alerts  → canDoEducationInAny view_students ИЛИ manage_alerts (GET alerts)
  *   finance_admin   → GET finance/settings ИЛИ GET finance/discount-approvals
@@ -100,7 +100,7 @@ export async function GET() {
       safe(canManageEducationInAny(session, 'manage_class_teachers'), false),
       safe(canDoEducationInAny(session, 'approve_kodesh_teacher'), false),
       safe(canDoEducationInAny(session, 'set_teacher_quota'), false),
-      safe(hasEducationPrivilege(session, 'manage_tracks'), false),
+      safe(canManageTracksCatalog(session), false),
       safe(canManageEducationInAny(session, 'manage_class_groups'), false),
       safe(hasEducationPrivilege(session, 'manage_alerts'), false),
       safe(hasFinancePrivilege(session, 'view'), false),
