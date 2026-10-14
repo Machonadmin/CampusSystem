@@ -5,6 +5,10 @@ import { requireEducationPrivilege, hasEducationPrivilege, getEducationPrivilege
 import { journeyTarget } from '@/lib/education/journey-target'
 import { getClassGroupTarget } from '@/lib/education/lesson-access'
 import { errorResponse } from '@/lib/api/handler'
+import { isMissingColumn } from '@/lib/supabase/errors'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
+import { syncKodeshCourseEnrollments } from '@/lib/education/kodesh-placement'
 
 /**
  * GET /api/education/class-groups/[id]/enrollments
@@ -57,6 +61,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
  *   ИЛИ { student_ids: string[] } (backward-compat алиас: student_ids == journey_ids)
  *
  * Только journeys с education_status='student' могут быть записаны.
+ * Кодеш: только с финальным одобрением еврейства; в уровень — если студентка не
+ * на другом уровне (и тогда она записывается в курсы уровня); в курс уровня —
+ * только студентка этого уровня.
  * Идемпотентен: уже записанные пропускаются.
  * Возвращает: { added, already, total }.
  */
@@ -76,32 +83,49 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
 
     const sb = createServerClient()
 
-    const { data: group, error: gErr } = await sb
+    // parent_semester_id нужен для правил кодеша (уровень vs курс уровня).
+    // Деплой-безопасно: без колонки (42703) — читаем только department_id.
+    let { data: groupRaw, error: gErr } = await sb
       .from('class_groups')
-      .select('department_id')
+      .select('department_id, parent_semester_id')
       .eq('id', params.id)
       .maybeSingle()
+    if (gErr && isMissingColumn(gErr)) {
+      const fb = await sb.from('class_groups').select('department_id').eq('id', params.id).maybeSingle()
+      groupRaw = fb.data as typeof groupRaw
+      gErr = fb.error
+    }
     if (gErr) throw gErr
+    const group = groupRaw as { department_id: string | null; parent_semester_id?: string | null } | null
     if (!group) return apiError('study_group_not_found', 404)
+    const isKodesh = group.department_id === KODESH_DEPT_ID
+    const kodeshLevelOfCourse = isKodesh ? (group.parent_semester_id ?? null) : null
 
-    const session = await requireEducationPrivilege('manage_enrollments', { department_id: group.department_id })
+    const session = await requireEducationPrivilege('manage_enrollments', { department_id: group.department_id ?? undefined })
 
     // Проверить, что все journeys существуют и имеют status='student'
-    const { data: journeys, error: jErr } = await sb
+    const { data: journeysRaw, error: jErr } = await sb
       .from('education_journeys')
-      .select('id, education_status')
+      .select('id, education_status, jewishness_status')
       .in('id', uniqueIds)
     if (jErr) throw jErr
+    const journeys = (journeysRaw ?? []) as Array<{ id: string; education_status: string | null; jewishness_status: string | null }>
 
-    const foundIds = new Set((journeys ?? []).map(j => j.id))
+    const foundIds = new Set(journeys.map(j => j.id))
     const missing = uniqueIds.filter(id => !foundIds.has(id))
     if (missing.length > 0) {
       return apiErrorWith('journeys_not_found_list', 400, { ids: missing.join(', ') })
     }
 
-    const nonStudents = (journeys ?? []).filter(j => j.education_status !== 'student')
+    const nonStudents = journeys.filter(j => j.education_status !== 'student')
     if (nonStudents.length > 0) {
       return apiError('enroll_only_students', 400)
+    }
+
+    // Кодеш: те же ворота, что у шибуца (kodesh/assignment PUT) — только
+    // студентки с финальным одобрением еврейства.
+    if (isKodesh && journeys.some(j => j.jewishness_status !== JEWISHNESS_FINAL_APPROVED)) {
+      return apiError('kodesh_assign_no_jewishness_approval', 409)
     }
 
     // Записывать можно только студенток, которых пользователь видит (red-team
@@ -137,6 +161,43 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     const alreadyIds = new Set((existingEnrolls ?? []).map(e => e.journey_id))
     const toAdd = uniqueIds.filter(id => !alreadyIds.has(id))
 
+    // Кодеш: правило «ровно один уровень».
+    //   - Уровень: нельзя записать студентку, уже распределённую на ДРУГОЙ уровень
+    //     (перевод — только через экран шибуца, он снимает с прежнего уровня).
+    //   - Курс уровня: записать можно только студентку этого уровня.
+    let kodeshLevelIds: string[] = []
+    if (isKodesh && toAdd.length > 0) {
+      const { data: lv, error: lvErr } = await sb
+        .from('class_groups')
+        .select('id')
+        .eq('department_id', KODESH_DEPT_ID)
+        .is('parent_semester_id', null)
+      if (lvErr && !isMissingColumn(lvErr)) throw lvErr
+      kodeshLevelIds = ((lv ?? []) as Array<{ id: string }>).map(g => g.id)
+
+      if (kodeshLevelOfCourse === null) {
+        const otherLevels = kodeshLevelIds.filter(id => id !== params.id)
+        if (otherLevels.length > 0) {
+          const { data: other, error: oErr } = await sb
+            .from('class_enrollments')
+            .select('journey_id')
+            .in('journey_id', toAdd)
+            .in('class_group_id', otherLevels)
+          if (oErr) throw oErr
+          if ((other ?? []).length > 0) return apiError('kodesh_enroll_other_level', 409)
+        }
+      } else {
+        const { data: inLevel, error: ilErr } = await sb
+          .from('class_enrollments')
+          .select('journey_id')
+          .eq('class_group_id', kodeshLevelOfCourse)
+          .in('journey_id', toAdd)
+        if (ilErr) throw ilErr
+        const placed = new Set(((inLevel ?? []) as Array<{ journey_id: string }>).map(r => r.journey_id))
+        if (toAdd.some(id => !placed.has(id))) return apiError('kodesh_enroll_not_in_level', 409)
+      }
+    }
+
     if (toAdd.length > 0) {
       const rows = toAdd.map(journey_id => ({ journey_id, class_group_id: params.id }))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -146,6 +207,13 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
           return apiError('invalid_reference', 400)
         }
         throw insErr
+      }
+
+      // Запись в уровень кодеша = запись и в его активные курсы (как шибуц).
+      if (isKodesh && kodeshLevelOfCourse === null && kodeshLevelIds.includes(params.id)) {
+        for (const journeyId of toAdd) {
+          await syncKodeshCourseEnrollments(sb, journeyId, params.id, kodeshLevelIds)
+        }
       }
     }
 

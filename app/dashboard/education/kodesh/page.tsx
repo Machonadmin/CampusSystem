@@ -153,14 +153,17 @@ export default function KodeshAssignmentPage() {
   const renameGroup = async (g: Group) => {
     const name = editName.trim()
     if (!name) { setEditingGroupId(null); return }
+    // Переименование — в поле языка интерфейса (то, что видно на экране, см.
+    // gname): RU → name, HE → name_he, EN → name_en.
+    const field = lang === 'he' ? 'name_he' : lang === 'en' ? 'name_en' : 'name'
     setSavingName(true); setErr(null)
     try {
       const res = await fetch(`/api/education/class-groups/${g.id}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name_he: name }),
+        body: JSON.stringify({ [field]: name }),
       })
       if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
-      setGroups(list => list.map(x => x.id === g.id ? { ...x, name_he: name } : x))
+      setGroups(list => list.map(x => x.id === g.id ? { ...x, [field]: name } : x))
       setEditingGroupId(null)
     } catch { setErr(t('save_failed')) }
     finally { setSavingName(false) }
@@ -282,7 +285,7 @@ export default function KodeshAssignmentPage() {
                       {!periodReadOnly && (
                         <>
                           <button
-                            onClick={() => { setEditingGroupId(g.id); setEditName(g.name_he || g.name) }}
+                            onClick={() => { setEditingGroupId(g.id); setEditName(gname(g)) }}
                             style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer' }}
                           >
                             {t('levels_rename')}

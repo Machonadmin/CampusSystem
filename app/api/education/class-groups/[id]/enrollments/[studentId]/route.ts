@@ -3,6 +3,9 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { isMissingColumn } from '@/lib/supabase/errors'
+import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { syncKodeshCourseEnrollments } from '@/lib/education/kodesh-placement'
 
 /**
  * DELETE /api/education/class-groups/[id]/enrollments/[studentId]
@@ -11,6 +14,7 @@ import { errorResponse } from '@/lib/api/handler'
  * Параметр [studentId] сохранён для совместимости UI; теперь это journey_id.
  * Право: manage_enrollments в подразделении группы.
  * Идемпотентен: если записи нет — { ok: true, already: true }.
+ * Уровень кодеша: студентка снимается и с курсов этого уровня.
  */
 export async function DELETE(
   _request: NextRequest,
@@ -46,6 +50,18 @@ export async function DELETE(
       .eq('class_group_id', params.id)
       .eq('journey_id', params.studentId)
     if (delErr) throw delErr
+
+    // Снятие с УРОВНЯ кодеша = снятие и с курсов этого уровня (как в шибуце).
+    if (group.department_id === KODESH_DEPT_ID) {
+      const { data: lv, error: lvErr } = await sb
+        .from('class_groups')
+        .select('id')
+        .eq('id', params.id)
+        .is('parent_semester_id', null)
+        .maybeSingle()
+      if (lvErr && !isMissingColumn(lvErr)) throw lvErr
+      if (lv) await syncKodeshCourseEnrollments(sb, params.studentId, null, [params.id])
+    }
 
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {

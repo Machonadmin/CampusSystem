@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { clampHorizonToPeriod } from './lesson-generation'
+import { clampHorizonToPeriod, slotWouldRegenerate } from './lesson-generation'
 import { parseDateUTC, MS_PER_DAY } from './schedule-dates'
 
 // Горизонт ежедневного cron-а генерации уроков: [сегодня; сегодня+N-1],
@@ -41,5 +41,33 @@ describe('clampHorizonToPeriod', () => {
 
   it('битая дата «сегодня» → null', () => {
     expect(clampHorizonToPeriod('not-a-date', 14, null, null)).toBeNull()
+  })
+})
+
+// Удалённый урок, который недельный слот породит снова, отменяется вместо
+// удаления (иначе ночной cron вернёт его). 2026-10-18 — воскресенье (ISO 7),
+// 2026-10-19 — понедельник (ISO 1).
+describe('slotWouldRegenerate', () => {
+  const slots = [
+    { day_of_week: 1, start_time: '09:00:00' },
+    { day_of_week: 3, start_time: '10:00:00', approval_status: 'pending' },
+  ]
+
+  it('слот того же дня и времени — урок вернётся', () => {
+    expect(slotWouldRegenerate(slots, '2026-10-19', '09:00:00')).toBe(true)
+    expect(slotWouldRegenerate(slots, '2026-10-19', '09:00')).toBe(true)
+  })
+
+  it('другое время или другой день — не вернётся', () => {
+    expect(slotWouldRegenerate(slots, '2026-10-19', '09:30:00')).toBe(false)
+    expect(slotWouldRegenerate(slots, '2026-10-18', '09:00:00')).toBe(false)
+  })
+
+  it('слот на утверждении не порождает уроков', () => {
+    expect(slotWouldRegenerate(slots, '2026-10-21', '10:00:00')).toBe(false)
+  })
+
+  it('урок без времени — не из слота', () => {
+    expect(slotWouldRegenerate(slots, '2026-10-19', null)).toBe(false)
   })
 })

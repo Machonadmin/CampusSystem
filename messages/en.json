@@ -296,6 +296,7 @@
       "action_restore": "Restore",
       "action_delete": "Delete",
       "delete_confirm": "Delete this lesson? Attendance records will be removed.",
+      "delete_cancelled_instead": "This lesson comes from the weekly schedule, so it was cancelled instead of deleted; otherwise it would be created again. Attendance marks were removed.",
       "action_failed": "Action failed",
       "modal_create_title": "New lesson",
       "modal_edit_title": "Edit lesson",
@@ -4948,6 +4949,8 @@
   "errors": {
     "kodesh_assign_no_jewishness_approval": "Cannot assign: no final approval of the Jewishness check",
     "kodesh_teacher_via_approval": "Teachers for a kodesh course are added via a proposal for the Rav's approval",
+    "kodesh_enroll_other_level": "Cannot enroll: the student is already placed in another kodesh level. Move her on the «Kodesh level placement» screen",
+    "kodesh_enroll_not_in_level": "Cannot enroll in the course: the student is not placed in this course's level",
     "kodesh_slot_warning": "Note: these hours are reserved for the day’s first two kodesh lessons. The weekly lesson was saved — please check for overlap.",
     "unauthorized": "Not authorized",
     "forbidden": "Insufficient permissions",
