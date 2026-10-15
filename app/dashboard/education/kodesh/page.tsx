@@ -9,7 +9,7 @@ import { BackButton } from '@/components/ui/BackButton'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import PeriodSelector from '@/components/education/PeriodSelector'
-import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import KodeshLevelsManager from '@/components/education/KodeshLevelsManager'
 
 // Заморожено по просьбе владельца: пока преждевременно (у уровней ещё нет
 // расписания). Прячем кнопку «יצירת כל השיעורים»; вернёмся позже — снять флаг.
@@ -44,18 +44,8 @@ export default function KodeshAssignmentPage() {
   const [levelFilter, setLevelFilter] = useState<string>(() => searchParams.get('level') ?? '')
   const [genBusy, setGenBusy] = useState(false)
   const [genMsg, setGenMsg] = useState<string | null>(null)
-  // Инлайн-переименование уровней/групп кодеша (spec §3.1 — имена редактируемы).
+  // Управление уровнями (переименование/создание/скрытие) — KodeshLevelsManager.
   const [manageLevels, setManageLevels] = useState(false)
-  const [editingGroupId, setEditingGroupId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
-  const [savingName, setSavingName] = useState(false)
-  // Создание и скрытие уровней (владелец 2026-09-23: уровень не удаляют, а
-  // скрывают — история остаётся; при создании — только название).
-  const [newName, setNewName] = useState('')
-  const [creating, setCreating] = useState(false)
-  const [archivingId, setArchivingId] = useState<string | null>(null)
-  const [showArchived, setShowArchived] = useState(false)
-  const [archived, setArchived] = useState<Group[] | null>(null)
   // Read-only при выборе ПРОШЕДШЕГО периода (spec §4.11).
   const [periodReadOnly, setPeriodReadOnly] = useState(false)
   // Предложения шибуца (spec §3.5): journey_id → предлагаемая группа.
@@ -63,8 +53,10 @@ export default function KodeshAssignmentPage() {
   const [suggestBusy, setSuggestBusy] = useState(false)
   const [suggestions, setSuggestions] = useState<Map<string, { group_id: string | null; group_name: string | null; reason: string }>>(new Map())
 
-  const load = useCallback(async () => {
-    setLoading(true); setErr(null); setNoAccess(false)
+  // quiet — перечитать без скелетона (после правки уровней панель не мигает).
+  const load = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true)
+    setErr(null); setNoAccess(false)
     try {
       const res = await fetch('/api/education/kodesh/assignment')
       if (res.status === 403) { setNoAccess(true); return }
@@ -80,6 +72,11 @@ export default function KodeshAssignmentPage() {
     } finally { setLoading(false) }
   }, [])
   useEffect(() => { load() }, [load])
+  // Уровень, выбранный в фильтре, скрыли — возвращаемся к «הכל».
+  useEffect(() => {
+    if (loading || levelFilter === '' || levelFilter === 'unassigned') return
+    if (!groups.some(g => g.id === levelFilter)) setLevelFilter('')
+  }, [groups, levelFilter, loading])
 
   const unassignedCount = useMemo(
     () => students.filter(s => s.kodesh_group_id === null).length,
@@ -150,75 +147,6 @@ export default function KodeshAssignmentPage() {
     } finally { setSuggestBusy(false) }
   }
 
-  const renameGroup = async (g: Group) => {
-    const name = editName.trim()
-    if (!name) { setEditingGroupId(null); return }
-    // Переименование — в поле языка интерфейса (то, что видно на экране, см.
-    // gname): RU → name, HE → name_he, EN → name_en.
-    const field = lang === 'he' ? 'name_he' : lang === 'en' ? 'name_en' : 'name'
-    setSavingName(true); setErr(null)
-    try {
-      const res = await fetch(`/api/education/class-groups/${g.id}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: name }),
-      })
-      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
-      setGroups(list => list.map(x => x.id === g.id ? { ...x, [field]: name } : x))
-      setEditingGroupId(null)
-    } catch { setErr(t('save_failed')) }
-    finally { setSavingName(false) }
-  }
-
-  const loadArchived = async () => {
-    try {
-      const res = await fetch('/api/education/kodesh/levels')
-      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? tCommon('load_error')); return }
-      const b = await res.json()
-      setArchived(b.levels ?? [])
-    } catch { setErr(tCommon('load_error')) }
-  }
-
-  const createLevel = async () => {
-    const name = newName.trim()
-    if (!name) return
-    setCreating(true); setErr(null)
-    try {
-      const res = await fetch('/api/education/kodesh/levels', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name_he: name }),
-      })
-      const b = await res.json().catch(() => ({}))
-      if (!res.ok) { setErr(b.error ?? t('save_failed')); return }
-      setGroups(list => [...list, b as Group])
-      setNewName('')
-    } catch { setErr(t('save_failed')) }
-    finally { setCreating(false) }
-  }
-
-  const setLevelActive = async (g: Group, active: boolean) => {
-    if (!active) {
-      const ok = await confirmDialog({ message: t('levels_archive_confirm').replace('{name}', gname(g)), confirmLabel: t('levels_archive'), tone: 'danger' })
-      if (!ok) return
-    }
-    setArchivingId(g.id); setErr(null)
-    try {
-      const res = await fetch(`/api/education/kodesh/levels/${g.id}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: active }),
-      })
-      if (!res.ok) { const b = await res.json().catch(() => ({})); setErr(b.error ?? t('save_failed')); return }
-      if (active) {
-        // Вернули — перечитываем, чтобы уровень встал на своё место в сортировке.
-        await load()
-      } else {
-        setGroups(list => list.filter(x => x.id !== g.id))
-        if (levelFilter === g.id) setLevelFilter('')
-      }
-      if (showArchived || active) await loadArchived()
-    } catch { setErr(t('save_failed')) }
-    finally { setArchivingId(null) }
-  }
-
   const suggestBtn = (active: boolean): React.CSSProperties => ({
     fontSize: 12, fontWeight: active ? 700 : 600, padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit',
     border: `1px solid ${active ? 'var(--accent-strong)' : 'var(--border-strong)'}`,
@@ -257,105 +185,14 @@ export default function KodeshAssignmentPage() {
         <div>
           <button
             type="button"
-            onClick={() => { setManageLevels(v => !v); setEditingGroupId(null) }}
+            onClick={() => setManageLevels(v => !v)}
             style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             {manageLevels ? t('levels_hide') : t('levels_manage')}
           </button>
           {manageLevels && (
-            <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
-              {groups.map((g, i) => (
-                <div key={g.id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '9px 12px', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                  {editingGroupId === g.id ? (
-                    <>
-                      <input
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        dir="rtl"
-                        autoFocus
-                        onKeyDown={e => { if (e.key === 'Enter') renameGroup(g); if (e.key === 'Escape') setEditingGroupId(null) }}
-                        style={{ flex: 1, fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}
-                      />
-                      <button onClick={() => renameGroup(g)} disabled={savingName} style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'var(--accent-strong)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{t('levels_save')}</button>
-                      <button onClick={() => setEditingGroupId(null)} disabled={savingName} style={{ fontSize: 14, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                    </>
-                  ) : (
-                    <>
-                      <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>{gname(g)}</span>
-                      {!periodReadOnly && (
-                        <>
-                          <button
-                            onClick={() => { setEditingGroupId(g.id); setEditName(gname(g)) }}
-                            style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer' }}
-                          >
-                            {t('levels_rename')}
-                          </button>
-                          <button
-                            onClick={() => setLevelActive(g, false)}
-                            disabled={archivingId === g.id}
-                            style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', opacity: archivingId === g.id ? 0.55 : 1 }}
-                          >
-                            {t('levels_archive')}
-                          </button>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))}
-              {groups.length === 0 && (
-                <div style={{ padding: '9px 12px', fontSize: 13, color: 'var(--text-muted)' }}>{t('levels_empty')}</div>
-              )}
-              {!periodReadOnly && (
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '9px 12px', borderTop: '1px solid var(--border)', background: 'var(--surface-2)' }}>
-                  <input
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    dir="rtl"
-                    placeholder={t('levels_add_ph')}
-                    onKeyDown={e => { if (e.key === 'Enter') createLevel() }}
-                    style={{ flex: 1, fontSize: 13, padding: '6px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}
-                  />
-                  <button
-                    onClick={createLevel}
-                    disabled={creating || !newName.trim()}
-                    style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: 'var(--accent-strong)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', opacity: creating || !newName.trim() ? 0.55 : 1 }}
-                  >
-                    {t('levels_add')}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          {manageLevels && (
             <div style={{ marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={() => { const next = !showArchived; setShowArchived(next); if (next) loadArchived() }}
-                style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                {showArchived ? '▾' : '▸'} {t('levels_archived_show')}
-              </button>
-              {showArchived && archived !== null && (
-                <div style={{ marginTop: 6, border: '1px dashed var(--border-strong)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
-                  {archived.length === 0 ? (
-                    <div style={{ padding: '9px 12px', fontSize: 13, color: 'var(--text-muted)' }}>{t('levels_archived_empty')}</div>
-                  ) : archived.map((g, i) => (
-                    <div key={g.id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '9px 12px', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-                      <span style={{ flex: 1, fontSize: 13.5, color: 'var(--text-muted)' }}>{gname(g)}</span>
-                      {!periodReadOnly && (
-                        <button
-                          onClick={() => setLevelActive(g, true)}
-                          disabled={archivingId === g.id}
-                          style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', opacity: archivingId === g.id ? 0.55 : 1 }}
-                        >
-                          {t('levels_restore')}
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <KodeshLevelsManager groups={groups} readOnly={periodReadOnly} onChanged={() => load(true)} />
             </div>
           )}
         </div>

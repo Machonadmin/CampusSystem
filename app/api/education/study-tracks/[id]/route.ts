@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireEducationPrivilege } from '@/lib/education/permissions'
+import { requireTracksCatalogPrivilege } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { isMissingRelation } from '@/lib/supabase/errors'
@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
   const params = await props.params
   try {
     const body = await parseBody(request, updateSchema)
-    await requireEducationPrivilege('manage_tracks')
+    await requireTracksCatalogPrivilege()
     const sb = createServerClient()
 
     const patch: Record<string, unknown> = {}
@@ -62,7 +62,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
 export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    await requireEducationPrivilege('manage_tracks')
+    await requireTracksCatalogPrivilege()
     const sb = createServerClient()
     const { error } = await sb.from('study_tracks').delete().eq('id', params.id)
     if (error) {

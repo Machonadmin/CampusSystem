@@ -912,7 +912,8 @@
         "section_chol": "לימודי חול",
         "section_kodesh": "לימודי קודש",
         "kodesh_hint": "רמות הקודש — שיבוץ עצמאי, ללא קשר למסלול הלימודים בחול.",
-        "kodesh_manage": "שיבוץ קודש",
+        "kodesh_manage": "עריכה",
+        "kodesh_levels_title": "עריכת רמות קודש",
         "kodesh_empty": "עדיין אין רמות קודש."
       },
       "courses": {
@@ -955,10 +956,10 @@
         "view_all": "הכל ←",
         "kpi_students": "תלמידות פעילות",
         "kpi_lessons_today": "שיעורים היום",
-        "kpi_pending": "ממתינות לשיבוץ",
+        "kpi_pending": "ממתינות לשיבוץ מסלול חול",
         "today_schedule": "מערכת היום",
         "today_none": "אין שיעורים היום",
-        "pending_title": "ממתינות לשיבוץ",
+        "pending_title": "ממתינות לשיבוץ מסלול חול",
         "pending_none": "כל התלמידות משובצות",
         "pending_more": "ועוד {n}…",
         "attention_title": "דורש תשומת לב",

@@ -25,6 +25,13 @@ export default function TeachersClient({ canHours, canApprove }: { canHours: boo
     color: active ? 'var(--accent-strong)' : 'var(--text-muted)',
   })
 
+  const tabs = canHours ? (
+    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+      <button type="button" className="teachers-tab" onClick={() => setTab('hours')} style={tabBtn(tab === 'hours')}>{t('tab_hours')}</button>
+      <button type="button" className="teachers-tab" onClick={() => setTab('attendance')} style={tabBtn(tab === 'attendance')}>{t('tab_attendance')}</button>
+    </div>
+  ) : null
+
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
@@ -35,16 +42,16 @@ export default function TeachersClient({ canHours, canApprove }: { canHours: boo
 
       <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
 
-      {canHours && (
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button type="button" onClick={() => setTab('hours')} style={tabBtn(tab === 'hours')}>{t('tab_hours')}</button>
-          <button type="button" onClick={() => setTab('attendance')} style={tabBtn(tab === 'attendance')}>{t('tab_attendance')}</button>
-        </div>
-      )}
-
+      {/* На вкладке «שעות» вкладки встают в одну строку с выбором месяца
+          (владелец: «כמה שפחות שיתפוס לי מהמסך»). */}
       {tab === 'hours' && canHours
-        ? <TeachersHoursClient embedded />
-        : <TeacherAttendanceClient canApprove={canApprove} embedded />}
+        ? <TeachersHoursClient embedded leading={tabs} />
+        : <>
+            {tabs}
+            <TeacherAttendanceClient canApprove={canApprove} embedded />
+          </>}
+
+      <style>{`@media (max-width: 640px){ .teachers-tab{ padding:7px 12px !important } }`}</style>
     </div>
   )
 }

@@ -242,22 +242,32 @@ export default function TimetablePage() {
       <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
 
       {/* Toolbar */}
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-        <select value={unit} onChange={e => setUnit(e.target.value)}
+      {/* На телефоне всё в одну строку (владелец: «כמה שפחות שיתפוס מהמסך»):
+          подсказка про перетаскивание скрыта (на тач-экране не работает), статус
+          конфликтов сжат до значка, select сжимается под остаток строки. */}
+      <div className="tt-toolbar" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <select className="tt-unit" value={unit} onChange={e => setUnit(e.target.value)}
           style={{ padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)' }}>
           <option value="">{t('all_units')}</option>
           {units.map(u => <option key={u.id} value={u.id}>{localizedDeptName(u, lang)}</option>)}
         </select>
-        <span style={{ fontSize: 13, fontWeight: 600, color: conflicts.length ? 'var(--danger)' : 'var(--success)' }}>
+        <span className="tt-conflicts-full" style={{ fontSize: 13, fontWeight: 600, color: conflicts.length ? 'var(--danger)' : 'var(--success)' }}>
           {conflicts.length === 0 ? t('conflicts_none') : t('conflicts_count', '{n}').replace('{n}', String(conflicts.length))}
         </span>
-        {canEdit && view === 'week' && <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור שבועי ליום אחר')}</span>}
-        <div style={{ flex: 1 }} />
+        <span className="tt-conflicts-short"
+          title={conflicts.length === 0 ? t('conflicts_none') : t('conflicts_count', '{n}').replace('{n}', String(conflicts.length))}
+          style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', padding: '4px 8px', borderRadius: 999,
+            color: conflicts.length ? 'var(--danger)' : 'var(--success)',
+            background: conflicts.length ? 'var(--danger-tint)' : 'var(--success-tint)' }}>
+          {conflicts.length === 0 ? '✓' : `⚠ ${conflicts.length}`}
+        </span>
+        {canEdit && view === 'week' && <span className="tt-hint" style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור שבועי ליום אחר')}</span>}
+        <div className="tt-spacer" style={{ flex: 1 }} />
         {/* Переключатель вида: по дням / взгляд менеджера (ось времени). */}
-        <div style={{ display: 'inline-flex', border: '1px solid var(--border-strong)', borderRadius: 9, overflow: 'hidden' }}>
+        <div style={{ display: 'inline-flex', border: '1px solid var(--border-strong)', borderRadius: 9, overflow: 'hidden', flexShrink: 0 }}>
           {(['week', 'day'] as const).map(v => (
-            <button key={v} type="button" onClick={() => setView(v)} style={{
-              fontSize: 12.5, fontWeight: 600, padding: '7px 14px', cursor: 'pointer', border: 'none',
+            <button key={v} type="button" className="tt-view-btn" onClick={() => setView(v)} style={{
+              fontSize: 12.5, fontWeight: 600, padding: '7px 14px', cursor: 'pointer', border: 'none', whiteSpace: 'nowrap',
               background: view === v ? 'var(--accent-strong)' : 'var(--surface)',
               color: view === v ? '#fff' : 'var(--text-muted)',
             }}>{v === 'week' ? t('view_week', 'שבוע') : t('view_manager', 'יום אחד (עומסים)')}</button>
@@ -470,6 +480,17 @@ export default function TimetablePage() {
           }}
         />
       )}
+
+      <style>{`
+        .tt-conflicts-short{ display:none }
+        @media (max-width: 640px){
+          .tt-toolbar{ gap:6px !important }
+          .tt-unit{ flex:1 1 0; min-width:0; padding:7px 8px !important; font-size:12.5px !important }
+          .tt-conflicts-full, .tt-hint, .tt-spacer{ display:none }
+          .tt-conflicts-short{ display:inline-block }
+          .tt-view-btn{ padding:7px 9px !important; font-size:12px !important }
+        }
+      `}</style>
     </div>
   )
 }
