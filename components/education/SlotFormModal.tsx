@@ -10,6 +10,8 @@ import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
 
+const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
+
 /**
  * ОБЩАЯ форма слота расписания.
  *
@@ -145,10 +147,6 @@ export default function SlotFormModal({
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
-  // Живое предупреждение: время попадает в зарезервированное окно кодеша.
-  // Мягкое правило (как на бэкенде): сообщаем, не блокируем.
-  const kodeshClash = !!startTime && !!endTime && endTime > startTime
-    && collidesWithKodesh(Number(dayOfWeek), startTime, endTime)
 
   // ── Справочники ──
   const [units, setUnits] = useState<UnitOpt[]>([])
@@ -163,6 +161,14 @@ export default function SlotFormModal({
   // Единица, под которую фильтруем предметы и преподавателей: явно выбранная,
   // иначе — подразделение выбранной группы.
   const effectiveUnit = unitId || pickedGroup?.department_id || ''
+
+  // Живое предупреждение: время попадает в зарезервированное окно кодеша.
+  // Мягкое правило (как на бэкенде): сообщаем, не блокируем. Только для НЕ-кодеш
+  // групп — сервер держит на утверждении лишь их (schedule/slots: inKodesh);
+  // урок самой кодеш-группы в окне кодеша — норма.
+  const isKodeshGroup = (pickedGroup?.department_id ?? (unitId || null)) === KODESH_DEPT_ID
+  const kodeshClash = !isKodeshGroup && !!startTime && !!endTime && endTime > startTime
+    && collidesWithKodesh(Number(dayOfWeek), startTime, endTime)
 
   useEffect(() => {
     fetch('/api/education/buildings')

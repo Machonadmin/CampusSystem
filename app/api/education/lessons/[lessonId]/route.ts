@@ -5,6 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getLessonAccess } from '@/lib/education/lesson-access'
 import type { LessonUpdate } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { slotWouldRegenerate } from '@/lib/education/lesson-generation'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
@@ -111,6 +112,10 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ les
  * DELETE /api/education/lessons/[lessonId]
  * Удаление урока. Право: set_lesson_topics в контексте группы урока.
  * Посещаемость удаляется каскадно (ON DELETE CASCADE).
+ *
+ * Урок, который недельное расписание породило бы снова (активный слот того же
+ * дня и времени), НЕ удаляется, а отменяется (is_cancelled=true) и теряет
+ * посещаемость: иначе ночной cron создал бы его заново. Ответ: { ok, cancelled: true }.
  */
 export async function DELETE(_request: NextRequest, props: { params: Promise<{ lessonId: string }> }) {
   const params = await props.params
@@ -121,6 +126,19 @@ export async function DELETE(_request: NextRequest, props: { params: Promise<{ l
     if (!access) return apiError('lesson_not_found', 404)
 
     await requireEducationPrivilege('set_lesson_topics', access.target)
+
+    const { data: slots, error: sErr } = await sb
+      .from('class_schedule_slots')
+      .select('*')
+      .eq('class_group_id', access.lesson.class_group_id)
+    if (sErr) throw sErr
+    if (slotWouldRegenerate(slots ?? [], access.lesson.scheduled_date, access.lesson.scheduled_time)) {
+      const { error: aErr } = await sb.from('attendance').delete().eq('lesson_id', params.lessonId)
+      if (aErr) throw aErr
+      const { error: cErr } = await sb.from('lessons').update({ is_cancelled: true }).eq('id', params.lessonId)
+      if (cErr) throw cErr
+      return NextResponse.json({ ok: true, cancelled: true })
+    }
 
     const { error } = await sb.from('lessons').delete().eq('id', params.lessonId)
     if (error) throw error

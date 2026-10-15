@@ -7,6 +7,7 @@ import { canManageKodesh } from '@/lib/education/kodesh-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { JEWISHNESS_FINAL_APPROVED } from '@/lib/jewishness/two-step'
 import { isMissingTable, isMissingColumn } from '@/lib/supabase/errors'
+import { syncKodeshCourseEnrollments } from '@/lib/education/kodesh-placement'
 
 /**
  * Доступ к управлению кодешем: глава кафедры (canManageUnit) ИЛИ менеджер с
@@ -126,6 +127,8 @@ export async function GET(_request: NextRequest) {
  * Действие: удалить существующие class_enrollments студентки во ВСЕ группы
  * кодеша, затем (если group_id не null) вставить новую запись (ON CONFLICT
  * ничего). Итог: студентка в НЕ БОЛЕЕ чем одной группе кодеша.
+ * Затем синхронизирует курсы: запись во все активные курсы нового уровня,
+ * снятие с курсов других уровней (syncKodeshCourseEnrollments).
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -211,6 +214,11 @@ export async function PUT(request: NextRequest) {
         throw insErr
       }
     }
+
+    // Курсы уровня: записать в активные курсы нового уровня, снять с курсов
+    // прежнего (или всех — при снятии с уровня). Иначе уроки, посещаемость и
+    // оценки курса её не видят.
+    await syncKodeshCourseEnrollments(sb, journeyId, groupId, kodeshGroupIds)
 
     return NextResponse.json({ ok: true, kodesh_group_id: groupId })
   } catch (err: unknown) {

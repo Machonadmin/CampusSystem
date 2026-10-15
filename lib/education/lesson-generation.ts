@@ -108,3 +108,25 @@ export function clampHorizonToPeriod(
   if (pe !== null && pe < toMs) toMs = pe
   return toMs < fromMs ? null : { fromMs, toMs }
 }
+
+/**
+ * Породит ли генерация этот урок заново: есть активный (не pending/rejected)
+ * слот того же дня недели и того же времени начала. Удалённый такой урок cron
+ * создал бы снова (ON CONFLICT DO NOTHING видит только существующие строки),
+ * поэтому его не удаляют, а отменяют. Чистая функция — для юнит-тестов.
+ */
+export function slotWouldRegenerate(
+  slots: Array<{ day_of_week: number; start_time: string; approval_status?: string | null }>,
+  scheduledDate: string,
+  scheduledTime: string | null,
+): boolean {
+  if (!scheduledTime) return false
+  const ms = parseDateUTC(scheduledDate)
+  if (ms === null) return false
+  const dow = isoWeekday(ms)
+  const hm = scheduledTime.slice(0, 5)
+  return slots.some(s =>
+    (s.approval_status ?? 'active') === 'active'
+    && s.day_of_week === dow
+    && s.start_time.slice(0, 5) === hm)
+}

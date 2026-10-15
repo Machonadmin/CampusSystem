@@ -117,6 +117,8 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canCorrec
         toast(err.error ?? t('action_failed'), 'error')
         return
       }
+      const b = await resp.json().catch(() => ({}))
+      if (b.cancelled) toast(t('delete_cancelled_instead'), 'info')
       load()
     } catch {
       toast(t('action_failed'), 'error')
