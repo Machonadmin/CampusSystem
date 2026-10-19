@@ -10,6 +10,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import EmptyState from '@/components/ui/EmptyState'
 import { formatMoney } from '@/lib/finance/money'
 import { intlLocale } from '@/lib/i18n/format-date'
+import { compareNames } from '@/lib/persons/name'
 
 type ShabbatType = 'shabbat_host' | 'shabbat_family'
 
@@ -204,7 +205,10 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
       .then(r => r.ok ? r.json() : null)
       .then(b => {
         const list = (b?.students ?? []) as Array<{ journey_id: string; full_name?: string; hebrew_name?: string | null }>
-        setStudents(list.map(s => ({ journey_id: s.journey_id, name: (s.hebrew_name || s.full_name || '').trim() })))
+        // По алфавиту — по показываемому имени.
+        setStudents(list
+          .map(s => ({ journey_id: s.journey_id, name: (s.hebrew_name || s.full_name || '').trim() }))
+          .sort((a, b) => compareNames(a.name, b.name)))
       })
       .catch(() => {/* ignore */})
   }, [students.length])

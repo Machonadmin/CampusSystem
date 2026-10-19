@@ -54,6 +54,9 @@ interface Department {
 
 // ── Employees tab ─────────────────────────────────────────────────────────────
 
+/** Сколько посадок человека видно в строке, пока не нажали «ועוד N». */
+const SEATS_SHOWN = 3
+
 interface Employee {
   position_id: string
   profile_id: string | null
@@ -117,6 +120,8 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('')
+  // Люди, у которых список посадок раскрыт полностью («ועוד N»).
+  const [expandedSeats, setExpandedSeats] = useState<Set<string>>(new Set())
   const [localRefresh, setLocalRefresh] = useState(0)
   const { lang, t: langPack } = useLang()
   const deptOptions = flattenDeptOptions(depts, lang)
@@ -294,7 +299,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
             <thead>
               <tr style={{ borderBottom: '1px solid var(--surface-2)' }}>
                 {[
-                  t('table.full_name'), t('table.position'), t('table.department'),
+                  t('table.full_name'), t('table.position_department'),
                   t('table.phone'), t('table.email'),
                   ...(isSuperadmin ? [t('table.access')] : []),
                   t('table.status'), '',
@@ -337,24 +342,33 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                         </div>
                       </div>
                     </td>
-                    <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
+                    {/* Должность и подразделение — одной строкой на каждую посадку;
+                        без должности — только подразделение (раньше «—» на каждую
+                        посадку в отдельной колонке). Больше 3 посадок — «ועוד N»,
+                        раскрывается по нажатию (заметка владельца 2026-10-15:
+                        карточка человека с ~20 посадками занимала целый экран). */}
+                    <td data-label={t('table.position_department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
                       <div style={{ display: 'grid', gap: 4 }}>
-                        {seats.map(se => <div key={se.position_id}>{se.position || '—'}</div>)}
-                      </div>
-                      {emp.employment_type && emp.employment_type !== 'staff' && (
-                        <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
-                      )}
-                    </td>
-                    <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>
-                      <div style={{ display: 'grid', gap: 4 }}>
-                        {seats.map(se => (
+                        {(expandedSeats.has(emp.person_id) ? seats : seats.slice(0, SEATS_SHOWN)).map(se => (
                           <div key={se.position_id}>
-                            {se.department_name ?? '—'}
+                            {[se.position, se.department_name].filter(Boolean).join(' · ') || '—'}
                             {/* «ראש המחלקה» — у того подразделения, где человек глава. */}
                             {se.is_head && <span style={{ fontSize: 10, color: '#4BAED4', fontWeight: 500, marginInlineStart: 6, whiteSpace: 'nowrap' }}>{t('dept.head_label')}</span>}
                           </div>
                         ))}
+                        {seats.length > SEATS_SHOWN && !expandedSeats.has(emp.person_id) && (
+                          <button
+                            type="button"
+                            onClick={e => { e.stopPropagation(); setExpandedSeats(prev => new Set(prev).add(emp.person_id)) }}
+                            style={{ justifySelf: 'start', padding: 0, border: 'none', background: 'none', fontSize: 12.5, fontWeight: 600, color: getModuleColor('staff'), cursor: 'pointer' }}
+                          >
+                            {t('seats_more').replace('{n}', String(seats.length - SEATS_SHOWN))}
+                          </button>
+                        )}
                       </div>
+                      {emp.employment_type && emp.employment_type !== 'staff' && (
+                        <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t(`employment.${emp.employment_type}`, emp.employment_type)}</div>
+                      )}
                     </td>
                     <td data-label={t('table.phone')} onClick={e => e.stopPropagation()} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)', whiteSpace: 'nowrap' }}>{emp.phone ? <PhoneLink phone={emp.phone} /> : '—'}</td>
                     <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{emp.email ?? user?.login_email ?? '—'}</td>
@@ -422,10 +436,9 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(user)}</span>
                     </div>
                   </td>
-                  <td data-label={t('table.position')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>
+                  <td data-label={t('table.position_department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>
                     <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{t('system_user')}</span>
                   </td>
-                  <td data-label={t('table.department')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>—</td>
                   <td data-label={t('table.phone')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text-faint)' }}>—</td>
                   <td data-label={t('table.email')} style={{ padding: '10px 14px', fontSize: 13, color: 'var(--text)' }}>{user.login_email}</td>
                   <td data-label={t('table.access')} style={{ padding: '10px 14px' }}>{accessCell(user)}</td>

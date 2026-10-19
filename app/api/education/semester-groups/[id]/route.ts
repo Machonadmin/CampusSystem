@@ -6,6 +6,7 @@ import { isMissingColumn, isMissingRelation } from '@/lib/supabase/errors'
 import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/education/permissions'
 import { ensureSemesterTuitionCharges } from '@/lib/education/semester-tuition'
 import { findDuplicateSemester } from '@/lib/education/subject-semesters'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * Семестр-группа = class_groups с is_semester=true. Детальная карточка + PATCH.
@@ -112,6 +113,8 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
           hebrew_name: p?.hebrew_name ?? null,
         }
       })
+      // Состав — по алфавиту, по показываемому имени (full_name).
+      students.sort((a, b) => compareNames(a.full_name || a.hebrew_name, b.full_name || b.hebrew_name))
     }
 
     // year_level (новая колонка) — деплой-безопасно отдельным запросом.

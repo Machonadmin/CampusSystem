@@ -8,7 +8,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
 import { requiredFieldMsg } from '@/lib/i18n/required'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
+import { ListToolbar, ListExportButton } from '@/components/ui/ListToolbar'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
@@ -280,25 +280,21 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
         </div>
       )}
 
-      {/* Filters */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-        <select value={fStatus} onChange={e => setFStatus(e.target.value)} style={sel(150)}>
-          <option value="">{t('list.filter_status')}</option>
-          {STATUSES.map(s => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
-        </select>
-        <select value={fPriority} onChange={e => setFPriority(e.target.value)} style={sel(150)}>
-          <option value="">{t('list.filter_priority')}</option>
-          {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
-        </select>
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={items.length === 0}
-          style={{ marginInlineStart: 'auto', fontSize: 13, fontWeight: 600, padding: '7px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: items.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: items.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-        >
-          <DownloadIcon /> {tCommon('export_csv')}
-        </button>
-      </div>
+      {/* Фильтры и «ייצוא» — одной строкой в общей шапке списка (заметка
+          владельца 2026-10-15: всё в одну строку и одинаково везде). */}
+      <ListToolbar
+        filters={<>
+          <select value={fStatus} onChange={e => setFStatus(e.target.value)} style={sel(150)}>
+            <option value="">{t('list.filter_status')}</option>
+            {STATUSES.map(s => <option key={s} value={s}>{t(`status.${s}`)}</option>)}
+          </select>
+          <select value={fPriority} onChange={e => setFPriority(e.target.value)} style={sel(150)}>
+            <option value="">{t('list.filter_priority')}</option>
+            {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
+          </select>
+        </>}
+        actions={<ListExportButton onClick={exportCsv} disabled={items.length === 0} label={tCommon('export_csv')} />}
+      />
 
       {/* Body */}
       {error ? (

@@ -2610,7 +2610,8 @@
       "email": "Email",
       "phone": "Phone",
       "status": "Status",
-      "access": "Roles"
+      "access": "Roles",
+      "position_department": "Position & Department"
     },
     "status": {
       "active": "Active",
@@ -3006,7 +3007,8 @@
       "duplicates_fix": "Merge duplicates"
     },
     "structure_moved": "The department structure is now managed in Data Security.",
-    "structure_moved_link": "Go to the department tree →"
+    "structure_moved_link": "Go to the department tree →",
+    "seats_more": "{n} more"
   },
   "quality": {
     "title": "Teaching Evaluation",

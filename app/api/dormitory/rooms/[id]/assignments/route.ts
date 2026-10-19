@@ -8,6 +8,7 @@ import { canAssign } from '@/lib/dormitory/occupancy'
 import { countRoomActiveOverlaps, journeyHasActiveOverlap } from '@/lib/dormitory/occupancy-server'
 import type { DormAssignmentInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { compareNames } from '@/lib/persons/name'
 
 // PostgREST молча обрезает выдачу на db-max-rows (~1000). Назначения комнаты
 // читаем постранично; вторичная сортировка по id — стабильная пагинация.
@@ -82,6 +83,12 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
         student_hebrew_name: s.hebrew_name,
       }
     })
+
+    // Сначала живущие сейчас, затем прошлые; внутри — по алфавиту, по
+    // показываемому имени (full_name).
+    assignments.sort((a, b) =>
+      Number(b.status === 'active') - Number(a.status === 'active')
+      || compareNames(a.student_name || a.student_hebrew_name, b.student_name || b.student_hebrew_name))
 
     return NextResponse.json({ room, assignments })
   } catch (err: unknown) {

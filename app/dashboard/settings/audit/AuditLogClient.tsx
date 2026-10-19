@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { ListToolbar } from '@/components/ui/ListToolbar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
@@ -127,37 +128,42 @@ export default function AuditLogClient() {
         </div>
       </div>
 
-      {/* Фильтры */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap', padding: 14, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12 }}>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('entity_type')}</span>
-          <select value={entityType} onChange={e => setEntityType(e.target.value)} style={inp}>
-            <option value="">{t('all')}</option>
-            {AUDITED_ENTITY_TYPES.map(x => <option key={x} value={x}>{entityLabel(x)}</option>)}
-          </select>
-        </label>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('action')}</span>
-          <select value={action} onChange={e => setAction(e.target.value)} style={inp}>
-            <option value="">{t('all')}</option>
-            {AUDIT_ACTIONS.map(a => <option key={a} value={a}>{actionLabel(a)}</option>)}
-          </select>
-        </label>
-        <label style={{ display: 'grid', gap: 4, flex: 1, minWidth: 220 }}>
-          <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('entity_id')}</span>
-          <input value={entityId} onChange={e => setEntityId(e.target.value)} placeholder="uuid" dir="ltr" style={inp} />
-        </label>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('date_from')}</span>
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp} />
-        </label>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('date_to')}</span>
-          <input type="date" value={to} onChange={e => setTo(e.target.value)} style={inp} />
-        </label>
-        <Button variant="primary" onClick={applyFilters}>{t('apply')}</Button>
-        <Button onClick={resetFilters}>{t('reset')}</Button>
-      </div>
+      {/* Фильтры — в общей шапке списка: поля в строку, «החל»/«איפוס» в её
+          конце (заметка владельца 2026-10-15: одинаково везде). */}
+      <ListToolbar
+        filters={<>
+          <label style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('entity_type')}</span>
+            <select value={entityType} onChange={e => setEntityType(e.target.value)} style={inp}>
+              <option value="">{t('all')}</option>
+              {AUDITED_ENTITY_TYPES.map(x => <option key={x} value={x}>{entityLabel(x)}</option>)}
+            </select>
+          </label>
+          <label style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('action')}</span>
+            <select value={action} onChange={e => setAction(e.target.value)} style={inp}>
+              <option value="">{t('all')}</option>
+              {AUDIT_ACTIONS.map(a => <option key={a} value={a}>{actionLabel(a)}</option>)}
+            </select>
+          </label>
+          <label style={{ display: 'grid', gap: 4, flex: 1, minWidth: 220 }}>
+            <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('entity_id')}</span>
+            <input value={entityId} onChange={e => setEntityId(e.target.value)} placeholder="uuid" dir="ltr" style={inp} />
+          </label>
+          <label style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('date_from')}</span>
+            <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp} />
+          </label>
+          <label style={{ display: 'grid', gap: 4 }}>
+            <span style={{ fontSize: 12, color: 'var(--text)' }}>{t('date_to')}</span>
+            <input type="date" value={to} onChange={e => setTo(e.target.value)} style={inp} />
+          </label>
+        </>}
+        actions={<>
+          <Button variant="primary" onClick={applyFilters}>{t('apply')}</Button>
+          <Button onClick={resetFilters}>{t('reset')}</Button>
+        </>}
+      />
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>

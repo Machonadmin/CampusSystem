@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { isJewishnessStatus, setJewishnessStatus, type JewishnessStatus } from '@/lib/jewishness/status'
 import { canDoInitialCheck, canSetJewishnessStatus } from '@/lib/jewishness/two-step'
+import { notifyFinalApprovers } from '@/lib/jewishness/notify'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { parseBenefitsInput, setAdmissionBenefits } from '@/lib/admission/benefits'
 import { errorResponse } from '@/lib/api/handler'
@@ -64,6 +65,10 @@ export async function POST(request: NextRequest, props: { params: Promise<{ jour
       source: isInitialCheck ? 'initial_check' : 'module',
     })
     if (!ok) return apiError('feature_not_migrated', 503)
+
+    // После первичной проверки — уведомление тем, кто даёт финальное
+    // утверждение (решение владельца 2026-10-19). Best-effort.
+    if (isInitialCheck) await notifyFinalApprovers(sb, { journeyId: params.journeyId, checkedBy: session.person_id })
 
     // Льготы приёма (скидка/поддержка/заметки), если переданы. Best-effort.
     const benefits = parseBenefitsInput(body)

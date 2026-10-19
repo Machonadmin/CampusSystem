@@ -5,6 +5,7 @@ import { requireDocumentsPrivilege } from '@/lib/documents/permissions'
 import { mapDbError } from '@/lib/documents/http'
 import { documentSummariesByJourney, todayISO } from '@/lib/documents/records-server'
 import { errorResponse } from '@/lib/api/handler'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * GET /api/documents/students — студенты (education_journeys status='student') с
@@ -80,6 +81,9 @@ export async function GET(request: NextRequest) {
         s.phones.join(' ').toLowerCase().includes(search)
       )
     }
+
+    // По алфавиту — по имени, которое список показывает первым (full_name).
+    students.sort((a, b) => compareNames(a.full_name || a.hebrew_name, b.full_name || b.hebrew_name))
 
     return NextResponse.json({ students })
   } catch (err: unknown) {

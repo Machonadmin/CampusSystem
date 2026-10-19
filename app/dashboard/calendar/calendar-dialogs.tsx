@@ -13,6 +13,7 @@ import type { ScheduleInstance } from '@/lib/calendar/schedule'
 import type { BirthdayInstance } from '@/lib/calendar/birthday'
 import type { Appointment, Block, Lesson, Task, CalEvent, StudentOption, Status } from './calendar-types'
 import { Overlay, Field } from './calendar-details'
+import { compareNames } from '@/lib/persons/name'
 import {
   isoTime, subjectLabel, scheduleSubjectLabel, statusStyle,
   dialog, dialogTitle, input, btnGhost, btnPrimary, statusBtn,
@@ -250,7 +251,9 @@ export function AppointmentForm({
         const res = await fetch(`/api/persons/students?pageSize=20&search=${encodeURIComponent(studentSearch)}`)
         if (!res.ok) return
         const b = await res.json()
-        setStudentOpts(b.students ?? [])
+        // По алфавиту — по показываемому имени (ивритское, иначе full_name).
+        setStudentOpts(((b.students ?? []) as StudentOption[])
+          .sort((x, y) => compareNames(x.hebrew_name || x.full_name, y.hebrew_name || y.full_name)))
       } catch { /* оставляем прежний список */ }
     }, 250)
     return () => clearTimeout(h)

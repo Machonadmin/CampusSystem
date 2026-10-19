@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import { ListToolbar } from '@/components/ui/ListToolbar'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -164,14 +165,19 @@ export default function AbsencesClient() {
         </div>
       )}
 
-      {/* Фильтр статуса */}
-      <div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--surface-2)', borderRadius: 8, width: 'fit-content' }}>
-        {(['open', 'in_handling', 'resolved', 'all'] as StatusFilter[]).map(s => (
-          <button key={s} onClick={() => setFilter(s)} style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', background: filter === s ? 'var(--surface)' : 'transparent', color: filter === s ? 'var(--text)' : 'var(--text-muted)' }}>
-            {t(`filter_${s}`)}
-          </button>
-        ))}
-      </div>
+      {/* Фильтр статуса — в общей шапке списка (заметка владельца 2026-10-15:
+          одинаково везде). */}
+      <ListToolbar
+        filters={
+          <div style={{ display: 'flex', gap: 4, padding: 3, background: 'var(--surface-2)', borderRadius: 8, width: 'fit-content', maxWidth: '100%', overflowX: 'auto' }}>
+            {(['open', 'in_handling', 'resolved', 'all'] as StatusFilter[]).map(s => (
+              <button key={s} onClick={() => setFilter(s)} style={{ fontSize: 12.5, fontWeight: 600, padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', background: filter === s ? 'var(--surface)' : 'transparent', color: filter === s ? 'var(--text)' : 'var(--text-muted)' }}>
+                {t(`filter_${s}`)}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {!loaded ? (
         <SkeletonRows />

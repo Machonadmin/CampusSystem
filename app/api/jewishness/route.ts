@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { requireJewishnessAccess } from '@/lib/jewishness/permissions'
 import { isJewishnessStatus, normalizeJewishnessStatus, type JewishnessStatus } from '@/lib/jewishness/status'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * GET /api/jewishness — ПОЛНЫЙ модуль בירור יהדות (не только очередь).
@@ -91,7 +92,9 @@ export async function GET(request: NextRequest) {
         || (s.hebrew_name ?? '').toLowerCase().includes(search)
         || (s.email ?? '').toLowerCase().includes(search))
     }
-    students.sort((a, b) => (a.hebrew_name || a.full_name || '').localeCompare(b.hebrew_name || b.full_name || '', 'he'))
+    // По алфавиту — по имени, которое список показывает первым (full_name;
+    // ивритское имя — вторым, рядом).
+    students.sort((a, b) => compareNames(a.full_name || a.hebrew_name, b.full_name || b.hebrew_name))
 
     return NextResponse.json({ students, counts })
   } catch (err: unknown) {
