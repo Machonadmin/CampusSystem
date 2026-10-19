@@ -2610,7 +2610,8 @@
       "email": "אימייל",
       "phone": "טלפון",
       "status": "סטטוס",
-      "access": "תפקידים"
+      "access": "תפקידים",
+      "position_department": "הגדרת תפקיד ומחלקה"
     },
     "status": {
       "active": "פעיל",
@@ -3006,7 +3007,8 @@
       "duplicates_fix": "מיזוג כפילויות"
     },
     "structure_moved": "מבנה המחלקות עבר לניהול באבטחת המידע.",
-    "structure_moved_link": "לעץ המחלקות ←"
+    "structure_moved_link": "לעץ המחלקות ←",
+    "seats_more": "ועוד {n}"
   },
   "quality": {
     "title": "הערכת הוראה",

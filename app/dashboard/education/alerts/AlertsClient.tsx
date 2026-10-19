@@ -10,6 +10,7 @@ import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { ListToolbar } from '@/components/ui/ListToolbar'
 
 const accent = getModuleColor('education')
 
@@ -89,28 +90,33 @@ export default function AlertsClient() {
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <select value={fState} onChange={e => setFState(e.target.value)} style={inp}>
-          <option value="">{t('all_states')}</option>
-          {STATES.map(s => <option key={s} value={s}>{t(`state_${s}`)}</option>)}
-        </select>
-        <select value={fType} onChange={e => setFType(e.target.value)} style={inp}>
-          <option value="">{t('all_types')}</option>
-          {types.map(ty => <option key={ty.code} value={ty.code}>{typeName(ty.code)}</option>)}
-        </select>
-        <select value={fSeverity} onChange={e => setFSeverity(e.target.value)} style={inp}>
-          <option value="">{t('all_severities')}</option>
-          {SEVERITIES.map(s => <option key={s} value={s}>{t(`severity_${s}`)}</option>)}
-        </select>
-        {fStudent && (
-          <button onClick={() => router.push(pathname)} style={{ ...inp, cursor: 'pointer', color: 'var(--accent-strong)', background: 'var(--accent-tint)' }}>
-            {t('student_filter_clear')} ✕
-          </button>
-        )}
-        <div style={{ flex: 1 }} />
-        <button onClick={() => setShowTypes(true)} style={{ ...inp, cursor: 'pointer', color: 'var(--text-muted)' }}>{t('manage_types')}</button>
-        <button onClick={() => setShowCreate(true)} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer' }}>{t('new_alert')}</button>
-      </div>
+      {/* Фильтры и кнопки — общая шапка списка: одной строкой, списки выбора
+          сжимаются (заметка владельца 2026-10-15: одинаково везде). */}
+      <ListToolbar
+        filters={<>
+          <select value={fState} onChange={e => setFState(e.target.value)} style={inp}>
+            <option value="">{t('all_states')}</option>
+            {STATES.map(s => <option key={s} value={s}>{t(`state_${s}`)}</option>)}
+          </select>
+          <select value={fType} onChange={e => setFType(e.target.value)} style={inp}>
+            <option value="">{t('all_types')}</option>
+            {types.map(ty => <option key={ty.code} value={ty.code}>{typeName(ty.code)}</option>)}
+          </select>
+          <select value={fSeverity} onChange={e => setFSeverity(e.target.value)} style={inp}>
+            <option value="">{t('all_severities')}</option>
+            {SEVERITIES.map(s => <option key={s} value={s}>{t(`severity_${s}`)}</option>)}
+          </select>
+          {fStudent && (
+            <button onClick={() => router.push(pathname)} style={{ ...inp, cursor: 'pointer', color: 'var(--accent-strong)', background: 'var(--accent-tint)' }}>
+              {t('student_filter_clear')} ✕
+            </button>
+          )}
+        </>}
+        actions={<>
+          <button onClick={() => setShowTypes(true)} style={{ ...inp, cursor: 'pointer', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{t('manage_types')}</button>
+          <button onClick={() => setShowCreate(true)} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('new_alert')}</button>
+        </>}
+      />
 
       {loading ? <SkeletonRows rows={5} /> : alerts.length === 0 ? (
         <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14 }}>{t('empty')}</div>

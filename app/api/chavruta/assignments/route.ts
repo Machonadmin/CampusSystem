@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth/session'
 import { canViewChavruta, canManageChavruta } from '@/lib/chavruta/access'
 import type { JourneyStatus } from '@/types/database'
 import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * Управляющая сводка пар хавруты (шиюх) для «мרכз חברותא» в модуле лимудим.
@@ -62,7 +63,7 @@ export async function GET() {
       for (const j of data as Array<{ id: string; person: { full_name?: string | null; hebrew_name?: string | null } | null }>) {
         students.push({ journey_id: j.id, name: (j.person?.hebrew_name || j.person?.full_name || '').trim() })
       }
-      students.sort((a, b) => a.name.localeCompare(b.name, 'he'))
+      students.sort((a, b) => compareNames(a.name, b.name))
     }
 
     // Активные пары.
@@ -109,6 +110,8 @@ export async function GET() {
       weekday: r.weekday,
       start_time: r.start_time,
     }))
+    // По алфавиту: по море (первая колонка), внутри — по ученице.
+    assignments.sort((a, b) => compareNames(a.teacher_name, b.teacher_name) || compareNames(a.student_name, b.student_name))
 
     return NextResponse.json({ assignments, students })
   } catch (err: unknown) {

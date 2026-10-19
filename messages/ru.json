@@ -2610,7 +2610,8 @@
       "email": "Email",
       "phone": "Телефон",
       "status": "Статус",
-      "access": "Роли"
+      "access": "Роли",
+      "position_department": "Должность и отдел"
     },
     "status": {
       "active": "Активен",
@@ -3006,7 +3007,8 @@
       "duplicates_fix": "Объединить дубли"
     },
     "structure_moved": "Структура отделов теперь редактируется в «Безопасности данных».",
-    "structure_moved_link": "К дереву отделов →"
+    "structure_moved_link": "К дереву отделов →",
+    "seats_more": "ещё {n}"
   },
   "quality": {
     "title": "Оценка преподавания",

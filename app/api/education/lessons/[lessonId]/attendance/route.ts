@@ -10,6 +10,7 @@ import { isWithinAttendanceWindow } from '@/lib/education/attendance-window'
 import type { AttendanceStatus, AttendanceInsert } from '@/types/database'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
+import { compareNames } from '@/lib/persons/name'
 
 const VALID_STATUSES: readonly AttendanceStatus[] = ['present', 'late', 'absent']
 
@@ -100,6 +101,10 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ less
         students = allStudents.filter(s => !exemptions.isExempt(s.journey_id, dateISO))
       }
     }
+
+    // Ученицы группы — по алфавиту, по показываемому имени (ивритское, иначе
+    // full_name). Разовые гости добавляются ниже, в конце списка.
+    students.sort((a, b) => compareNames(a.hebrew_name || a.full_name, b.hebrew_name || b.full_name))
 
     // Разовые гости этого урока (lesson_roster_overrides) — journeys вне группы.
     // Деплой-безопасно: таблицы может ещё не быть (42P01) → просто без гостей.

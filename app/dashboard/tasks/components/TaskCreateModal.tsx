@@ -9,6 +9,7 @@ import { localizedDeptName } from '@/lib/departments/localized-name'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
+import { compareNames } from '@/lib/persons/name'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -160,7 +161,9 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
         const res = await fetch(`/api/persons/students?pageSize=20&search=${encodeURIComponent(studentSearch)}`)
         if (!res.ok) return
         const b = await res.json()
-        setStudentOpts(b.students ?? [])
+        // По алфавиту — по показываемому имени (ивритское, иначе full_name).
+        setStudentOpts(((b.students ?? []) as StudentOpt[])
+          .sort((x, y) => compareNames(x.hebrew_name || x.full_name, y.hebrew_name || y.full_name)))
       } catch { /* оставляем прежний список */ }
     }, 250)
     return () => clearTimeout(h)

@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { hasAlumniPrivilege } from '@/lib/alumni/permissions'
 import { errorResponse } from '@/lib/api/handler'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * GET /api/alumni
@@ -152,6 +153,9 @@ export async function GET(request: NextRequest) {
         (a.direction ?? '').toLowerCase().includes(search)
       )
     }
+
+    // По алфавиту — по имени, которое список показывает (full_name).
+    alumni.sort((a, b) => compareNames(a.full_name || a.hebrew_name, b.full_name || b.hebrew_name))
 
     return NextResponse.json({ alumni })
   } catch (err: unknown) {

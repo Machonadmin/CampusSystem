@@ -5,6 +5,7 @@ import { requirePsychologistPrivilege } from '@/lib/psychologist/permissions'
 import { mapDbError } from '@/lib/psychologist/http'
 import { openSessionCountsByJourney, riskLevelByJourney } from '@/lib/psychologist/sessions-server'
 import { errorResponse } from '@/lib/api/handler'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * GET /api/psychologist/students — студенты (education_journeys status='student')
@@ -78,6 +79,9 @@ export async function GET(request: NextRequest) {
         s.phones.join(' ').toLowerCase().includes(search)
       )
     }
+
+    // По алфавиту — по имени, которое список показывает первым (full_name).
+    students.sort((a, b) => compareNames(a.full_name || a.hebrew_name, b.full_name || b.hebrew_name))
 
     return NextResponse.json({ students })
   } catch (err: unknown) {

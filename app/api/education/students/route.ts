@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { GET as journeysGET, POST as journeysPOST } from '@/app/api/education/journeys/route'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * /api/education/students — DEPRECATED.
@@ -38,10 +39,11 @@ export async function GET(request: NextRequest) {
   const data = await resp.json().catch(() => ({}))
 
   if (data && Array.isArray((data as { journeys?: unknown }).journeys)) {
-    return NextResponse.json(
-      { students: (data as { journeys: unknown[] }).journeys },
-      { status: resp.status }
-    )
+    // По алфавиту — по имени, которое показывают списки выбора (full_name).
+    type Row = { person?: { full_name?: string | null; hebrew_name?: string | null } | null }
+    const students = [...(data as { journeys: Row[] }).journeys]
+      .sort((a, b) => compareNames(a.person?.full_name || a.person?.hebrew_name, b.person?.full_name || b.person?.hebrew_name))
+    return NextResponse.json({ students }, { status: resp.status })
   }
   return NextResponse.json(data, { status: resp.status })
 }

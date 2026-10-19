@@ -6,6 +6,7 @@ import { mapDbError } from '@/lib/dormitory/http'
 import { isActiveOn, type Assignment } from '@/lib/dormitory/occupancy'
 import { todayISO } from '@/lib/dormitory/occupancy-server'
 import { errorResponse } from '@/lib/api/handler'
+import { compareNames } from '@/lib/persons/name'
 
 /**
  * GET /api/dormitory/students — студенты (education_journeys status='student')
@@ -120,6 +121,10 @@ export async function GET(request: NextRequest) {
         s.phones.join(' ').toLowerCase().includes(search)
       )
     }
+
+    // По алфавиту — по имени, которое показывает список выбора (ивритское,
+    // иначе full_name).
+    students.sort((a, b) => compareNames(a.hebrew_name || a.full_name, b.hebrew_name || b.full_name))
 
     return NextResponse.json({ students })
   } catch (err: unknown) {
