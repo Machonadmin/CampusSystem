@@ -9,7 +9,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { MiniBar } from '@/components/ui/MiniBar'
 import { formatMoney } from '@/lib/finance/money'
 import { useSessionState } from '@/lib/hooks/useSessionState'
@@ -222,26 +222,30 @@ export default function FinancePage() {
         module="finance"
         title={tNav('finance')}
         subtitle={t('list.subtitle')}
-        actions={<>
-          {/* Ссылка на управление доступом — только тем, кто может им управлять
-              (иначе кнопка вела в «אין גישה»). */}
-          {canManageAccess && (
-            <Link href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
-              {t('access.link_label')}
+        actions={
+          // Кнопки перехода. На телефоне — сетка 2×2 одинаковой ширины во всю
+          // шапку (.header-links), а не две неровные строки (заметка 2026-10-15).
+          <div className="header-links">
+            {/* Ссылка на управление доступом — только тем, кто может им управлять
+                (иначе кнопка вела в «אין גישה»). */}
+            {canManageAccess && (
+              <Link href="/dashboard/finance/access" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
+                {t('access.link_label')}
+              </Link>
+            )}
+            {canFinanceAdmin && (
+              <Link href="/dashboard/education/finance-admin" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
+                {tFinAdmin('title')}
+              </Link>
+            )}
+            <Link href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
+              {t('semesters.title')}
             </Link>
-          )}
-          {canFinanceAdmin && (
-            <Link href="/dashboard/education/finance-admin" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
-              {tFinAdmin('title')}
+            <Link href="/dashboard/finance/staff" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
+              {t('staff.link_label')}
             </Link>
-          )}
-          <Link href="/dashboard/finance/semesters" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
-            {t('semesters.title')}
-          </Link>
-          <Link href="/dashboard/finance/staff" className="no-underline" style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8, background: 'var(--surface-2)', color: primary }}>
-            {t('staff.link_label')}
-          </Link>
-        </>}
+          </div>
+        }
       />
 
       {/* Сводка сбора: начислено / оплачено / остаток + доля собранного. */}
@@ -268,37 +272,12 @@ export default function FinancePage() {
         </div>
       )}
 
-      {/* Общая шапка списков: поиск и кнопки — одной строкой, фильтры — второй,
-          счётчик под ними. */}
+      {/* Общая шапка списков. Здесь поиск занимает первую строку целиком, а
+          «ייצוא» и «בחירה מרובה» — маленькими кнопками в конце строки фильтров
+          (на телефоне «ייצוא» — одна иконка). Заметка владельца 2026-10-15 про
+          верх экрана «כספים». Счётчик — под ними. */}
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
-        actions={<>
-          <button
-            onClick={exportDebtors}
-            disabled={filtered.length === 0}
-            style={{
-              fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 8,
-              cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap',
-              border: '1px solid var(--border-strong)', background: 'var(--surface)',
-              color: 'var(--text-muted)', opacity: filtered.length === 0 ? 0.5 : 1,
-            }}
-          >
-            {t('list.export_csv')}
-          </button>
-          {canCharge && (
-            <button
-              onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
-              style={{
-                fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: 'pointer',
-                background: selectMode ? 'var(--success-tint)' : 'var(--surface)',
-                color: selectMode ? 'var(--success)' : 'var(--text)',
-                border: `1px solid ${selectMode ? 'var(--success)' : 'var(--border-strong)'}`,
-              }}
-            >
-              {selectMode ? t('bulk.exit') : t('bulk.select')}
-            </button>
-          )}
-        </>}
         filters={<>
           <button
             onClick={() => setDebtorsOnly(v => !v)}
@@ -320,6 +299,23 @@ export default function FinancePage() {
             <option value="balance">{t('list.sort_balance')}</option>
             <option value="overdue">{t('list.sort_overdue')}</option>
           </select>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginInlineStart: 'auto' }}>
+            <ListExportButton onClick={exportDebtors} disabled={filtered.length === 0} label={t('list.export_csv')} />
+            {canCharge && (
+              <button
+                onClick={() => { if (selectMode) exitSelect(); else { setSelectMode(true); setBulkMsg(null) } }}
+                style={{
+                  fontSize: 12.5, fontWeight: 600, padding: '7px 12px', borderRadius: 8, cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  background: selectMode ? 'var(--success-tint)' : 'var(--surface)',
+                  color: selectMode ? 'var(--success)' : 'var(--text)',
+                  border: `1px solid ${selectMode ? 'var(--success)' : 'var(--border-strong)'}`,
+                }}
+              >
+                {selectMode ? t('bulk.exit') : t('bulk.select')}
+              </button>
+            )}
+          </div>
         </>}
         count={`${t('list.count')}: ${filtered.length}`}
       />

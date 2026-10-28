@@ -333,6 +333,28 @@ body { transition: background-color .25s ease, color .25s ease; }
   .resp-grid-2, .resp-grid-3 { grid-template-columns: 1fr; }
 }
 
+/* Кнопки перехода в шапке модуля (напр. «כספים»). На десктопе — строка; на
+   телефоне — сетка в два столбца одинаковой ширины во всю шапку, а не две
+   неровные строки (заметка владельца 2026-10-15). Родитель (слот actions
+   ModuleHeader) растягиваем через :has, сам ModuleHeader не меняется. */
+.header-links { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+@media (max-width: 640px) {
+  div:has(> .header-links) { flex: 1 1 100%; }
+  .header-links { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; width: 100%; }
+  .header-links > a {
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    padding: 9px 8px !important;
+  }
+}
+
+/* Шапка списка без поиска (ListToolbar): списки выбора делят строку поровну и
+   сжимаются, чтобы кнопки («ייצוא» и др.) встали рядом, а не ушли под них.
+   flex-basis 0 перебивает инлайновую ширину. */
+.list-toolbar-filters > select { flex: 1 1 0; min-width: 0; max-width: 200px; }
+.list-toolbar-filters > button { flex: none; white-space: nowrap; }
+/* Подпись, которую на телефоне прячем и оставляем только иконку. */
+@media (max-width: 640px) { .label-hide-sm { display: none; } }
+
 /* ============================================================================
    Мобильный слой оболочки. Телефонный брейкпоинт приложения — 768px (как в
    SidebarContext). Цель — удобство как в мобильных приложениях.

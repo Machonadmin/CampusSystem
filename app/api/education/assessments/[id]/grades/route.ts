@@ -5,6 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getAssessmentAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { GradeInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { compareNames } from '@/lib/persons/name'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
   if (error.code === '22P02') return { status: 400, message: serverT('invalid_id') }
@@ -81,6 +82,9 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
         graded_at: g?.graded_at ?? null,
       }
     })
+
+    // По алфавиту — по показываемому имени (full_name, иначе ивритское).
+    students.sort((a, b) => compareNames(a.full_name || a.hebrew_name, b.full_name || b.hebrew_name))
 
     return NextResponse.json({
       assessment_id: params.id,

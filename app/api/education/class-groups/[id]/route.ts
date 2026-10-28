@@ -6,6 +6,7 @@ import { requireEducationPrivilege, hasEducationPrivilege } from '@/lib/educatio
 import type { ClassGroupUpdate } from '@/types/database'
 
 import { isMissingColumn } from '@/lib/supabase/errors'
+import { compareNames } from '@/lib/persons/name'
 
 const CLASS_GROUP_SELECT = `
   *,
@@ -101,6 +102,8 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
           hebrew_name: p?.hebrew_name ?? null,
         }
       })
+      // Состав группы — по алфавиту, по показываемому имени (full_name).
+      students.sort((a, b) => compareNames(a.full_name || a.hebrew_name, b.full_name || b.hebrew_name))
     }
 
     return NextResponse.json({

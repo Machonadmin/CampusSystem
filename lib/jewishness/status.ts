@@ -87,6 +87,9 @@ export async function setJewishnessStatus(
     jewishness_status: status,
     jewishness_notes: note,
   }
+  // Первичная проверка без заметки не стирает прежнюю заметку в карточке
+  // (решение владельца 2026-10-19; раньше пустое поле её обнуляло).
+  if (isInitialCheck && note === null) delete update.jewishness_notes
   if (isInitialCheck) {
     update.jewishness_initial_checked_by = changedBy
     update.jewishness_initial_checked_at = nowIso

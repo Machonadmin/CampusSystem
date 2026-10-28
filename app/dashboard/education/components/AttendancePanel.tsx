@@ -8,6 +8,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { LessonItem } from './LessonsJournalTab'
+import { compareNames } from '@/lib/persons/name'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -173,6 +174,7 @@ export default function AttendancePanel({ lesson, canMarkAttendance, readOnlyHin
           id: j.id, name: j.person?.hebrew_name || j.person?.full_name || '—',
         }))
         .filter((r: GuestResult) => !enrolledSet.has(r.id))
+        .sort((a: GuestResult, b: GuestResult) => compareNames(a.name, b.name))
         .slice(0, 8)
       setGuestResults(results)
     } finally { setGuestBusy(false) }

@@ -153,7 +153,8 @@
     "action_initial_check": "Первичная проверка",
     "action_final_approve": "Финальное одобрение",
     "action_reject": "Отклонить",
-    "action_failed": "Действие не удалось"
+    "action_failed": "Действие не удалось",
+    "file_too_large": "Файл слишком большой. Можно загрузить файл до 4 МБ."
   },
   "navigation": {
     "home": "Главная",
@@ -2610,7 +2611,8 @@
       "email": "Email",
       "phone": "Телефон",
       "status": "Статус",
-      "access": "Роли"
+      "access": "Роли",
+      "position_department": "Должность и отдел"
     },
     "status": {
       "active": "Активен",
@@ -3006,7 +3008,8 @@
       "duplicates_fix": "Объединить дубли"
     },
     "structure_moved": "Структура отделов теперь редактируется в «Безопасности данных».",
-    "structure_moved_link": "К дереву отделов →"
+    "structure_moved_link": "К дереву отделов →",
+    "seats_more": "ещё {n}"
   },
   "quality": {
     "title": "Оценка преподавания",
@@ -4549,7 +4552,7 @@
       "status": "Статус",
       "notes": "Заметки",
       "upload_file": "Загрузить файл",
-      "upload_hint": "PDF, изображение или Word · до 15 МБ"
+      "upload_hint": "PDF, изображение или Word · до 4 МБ"
     },
     "types": {
       "id_card": "Удостоверение личности",
@@ -4603,7 +4606,8 @@
       "signature_required": "Требуется подпись",
       "title_required": "Укажите название документа",
       "add": "Не удалось добавить документ",
-      "action": "Действие не выполнено"
+      "action": "Действие не выполнено",
+      "file_too_large": "Файл слишком большой. Можно загрузить файл до 4 МБ."
     }
   },
   "contacts": {

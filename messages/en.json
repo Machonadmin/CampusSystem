@@ -153,7 +153,8 @@
     "action_initial_check": "Initial check",
     "action_final_approve": "Final approve",
     "action_reject": "Reject",
-    "action_failed": "Action failed"
+    "action_failed": "Action failed",
+    "file_too_large": "The file is too large. Files up to 4 MB can be uploaded."
   },
   "navigation": {
     "home": "Home",
@@ -2610,7 +2611,8 @@
       "email": "Email",
       "phone": "Phone",
       "status": "Status",
-      "access": "Roles"
+      "access": "Roles",
+      "position_department": "Position & Department"
     },
     "status": {
       "active": "Active",
@@ -3006,7 +3008,8 @@
       "duplicates_fix": "Merge duplicates"
     },
     "structure_moved": "The department structure is now managed in Data Security.",
-    "structure_moved_link": "Go to the department tree →"
+    "structure_moved_link": "Go to the department tree →",
+    "seats_more": "{n} more"
   },
   "quality": {
     "title": "Teaching Evaluation",
@@ -4549,7 +4552,7 @@
       "status": "Status",
       "notes": "Notes",
       "upload_file": "Upload file",
-      "upload_hint": "PDF, image or Word · up to 15 MB"
+      "upload_hint": "PDF, image or Word · up to 4 MB"
     },
     "types": {
       "id_card": "ID card",
@@ -4603,7 +4606,8 @@
       "signature_required": "A signature is required",
       "title_required": "Enter a document title",
       "add": "Failed to add document",
-      "action": "Action failed"
+      "action": "Action failed",
+      "file_too_large": "The file is too large. Files up to 4 MB can be uploaded."
     }
   },
   "contacts": {

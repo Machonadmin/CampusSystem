@@ -1,5 +1,5 @@
 'use client'
-import { personDisplayName } from '@/lib/persons/name'
+import { personDisplayName, compareNames } from '@/lib/persons/name'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -44,8 +44,9 @@ export default function RecruitmentTab() {
   const [search, setSearch, searchReady] = useSessionState('recruitment.search', '')
   // 'quick' — короткая форма (по умолчанию); 'full' — старый 6-шаговый мастер.
   const [addOpen, setAddOpen] = useState<null | 'quick' | 'full'>(null)
-  const [sortBy, setSortBy] = useState<LeadSortKey>('application_date')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  // По умолчанию — по алфавиту (решение владельца 2026-10-28: «למיין לפי האותיות»).
+  const [sortBy, setSortBy] = useState<LeadSortKey>('full_name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [processStatus, setProcessStatus, statusReady] = useSessionState<ProcessStatusFilter>('recruitment.processStatus', 'active')
   const [mineOnly, setMineOnly, mineReady] = useSessionState('recruitment.mineOnly', false)
   const filtersReady = searchReady && statusReady && mineReady
@@ -134,10 +135,9 @@ export default function RecruitmentTab() {
       if (sortOrder === 'asc') {
         setSortOrder('desc')
       } else {
-        // Третий клик возвращает сортировку по умолчанию (новые лиды сверху) —
-        // раньше к ней нельзя было вернуться после клика по имени.
-        setSortBy('application_date')
-        setSortOrder('desc')
+        // Третий клик возвращает сортировку по умолчанию (по алфавиту).
+        setSortBy('full_name')
+        setSortOrder('asc')
       }
     } else {
       setSortBy(key)
@@ -155,10 +155,13 @@ export default function RecruitmentTab() {
         l.interests.some(i => interestLabel(i).toLowerCase().includes(q))
     })
     .sort((a, b) => {
-      let va: string | null
-      let vb: string | null
-      if (sortBy === 'full_name') { va = a.full_name; vb = b.full_name }
-      else { va = a.application_date; vb = b.application_date }
+      if (sortBy === 'full_name') {
+        // Сортируем по показанному имени (personDisplayName), а не по full_name.
+        const cmp = compareNames(personDisplayName(a), personDisplayName(b))
+        return sortOrder === 'asc' ? cmp : -cmp
+      }
+      const va = a.application_date
+      const vb = b.application_date
       if (!va && !vb) return 0
       if (!va) return 1
       if (!vb) return -1

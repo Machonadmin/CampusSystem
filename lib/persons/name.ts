@@ -9,3 +9,13 @@ export function personDisplayName(
   if (!p) return ''
   return (p.hebrew_name || p.full_name || '').trim()
 }
+
+/**
+ * Сравнение имён для списков людей — по алфавиту (решение владельца 2026-10-19:
+ * «בכל מקום התלמידות אמורות להיות ממוינות … לפי הסדר»). Иврит, русский и латиница
+ * — каждый по своему алфавиту; регистр и огласовки не важны. Сортировать нужно
+ * по тому имени, которое список ПОКАЗЫВАЕТ первым.
+ */
+export function compareNames(a: string | null | undefined, b: string | null | undefined): number {
+  return (a ?? '').trim().localeCompare((b ?? '').trim(), ['he', 'ru', 'en'], { sensitivity: 'base' })
+}

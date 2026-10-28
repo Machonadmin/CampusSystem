@@ -9,6 +9,7 @@ import { toast } from '@/components/ui/toast'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { collidesWithKodesh } from '@/lib/education/kodesh-schedule'
+import { compareNames } from '@/lib/persons/name'
 
 const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 
@@ -260,7 +261,8 @@ export default function SlotFormModal({
       const rows = (b.enrollments ?? []) as Array<{ journey?: { person?: { full_name?: string | null; hebrew_name?: string | null } | null } | null }>
       setStudents(rows
         .map(e => (e.journey?.person?.hebrew_name || e.journey?.person?.full_name || '').trim())
-        .filter(Boolean))
+        .filter(Boolean)
+        .sort(compareNames))
     } catch { setStudents([]) }
   }, [classGroupId])
   useEffect(() => { setStudents(null); setShowStudents(false) }, [classGroupId])
