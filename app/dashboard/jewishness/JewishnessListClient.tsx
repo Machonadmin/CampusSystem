@@ -10,6 +10,7 @@ import SignatureCapture, { type SignaturePayload } from '@/components/workflow/S
 import { useMe } from '@/lib/hooks/useMe'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
 
 // Ровно три статуса (владелец, M16): pending «בבדיקה» · verified «אושר» · rejected «לא אושר».
 type Status = 'pending' | 'verified' | 'rejected'
@@ -434,12 +435,14 @@ function DocumentsSection({
 
   async function uploadDoc() {
     if (!file || !docTitle.trim()) return
+    if (exceedsRequestLimit(file)) { setUploadError(t('file_too_large')); return }
     setUploading(true); setUploadError('')
     try {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('title', docTitle.trim())
       const res = await fetch(`/api/jewishness/queue/${journeyId}/document`, { method: 'POST', body: fd })
+      if (res.status === 413) { setUploadError(t('file_too_large')); return }
       if (!res.ok) {
         const d = await res.json().catch(() => ({})) as { error?: string }
         setUploadError(d.error ?? t('upload_error')); return
@@ -488,7 +491,14 @@ function DocumentsSection({
           <input
             ref={fileRef}
             type="file"
-            onChange={e => setFile(e.target.files?.[0] ?? null)}
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
+            onChange={e => {
+              const f = e.target.files?.[0] ?? null
+              setFile(f)
+              // Пустое название → из имени файла: раньше кнопка «העלאה» молча
+              // оставалась серой, пока не заполнят название (жалоба 2026-10-28).
+              if (f) setDocTitle(prev => prev.trim() ? prev : titleFromFileName(f.name))
+            }}
             style={{ fontSize: 12, color: 'var(--text)' }}
           />
           <button

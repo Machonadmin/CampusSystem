@@ -1,4 +1,5 @@
 import { flattenPhones } from '@/lib/persons/phone'
+import { compareNames } from '@/lib/persons/name'
 import { NextRequest, NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
@@ -178,6 +179,13 @@ export async function GET(request: NextRequest) {
         stages: rows,
       }
     })
+
+    // По алфавиту по показанному имени (hebrew_name || full_name) — решение
+    // владельца 2026-10-28; раньше — по дате начала процесса.
+    applicants.sort((a, b) => compareNames(
+      a.applicant.hebrew_name || a.applicant.full_name,
+      b.applicant.hebrew_name || b.applicant.full_name,
+    ))
 
     return NextResponse.json({ applicants })
   } catch (err: unknown) {

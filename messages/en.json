@@ -153,7 +153,8 @@
     "action_initial_check": "Initial check",
     "action_final_approve": "Final approve",
     "action_reject": "Reject",
-    "action_failed": "Action failed"
+    "action_failed": "Action failed",
+    "file_too_large": "The file is too large. For now, files up to 4 MB can be uploaded."
   },
   "navigation": {
     "home": "Home",
@@ -4605,7 +4606,8 @@
       "signature_required": "A signature is required",
       "title_required": "Enter a document title",
       "add": "Failed to add document",
-      "action": "Action failed"
+      "action": "Action failed",
+      "file_too_large": "The file is too large. For now, files up to 4 MB can be uploaded."
     }
   },
   "contacts": {

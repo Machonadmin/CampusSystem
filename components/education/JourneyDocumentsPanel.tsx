@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES, DOC_CATEGORIES, REVIEW_STATUSES } from '@/lib/documents/validation'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
 
 /**
  * Journey-scoped панель документов для карточки лида/абитуриента/студента.
@@ -90,6 +91,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
   async function addDocument() {
     if (!dTitle.trim()) { setFormError(t('errors.title_required')); return }
     if (!dFile) { setFormError(t('fields.upload_file')); return }
+    if (exceedsRequestLimit(dFile)) { setFormError(t('errors.file_too_large')); return }
     setBusy(true); setFormError(null)
     try {
       const fd = new FormData()
@@ -101,6 +103,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
       if (dExpiry) fd.append('expiry_date', dExpiry)
       if (dNotes) fd.append('notes', dNotes)
       const res = await fetch(`/api/documents/journeys/${journeyId}/upload`, { method: 'POST', body: fd })
+      if (res.status === 413) { setFormError(t('errors.file_too_large')); return }
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
         setFormError(b.error ?? t('errors.add')); return
@@ -218,7 +221,12 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
                     key={fileKey}
                     type="file"
                     accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
-                    onChange={e => setDFile(e.target.files?.[0] ?? null)}
+                    onChange={e => {
+                      const f = e.target.files?.[0] ?? null
+                      setDFile(f)
+                      // Пустое название → берём из имени файла (иначе «יש לציין כותרת»).
+                      if (f) setDTitle(prev => prev.trim() ? prev : titleFromFileName(f.name))
+                    }}
                     style={inp}
                   />
                   <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 400 }}>{t('fields.upload_hint')}</span>

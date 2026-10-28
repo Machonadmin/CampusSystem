@@ -13,6 +13,7 @@ import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES } from '@/lib/documents/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
 
 interface Doc {
   id: string
@@ -80,6 +81,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
   async function addDocument() {
     if (!dTitle.trim()) { setFormError(t('errors.title_required')); return }
+    if (dFile && exceedsRequestLimit(dFile)) { setFormError(t('errors.file_too_large')); return }
     setBusy(true); setFormError(null)
     try {
       let res: Response
@@ -108,6 +110,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
           }),
         })
       }
+      if (res.status === 413) { setFormError(t('errors.file_too_large')); return }
       if (!res.ok) {
         const b = await res.json().catch(() => ({}))
         setFormError(b.error ?? t('errors.add')); return
@@ -233,7 +236,12 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                     key={fileKey}
                     type="file"
                     accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx"
-                    onChange={e => setDFile(e.target.files?.[0] ?? null)}
+                    onChange={e => {
+                      const f = e.target.files?.[0] ?? null
+                      setDFile(f)
+                      // Пустое название → берём из имени файла (иначе «יש לציין כותרת»).
+                      if (f) setDTitle(prev => prev.trim() ? prev : titleFromFileName(f.name))
+                    }}
                     style={inp}
                   />
                   <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 400 }}>{t('fields.upload_hint')}</span>

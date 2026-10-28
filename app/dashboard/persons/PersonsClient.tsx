@@ -11,6 +11,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { firstPhone } from '@/lib/persons/phone'
+import { compareNames } from '@/lib/persons/name'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { useSessionState } from '@/lib/hooks/useSessionState'
 import { usePersonPhotos } from '@/lib/hooks/usePersonPhotos'
@@ -143,6 +144,9 @@ export default function PersonsClient() {
             (l.email ?? '').toLowerCase().includes(q) ||
             l.phones.join(' ').toLowerCase().includes(q))
         }
+        // API отдаёт лидов «новые сверху» (это нужно виджету на главной);
+        // здесь — по алфавиту (решение владельца 2026-10-28).
+        list.sort((a, b) => compareNames(a.full_name, b.full_name))
         setRows(list); setTotal(list.length)
         return
       }

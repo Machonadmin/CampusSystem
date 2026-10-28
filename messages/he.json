@@ -153,7 +153,8 @@
     "action_initial_check": "בדיקה ראשונית",
     "action_final_approve": "אישור סופי",
     "action_reject": "דחייה",
-    "action_failed": "הפעולה נכשלה"
+    "action_failed": "הפעולה נכשלה",
+    "file_too_large": "הקובץ גדול מדי. כרגע אפשר להעלות קובץ עד 4MB."
   },
   "navigation": {
     "home": "מסך הבית",
@@ -4605,7 +4606,8 @@
       "signature_required": "נדרשת חתימה",
       "title_required": "יש לציין כותרת למסמך",
       "add": "הוספת המסמך נכשלה",
-      "action": "הפעולה נכשלה"
+      "action": "הפעולה נכשלה",
+      "file_too_large": "הקובץ גדול מדי. כרגע אפשר להעלות קובץ עד 4MB."
     }
   },
   "contacts": {
