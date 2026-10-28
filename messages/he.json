@@ -154,7 +154,7 @@
     "action_final_approve": "אישור סופי",
     "action_reject": "דחייה",
     "action_failed": "הפעולה נכשלה",
-    "file_too_large": "הקובץ גדול מדי. כרגע אפשר להעלות קובץ עד 4MB."
+    "file_too_large": "הקובץ גדול מדי. אפשר להעלות קובץ עד 4MB."
   },
   "navigation": {
     "home": "מסך הבית",
@@ -4552,7 +4552,7 @@
       "status": "סטטוס",
       "notes": "הערות",
       "upload_file": "העלאת קובץ",
-      "upload_hint": "PDF, תמונה או Word · עד 15MB"
+      "upload_hint": "PDF, תמונה או Word · עד 4MB"
     },
     "types": {
       "id_card": "תעודת זהות",
@@ -4607,7 +4607,7 @@
       "title_required": "יש לציין כותרת למסמך",
       "add": "הוספת המסמך נכשלה",
       "action": "הפעולה נכשלה",
-      "file_too_large": "הקובץ גדול מדי. כרגע אפשר להעלות קובץ עד 4MB."
+      "file_too_large": "הקובץ גדול מדי. אפשר להעלות קובץ עד 4MB."
     }
   },
   "contacts": {

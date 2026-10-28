@@ -154,7 +154,7 @@
     "action_final_approve": "Final approve",
     "action_reject": "Reject",
     "action_failed": "Action failed",
-    "file_too_large": "The file is too large. For now, files up to 4 MB can be uploaded."
+    "file_too_large": "The file is too large. Files up to 4 MB can be uploaded."
   },
   "navigation": {
     "home": "Home",
@@ -4552,7 +4552,7 @@
       "status": "Status",
       "notes": "Notes",
       "upload_file": "Upload file",
-      "upload_hint": "PDF, image or Word · up to 15 MB"
+      "upload_hint": "PDF, image or Word · up to 4 MB"
     },
     "types": {
       "id_card": "ID card",
@@ -4607,7 +4607,7 @@
       "title_required": "Enter a document title",
       "add": "Failed to add document",
       "action": "Action failed",
-      "file_too_large": "The file is too large. For now, files up to 4 MB can be uploaded."
+      "file_too_large": "The file is too large. Files up to 4 MB can be uploaded."
     }
   },
   "contacts": {
