@@ -9,7 +9,7 @@ import {
 type SB = ReturnType<typeof createServerClient>
 
 /**
- * Тזמון תזכורות למשימות — дополнение к materializeAllTaskDeadlines
+ * תזמון תזכורות למשימות — дополнение к materializeAllTaskDeadlines
  * («משימה להיום» / «משימה למחר», которые остаются как были):
  *
  *   • раннее напоминание: если у задачи задан remind_days_before = N (2..30),

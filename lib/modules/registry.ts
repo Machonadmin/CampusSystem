@@ -117,6 +117,15 @@ export const MODULES = [
     inAccessibleModules: true, hasColour: true, implemented: true,
     inSidebar: false, isPrivilegeModule: true,
   },
+  {
+    code: 'management', navKey: 'management', href: '/dashboard/management',
+    routeGuard: false, pageGates: false, pagePrivilege: null,
+    gateExceptionReason:
+      'פאנל ניהול: как календарь — requireCalendarUser() пускает любого сотрудника, ' +
+      'а /api/management/** отдаёт только то, где он создатель, участник или ответственный.',
+    inAccessibleModules: false, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: false,
+  },
 
   {
     code: 'feedback', navKey: 'feedback', href: '/dashboard/feedback',
