@@ -7,6 +7,7 @@ import { formatDate, formatDateLong, formatDateTime } from '@/lib/i18n/format-da
 import { isMaintenanceTask } from '@/lib/tasks/maintenance-link'
 import type { useTaskDetail, Comment } from './useTaskDetail'
 import StudentChip from './StudentChip'
+import RemindBeforeSelect from './RemindBeforeSelect'
 
 /**
  * Общее тело карточки задачи (заголовок → метаданные → наблюдатели → действия →
@@ -126,6 +127,32 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
           <Field label={t('card.completed_at')} value={formatDate(task.completed_at, lang)} />
         )}
       </div>
+
+      {/* Раннее напоминание: правит автор (canEdit), остальные видят значение.
+          Только у открытой задачи со сроком. */}
+      {task.due_date && !['completed', 'cancelled', 'declined'].includes(task.status) && (
+        d.access?.canEdit || task.remind_days_before != null
+      ) && (
+        <div style={{
+          marginTop: 12, padding: '10px 12px', borderRadius: 8,
+          background: 'var(--surface-2)', border: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+        }}>
+          <span style={{ fontSize: 13, color: 'var(--text)' }}>🔔 {t('remind.label')}</span>
+          {d.access?.canEdit ? (
+            <RemindBeforeSelect
+              value={task.remind_days_before ?? null}
+              onChange={v => { void d.setRemindDaysBefore(v) }}
+              disabled={d.actionInProgress}
+              style={{ fontSize: 13, padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)' }}
+            />
+          ) : (
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+              {t('remind.days_before').replace('{n}', String(task.remind_days_before))}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Метка «задача по эксплуатации» — правит только тот, кто может править
           задачу (автор/суперадмин), как и остальные поля. Сервер снимет метку

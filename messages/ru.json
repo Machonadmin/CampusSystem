@@ -2590,6 +2590,13 @@
       "student_none": "Без студентки",
       "student_search": "Поиск студентки…",
       "student_empty": "Студентки не найдены"
+    },
+    "remind": {
+      "label": "Раннее напоминание:",
+      "none": "Нет",
+      "days_before": "За {n} дн.",
+      "hint": "Напоминание накануне и в день срока приходит всегда. Просроченная задача напоминает на 1-й, 3-й и 7-й день.",
+      "save_failed": "Не удалось сохранить напоминание"
     }
   },
   "staff": {
@@ -5360,7 +5367,9 @@
     "feedback_text_required": "Напишите замечание (до 5000 символов)",
     "feedback_too_many_screenshots": "Можно приложить не больше 5 скриншотов",
     "feedback_bad_screenshot_type": "Можно приложить только картинки PNG, JPG или WEBP",
-    "feedback_screenshot_too_large": "Скриншот слишком большой (до 5 МБ)"
+    "feedback_screenshot_too_large": "Скриншот слишком большой (до 5 МБ)",
+    "remind_days_before_invalid": "Неверное значение напоминания (от 2 до 30 дней)",
+    "remind_days_before_requires_date": "Для раннего напоминания нужен срок"
   },
   "workflow": {
     "error": "Ошибка"

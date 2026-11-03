@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { materializeAllDueReminders, materializeAllTaskDeadlines, materializeStageTaskNudges } from '@/lib/notifications/reminders'
+import { materializeAllTaskReminders } from '@/lib/notifications/task-reminders'
 import { materializeChavrutaReminders } from '@/lib/chavruta/reminder'
 import { materializeChavrutaSchedule } from '@/lib/chavruta/schedule'
 import { materializeAbsenceThresholdAlerts } from '@/lib/education/absence-alerts'
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
   const sb = createServerClient()
   const remindersCreated = await materializeAllDueReminders(sb)
   const taskDeadlinesCreated = await materializeAllTaskDeadlines(sb)
+  const taskRemindersCreated = await materializeAllTaskReminders(sb) // ранние (за N дней) + просрочка 1/3/7
   const stageTaskNudges = await materializeStageTaskNudges(sb) // задачи этапов без срока: одно напоминание
   const chavrutaReminders = await materializeChavrutaReminders(sb) // только по средам
   const chavrutaSchedule = await materializeChavrutaSchedule(sb) // «קבועות»: утро дня + вопрос о вчерашних
@@ -40,6 +42,7 @@ export async function GET(request: NextRequest) {
     ok: true,
     reminders_created: remindersCreated,
     task_deadlines_created: taskDeadlinesCreated,
+    task_reminders_created: taskRemindersCreated,
     stage_task_nudges: stageTaskNudges,
     chavruta_reminders: chavrutaReminders,
     chavruta_schedule: chavrutaSchedule,

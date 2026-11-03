@@ -2590,6 +2590,13 @@
       "student_none": "ללא תלמידה",
       "student_search": "חיפוש תלמידה…",
       "student_empty": "לא נמצאו תלמידות"
+    },
+    "remind": {
+      "label": "תזכורת מוקדמת:",
+      "none": "ללא",
+      "days_before": "{n} ימים לפני",
+      "hint": "תזכורת ליום לפני וליום עצמו נשלחת תמיד. משימה באיחור מזכירה שוב ביום 1, 3 ו-7 לאיחור.",
+      "save_failed": "שמירת התזכורת נכשלה"
     }
   },
   "staff": {
@@ -5360,7 +5367,9 @@
     "feedback_text_required": "יש לכתוב את ההערה (עד 5000 תווים)",
     "feedback_too_many_screenshots": "אפשר לצרף עד 5 צילומי מסך",
     "feedback_bad_screenshot_type": "אפשר לצרף רק תמונות PNG, JPG או WEBP",
-    "feedback_screenshot_too_large": "צילום מסך גדול מדי (עד 5MB)"
+    "feedback_screenshot_too_large": "צילום מסך גדול מדי (עד 5MB)",
+    "remind_days_before_invalid": "ערך תזכורת לא תקין (2 עד 30 ימים)",
+    "remind_days_before_requires_date": "תזכורת מוקדמת דורשת תאריך יעד"
   },
   "workflow": {
     "error": "שגיאה"

@@ -2590,6 +2590,13 @@
       "student_none": "No student",
       "student_search": "Search student…",
       "student_empty": "No students found"
+    },
+    "remind": {
+      "label": "Early reminder:",
+      "none": "None",
+      "days_before": "{n} days before",
+      "hint": "A reminder the day before and on the due day is always sent. An overdue task reminds again on days 1, 3 and 7.",
+      "save_failed": "Could not save the reminder"
     }
   },
   "staff": {
@@ -5360,7 +5367,9 @@
     "feedback_text_required": "Write the note (up to 5000 characters)",
     "feedback_too_many_screenshots": "You can attach up to 5 screenshots",
     "feedback_bad_screenshot_type": "Only PNG, JPG or WEBP images can be attached",
-    "feedback_screenshot_too_large": "Screenshot is too large (up to 5 MB)"
+    "feedback_screenshot_too_large": "Screenshot is too large (up to 5 MB)",
+    "remind_days_before_invalid": "Invalid reminder value (2 to 30 days)",
+    "remind_days_before_requires_date": "An early reminder needs a due date"
   },
   "workflow": {
     "error": "Error"

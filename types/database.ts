@@ -776,6 +776,7 @@ export interface TaskRow {
   due_date: string | null      // ISO date 'YYYY-MM-DD'
   due_time: string | null      // 'HH:MM:SS'
   due_all_day: boolean
+  remind_days_before: number | null  // раннее напоминание за N дней (2..30), NULL = нет
   claimed_at: string | null
   recurrence_series_id: string | null  // UUID серии, NULL для разовых
   recurrence_rule: Json | null          // см. структуру в миграции
@@ -802,6 +803,7 @@ export interface TaskInsert {
   due_date?: string | null
   due_time?: string | null
   due_all_day?: boolean
+  remind_days_before?: number | null
   claimed_at?: string | null
   completed_at?: string | null
   recurrence_series_id?: string | null
