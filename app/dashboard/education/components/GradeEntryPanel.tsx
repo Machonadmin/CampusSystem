@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import type { AssessmentItem } from './GradesTab'
+import SubmissionLink from '@/components/education/SubmissionLink'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -18,6 +19,8 @@ interface StudentEntry {
   comment: string | null
   graded_by: string | null
   graded_at: string | null
+  /** Сдача (только у מטלה להגשה). */
+  submission?: { id: string; file_name: string; submitted_at: string } | null
 }
 
 interface Props {
@@ -192,6 +195,24 @@ export default function GradeEntryPanel({ assessment, canSetGrades, accentColor,
                   <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>
                     {s.full_name ?? s.hebrew_name ?? '—'}
                   </div>
+                  {assessment.requires_submission && (
+                    s.submission ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2, flexWrap: 'wrap' }}>
+                        <SubmissionLink submissionId={s.submission.id} fileName={s.submission.file_name} />
+                        <span style={{
+                          fontSize: 11,
+                          color: assessment.assessment_date && s.submission.submitted_at.slice(0, 10) > assessment.assessment_date
+                            ? 'var(--warn)' : 'var(--text-faint)',
+                        }}>
+                          {formatDate(lang, s.submission.submitted_at.slice(0, 10))}
+                          {assessment.assessment_date && s.submission.submitted_at.slice(0, 10) > assessment.assessment_date
+                            ? ` · ${t('submission_late')}` : ''}
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 2 }}>{t('not_submitted')}</div>
+                    )
+                  )}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

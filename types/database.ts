@@ -1087,6 +1087,8 @@ export interface AssessmentRow {
   max_score: number
   assessment_date: string | null   // ISO date 'YYYY-MM-DD'
   description: string | null
+  /** מטלה להגשה: ученица сдаёт файл в портале (срок = assessment_date). */
+  requires_submission?: boolean
   created_at: string
   updated_at: string
   created_by: string | null
@@ -1098,9 +1100,59 @@ export interface AssessmentInsert {
   max_score?: number
   assessment_date?: string | null
   description?: string | null
+  requires_submission?: boolean
   created_by?: string | null
 }
 export type AssessmentUpdate = Partial<Omit<AssessmentInsert, 'class_group_id' | 'created_by'>>
+
+// ─── מטלות להגשה + מצב בקורס (миграция 20261103130000) ──────────────────────
+export interface AssessmentSubmissionRow {
+  id: string
+  assessment_id: string
+  journey_id: string
+  storage_path: string
+  file_name: string
+  mime_type: string | null
+  size_bytes: number | null
+  note: string | null
+  submitted_by: string | null
+  submitted_at: string
+  updated_at: string
+}
+export interface AssessmentSubmissionInsert {
+  id?: string
+  assessment_id: string
+  journey_id: string
+  storage_path: string
+  file_name: string
+  mime_type?: string | null
+  size_bytes?: number | null
+  note?: string | null
+  submitted_by?: string | null
+  submitted_at?: string
+}
+export type AssessmentSubmissionUpdate = Partial<AssessmentSubmissionInsert>
+
+export type CourseResultStatus = 'in_progress' | 'passed' | 'failed' | 'incomplete' | 'withdrawn'
+export interface CourseResultRow {
+  class_group_id: string
+  journey_id: string
+  status: CourseResultStatus
+  final_grade: number | null
+  note: string | null
+  updated_by: string | null
+  created_at: string
+  updated_at: string
+}
+export interface CourseResultInsert {
+  class_group_id: string
+  journey_id: string
+  status?: CourseResultStatus
+  final_grade?: number | null
+  note?: string | null
+  updated_by?: string | null
+}
+export type CourseResultUpdate = Partial<CourseResultInsert>
 
 export interface GradeRow {
   id: string
@@ -2147,6 +2199,8 @@ export interface Database {
       attendance:                T<AttendanceRow,                AttendanceInsert,                AttendanceUpdate>
       assessments:               T<AssessmentRow,                AssessmentInsert,                AssessmentUpdate>
       grades:                    T<GradeRow,                     GradeInsert,                     GradeUpdate>
+      assessment_submissions:    T<AssessmentSubmissionRow,      AssessmentSubmissionInsert,      AssessmentSubmissionUpdate>
+      course_results:            T<CourseResultRow,              CourseResultInsert,              CourseResultUpdate>
       class_schedule_slots:      T<ScheduleSlotRow,              ScheduleSlotInsert,              ScheduleSlotUpdate>
       finance_charges:           T<FinanceChargeRow,             FinanceChargeInsert,             FinanceChargeUpdate>
       finance_payments:          T<FinancePaymentRow,            FinancePaymentInsert,            FinancePaymentUpdate>

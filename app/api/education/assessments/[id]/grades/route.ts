@@ -5,6 +5,7 @@ import { requireEducationPrivilege } from '@/lib/education/permissions'
 import { getAssessmentAccess, getEnrolledJourneyIds } from '@/lib/education/lesson-access'
 import type { GradeInsert } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
+import { isMissingTable } from '@/lib/supabase/errors'
 import { compareNames } from '@/lib/persons/name'
 
 function mapDbError(error: { code?: string; message?: string }): { status: number; message: string } {
@@ -68,11 +69,24 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       })
     }
 
+    // Сдачи (מטלה להגשה). Deploy-safe: до миграции таблицы нет → без сдач.
+    const subByJourney = new Map<string, { id: string; file_name: string; submitted_at: string }>()
+    if (access.assessment.requires_submission) {
+      const { data: subs, error: sErr } = await sb
+        .from('assessment_submissions')
+        .select('id, journey_id, file_name, submitted_at')
+        .eq('assessment_id', params.id)
+      if (sErr && !isMissingTable(sErr)) throw sErr
+      for (const r of subs ?? []) subByJourney.set(r.journey_id, { id: r.id, file_name: r.file_name, submitted_at: r.submitted_at })
+    }
+
     const enrolls = (enrollsRes.data ?? []) as unknown as EnrollRow[]
     const students = enrolls.map(row => {
       const person = row.journey?.person ?? null
       const g = gradeByJourney.get(row.journey_id) ?? null
+      const sub = subByJourney.get(row.journey_id) ?? null
       return {
+        submission: sub,
         journey_id: row.journey_id,
         full_name: person?.full_name ?? null,
         hebrew_name: person?.hebrew_name ?? null,
@@ -90,6 +104,8 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       assessment_id: params.id,
       class_group_id: classGroupId,
       max_score: access.assessment.max_score,
+      requires_submission: access.assessment.requires_submission === true,
+      assessment_date: access.assessment.assessment_date,
       students,
     })
   } catch (err: unknown) {

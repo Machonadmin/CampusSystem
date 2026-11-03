@@ -1,5 +1,6 @@
 'use client'
 
+import StudentCoursesPanel from '@/components/education/StudentCoursesPanel'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -363,6 +364,8 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               <Field label={t('card.labels.year_start')} value={data.academic?.yearStart ?? '—'} />
               <Field label={t('card.labels.enrolled_at')} value={formatDate(data.academic?.enrolledAt ?? null, lang)} />
             </div>
+            {/* Курсы: מצב בקורס, оценки, מטלות להגשה */}
+            {studyLifecycle && <StudentCoursesPanel journeyId={data.journeyId} mode="staff" />}
             {/* Учебный цикл */}
             {studyLifecycle && (
               <StudentLifecyclePanel

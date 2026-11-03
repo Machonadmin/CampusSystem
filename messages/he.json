@@ -274,7 +274,26 @@
       "saved": "הציונים נשמרו",
       "save_failed": "שמירת הציונים נכשלה",
       "close": "סגירה",
-      "graded_of": "הוזנו: {graded} מתוך {total}"
+      "graded_of": "הוזנו: {graded} מתוך {total}",
+      "submitted_short": "הגישו",
+      "col_course_status": "מצב בקורס",
+      "submission_late": "באיחור",
+      "not_submitted": "לא הוגש",
+      "due_date_required": "למטלה להגשה צריך תאריך הגשה",
+      "due_date_label": "תאריך הגשה",
+      "requires_submission_label": "מטלה להגשה",
+      "requires_submission_hint": "התלמידות יעלו קובץ דרך האזור האישי, ואפשר יהיה לראות מי הגישה",
+      "final_grade_invalid": "ציון סופי צריך להיות בין 0 ל-100",
+      "course_result_title": "מצב בקורס",
+      "final_grade_label": "ציון סופי (0 עד 100)",
+      "course_note_label": "הערה (לצוות בלבד)",
+      "course_status": {
+        "in_progress": "בתהליך",
+        "passed": "עברה",
+        "failed": "לא עברה",
+        "incomplete": "לא הושלם",
+        "withdrawn": "פרשה"
+      }
     },
     "journal": {
       "tab_overview": "סקירה",
@@ -2383,6 +2402,37 @@
       "students": "תלמידות",
       "jewishness": "בירור יהדות",
       "contacts": "אנשי קשר"
+    },
+    "courses": {
+      "title": "קורסים ומטלות",
+      "empty": "התלמידה לא רשומה לקורסים",
+      "pending_assignments": "{n} מטלות פתוחות",
+      "average_hint": "ממוצע הציונים עד כה (אין עדיין ציון סופי)",
+      "final_grade": "ציון סופי",
+      "average": "ממוצע",
+      "open_group": "לקבוצת הלימוד",
+      "no_assessments": "אין עדיין מבחנים או מטלות",
+      "due": "הגשה עד",
+      "date": "תאריך",
+      "upload_file": "הגשת קובץ",
+      "replace_file": "החלפת קובץ",
+      "uploading": "מעלה...",
+      "upload_ok": "הקובץ הוגש",
+      "upload_failed": "ההגשה נכשלה",
+      "file_open_failed": "לא ניתן לפתוח את הקובץ",
+      "status": {
+        "in_progress": "בתהליך",
+        "passed": "עברה",
+        "failed": "לא עברה",
+        "incomplete": "לא הושלם",
+        "withdrawn": "פרשה"
+      },
+      "submission": {
+        "submitted": "הוגש",
+        "late": "הוגש באיחור",
+        "missing": "לא הוגש",
+        "open": "ממתין להגשה"
+      }
     }
   },
   "tasks": {
@@ -5369,7 +5419,12 @@
     "feedback_bad_screenshot_type": "אפשר לצרף רק תמונות PNG, JPG או WEBP",
     "feedback_screenshot_too_large": "צילום מסך גדול מדי (עד 5MB)",
     "remind_days_before_invalid": "ערך תזכורת לא תקין (2 עד 30 ימים)",
-    "remind_days_before_requires_date": "תזכורת מוקדמת דורשת תאריך יעד"
+    "remind_days_before_requires_date": "תזכורת מוקדמת דורשת תאריך יעד",
+    "course_status_invalid": "מצב קורס לא תקין",
+    "final_grade_invalid": "ציון סופי צריך להיות בין 0 ל-100",
+    "student_not_in_group": "התלמידה לא רשומה לקבוצה הזו",
+    "submission_not_allowed": "זו לא מטלה להגשה",
+    "submission_already_graded": "המטלה כבר קיבלה ציון, אי אפשר להחליף את הקובץ"
   },
   "workflow": {
     "error": "שגיאה"

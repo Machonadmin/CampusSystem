@@ -274,7 +274,26 @@
       "saved": "Grades saved",
       "save_failed": "Failed to save grades",
       "close": "Close",
-      "graded_of": "Entered: {graded} of {total}"
+      "graded_of": "Entered: {graded} of {total}",
+      "submitted_short": "submitted",
+      "col_course_status": "Course status",
+      "submission_late": "late",
+      "not_submitted": "not submitted",
+      "due_date_required": "An assignment for submission needs a due date",
+      "due_date_label": "Due date",
+      "requires_submission_label": "Assignment for submission",
+      "requires_submission_hint": "Students upload a file in their portal, and you can see who submitted",
+      "final_grade_invalid": "Final grade must be between 0 and 100",
+      "course_result_title": "Course status",
+      "final_grade_label": "Final grade (0 to 100)",
+      "course_note_label": "Note (staff only)",
+      "course_status": {
+        "in_progress": "In progress",
+        "passed": "Passed",
+        "failed": "Failed",
+        "incomplete": "Incomplete",
+        "withdrawn": "Withdrew"
+      }
     },
     "journal": {
       "tab_overview": "Overview",
@@ -2383,6 +2402,37 @@
       "students": "Students",
       "jewishness": "Jewishness check",
       "contacts": "Contacts"
+    },
+    "courses": {
+      "title": "Courses and assignments",
+      "empty": "The student is not enrolled in any course",
+      "pending_assignments": "{n} open assignments",
+      "average_hint": "Average so far (no final grade yet)",
+      "final_grade": "Final grade",
+      "average": "Average",
+      "open_group": "Open class group",
+      "no_assessments": "No exams or assignments yet",
+      "due": "Due",
+      "date": "Date",
+      "upload_file": "Submit file",
+      "replace_file": "Replace file",
+      "uploading": "Uploading...",
+      "upload_ok": "File submitted",
+      "upload_failed": "Submission failed",
+      "file_open_failed": "Could not open the file",
+      "status": {
+        "in_progress": "In progress",
+        "passed": "Passed",
+        "failed": "Failed",
+        "incomplete": "Incomplete",
+        "withdrawn": "Withdrew"
+      },
+      "submission": {
+        "submitted": "Submitted",
+        "late": "Submitted late",
+        "missing": "Not submitted",
+        "open": "Awaiting submission"
+      }
     }
   },
   "tasks": {
@@ -5369,7 +5419,12 @@
     "feedback_bad_screenshot_type": "Only PNG, JPG or WEBP images can be attached",
     "feedback_screenshot_too_large": "Screenshot is too large (up to 5 MB)",
     "remind_days_before_invalid": "Invalid reminder value (2 to 30 days)",
-    "remind_days_before_requires_date": "An early reminder needs a due date"
+    "remind_days_before_requires_date": "An early reminder needs a due date",
+    "course_status_invalid": "Invalid course status",
+    "final_grade_invalid": "Final grade must be between 0 and 100",
+    "student_not_in_group": "The student is not enrolled in this group",
+    "submission_not_allowed": "This is not an assignment for submission",
+    "submission_already_graded": "The assignment is already graded, the file cannot be replaced"
   },
   "workflow": {
     "error": "Error"

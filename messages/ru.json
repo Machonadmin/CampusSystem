@@ -274,7 +274,26 @@
       "saved": "Оценки сохранены",
       "save_failed": "Не удалось сохранить оценки",
       "close": "Закрыть",
-      "graded_of": "Выставлено: {graded} из {total}"
+      "graded_of": "Выставлено: {graded} из {total}",
+      "submitted_short": "сдали",
+      "col_course_status": "Статус курса",
+      "submission_late": "с опозданием",
+      "not_submitted": "не сдано",
+      "due_date_required": "Для задания со сдачей нужен срок",
+      "due_date_label": "Срок сдачи",
+      "requires_submission_label": "Задание со сдачей файла",
+      "requires_submission_hint": "Ученицы загрузят файл в личном кабинете, а вы увидите, кто сдал",
+      "final_grade_invalid": "Итоговая оценка должна быть от 0 до 100",
+      "course_result_title": "Статус курса",
+      "final_grade_label": "Итоговая оценка (0–100)",
+      "course_note_label": "Заметка (только для сотрудников)",
+      "course_status": {
+        "in_progress": "В процессе",
+        "passed": "Сдан",
+        "failed": "Не сдан",
+        "incomplete": "Не завершён",
+        "withdrawn": "Выбыла"
+      }
     },
     "journal": {
       "tab_overview": "Обзор",
@@ -2383,6 +2402,37 @@
       "students": "Ученицы",
       "jewishness": "Проверка еврейства",
       "contacts": "Контакты"
+    },
+    "courses": {
+      "title": "Курсы и задания",
+      "empty": "Ученица не записана на курсы",
+      "pending_assignments": "Открытых заданий: {n}",
+      "average_hint": "Средний балл на сейчас (итоговой оценки ещё нет)",
+      "final_grade": "Итоговая оценка",
+      "average": "Средний балл",
+      "open_group": "К учебной группе",
+      "no_assessments": "Пока нет работ и заданий",
+      "due": "Сдать до",
+      "date": "Дата",
+      "upload_file": "Сдать файл",
+      "replace_file": "Заменить файл",
+      "uploading": "Загрузка...",
+      "upload_ok": "Файл сдан",
+      "upload_failed": "Не удалось сдать",
+      "file_open_failed": "Не удалось открыть файл",
+      "status": {
+        "in_progress": "В процессе",
+        "passed": "Сдан",
+        "failed": "Не сдан",
+        "incomplete": "Не завершён",
+        "withdrawn": "Выбыла"
+      },
+      "submission": {
+        "submitted": "Сдано",
+        "late": "Сдано с опозданием",
+        "missing": "Не сдано",
+        "open": "Ожидает сдачи"
+      }
     }
   },
   "tasks": {
@@ -5369,7 +5419,12 @@
     "feedback_bad_screenshot_type": "Можно приложить только картинки PNG, JPG или WEBP",
     "feedback_screenshot_too_large": "Скриншот слишком большой (до 5 МБ)",
     "remind_days_before_invalid": "Неверное значение напоминания (от 2 до 30 дней)",
-    "remind_days_before_requires_date": "Для раннего напоминания нужен срок"
+    "remind_days_before_requires_date": "Для раннего напоминания нужен срок",
+    "course_status_invalid": "Неверный статус курса",
+    "final_grade_invalid": "Итоговая оценка должна быть от 0 до 100",
+    "student_not_in_group": "Ученица не записана в эту группу",
+    "submission_not_allowed": "Это задание не требует сдачи файла",
+    "submission_already_graded": "Задание уже оценено, файл заменить нельзя"
   },
   "workflow": {
     "error": "Ошибка"
