@@ -8,6 +8,7 @@ import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import StudentMessagesPanel from '@/components/education/StudentMessagesPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
 import StudentGradesPanel from '@/components/education/StudentGradesPanel'
+import StudentCoursesPanel from '@/components/education/StudentCoursesPanel'
 import StudentChavrutaPanel from '@/components/education/StudentChavrutaPanel'
 import StudentShabbatPanel from '@/components/education/StudentShabbatPanel'
 import StudentTeachingSurveyPanel from '@/components/education/StudentTeachingSurveyPanel'
@@ -75,6 +76,7 @@ export default function PortalClient({ journeyId, name }: { journeyId: string; n
         <StudentMessagesPanel journeyId={journeyId} />
         <StudentDashboardPanel journeyId={journeyId} />
         <StudentCalendarPanel journeyId={journeyId} personal />
+        <StudentCoursesPanel journeyId={journeyId} mode="student" />
         <StudentGradesPanel journeyId={journeyId} />
         <StudentChavrutaPanel journeyId={journeyId} />
         <StudentShabbatPanel journeyId={journeyId} />

@@ -274,7 +274,26 @@
       "saved": "Оценки сохранены",
       "save_failed": "Не удалось сохранить оценки",
       "close": "Закрыть",
-      "graded_of": "Выставлено: {graded} из {total}"
+      "graded_of": "Выставлено: {graded} из {total}",
+      "submitted_short": "сдали",
+      "col_course_status": "Статус курса",
+      "submission_late": "с опозданием",
+      "not_submitted": "не сдано",
+      "due_date_required": "Для задания со сдачей нужен срок",
+      "due_date_label": "Срок сдачи",
+      "requires_submission_label": "Задание со сдачей файла",
+      "requires_submission_hint": "Ученицы загрузят файл в личном кабинете, а вы увидите, кто сдал",
+      "final_grade_invalid": "Итоговая оценка должна быть от 0 до 100",
+      "course_result_title": "Статус курса",
+      "final_grade_label": "Итоговая оценка (0–100)",
+      "course_note_label": "Заметка (только для сотрудников)",
+      "course_status": {
+        "in_progress": "В процессе",
+        "passed": "Сдан",
+        "failed": "Не сдан",
+        "incomplete": "Не завершён",
+        "withdrawn": "Выбыла"
+      }
     },
     "journal": {
       "tab_overview": "Обзор",
@@ -2383,6 +2402,37 @@
       "students": "Ученицы",
       "jewishness": "Проверка еврейства",
       "contacts": "Контакты"
+    },
+    "courses": {
+      "title": "Курсы и задания",
+      "empty": "Ученица не записана на курсы",
+      "pending_assignments": "Открытых заданий: {n}",
+      "average_hint": "Средний балл на сейчас (итоговой оценки ещё нет)",
+      "final_grade": "Итоговая оценка",
+      "average": "Средний балл",
+      "open_group": "К учебной группе",
+      "no_assessments": "Пока нет работ и заданий",
+      "due": "Сдать до",
+      "date": "Дата",
+      "upload_file": "Сдать файл",
+      "replace_file": "Заменить файл",
+      "uploading": "Загрузка...",
+      "upload_ok": "Файл сдан",
+      "upload_failed": "Не удалось сдать",
+      "file_open_failed": "Не удалось открыть файл",
+      "status": {
+        "in_progress": "В процессе",
+        "passed": "Сдан",
+        "failed": "Не сдан",
+        "incomplete": "Не завершён",
+        "withdrawn": "Выбыла"
+      },
+      "submission": {
+        "submitted": "Сдано",
+        "late": "Сдано с опозданием",
+        "missing": "Не сдано",
+        "open": "Ожидает сдачи"
+      }
     }
   },
   "tasks": {
@@ -2590,6 +2640,13 @@
       "student_none": "Без студентки",
       "student_search": "Поиск студентки…",
       "student_empty": "Студентки не найдены"
+    },
+    "remind": {
+      "label": "Раннее напоминание:",
+      "none": "Нет",
+      "days_before": "За {n} дн.",
+      "hint": "Напоминание накануне и в день срока приходит всегда. Просроченная задача напоминает на 1-й, 3-й и 7-й день.",
+      "save_failed": "Не удалось сохранить напоминание"
     }
   },
   "staff": {
@@ -5360,7 +5417,18 @@
     "feedback_text_required": "Напишите замечание (до 5000 символов)",
     "feedback_too_many_screenshots": "Можно приложить не больше 5 скриншотов",
     "feedback_bad_screenshot_type": "Можно приложить только картинки PNG, JPG или WEBP",
-    "feedback_screenshot_too_large": "Скриншот слишком большой (до 5 МБ)"
+    "feedback_screenshot_too_large": "Скриншот слишком большой (до 5 МБ)",
+    "remind_days_before_invalid": "Неверное значение напоминания (от 2 до 30 дней)",
+    "remind_days_before_requires_date": "Для раннего напоминания нужен срок",
+    "course_status_invalid": "Неверный статус курса",
+    "final_grade_invalid": "Итоговая оценка должна быть от 0 до 100",
+    "student_not_in_group": "Ученица не записана в эту группу",
+    "submission_not_allowed": "Это задание не требует сдачи файла",
+    "submission_already_graded": "Задание уже оценено, файл заменить нельзя",
+    "invalid_time": "Неверное время",
+    "goal_status_invalid": "Неверный статус цели",
+    "goal_progress_invalid": "Выполнение — целое число от 0 до 100",
+    "goal_dates_order": "Срок раньше даты начала"
   },
   "workflow": {
     "error": "Ошибка"
@@ -5909,5 +5977,74 @@
     "status_in_progress": "В работе",
     "status_done": "Сделано",
     "status_rejected": "Отклонено"
+  },
+  "management": {
+    "title": "Панель управления",
+    "subtitle": "Итоги совещаний и цели. Сроки сами попадают в личный календарь ответственного",
+    "tab_meetings": "Совещания",
+    "tab_goals": "Цели",
+    "load_error": "Ошибка загрузки",
+    "action_failed": "Не удалось выполнить действие",
+    "new_meeting": "Новое совещание",
+    "edit_meeting": "Редактировать совещание",
+    "meetings_empty": "Совещаний пока нет",
+    "no_attendees": "Без участников",
+    "goals_count": "Целей: {n}",
+    "summary": "Итоги",
+    "decisions": "Решения",
+    "no_summary": "Итогов нет",
+    "no_decisions": "Решений нет",
+    "meeting_goals": "Цели, поставленные на совещании",
+    "no_meeting_goals": "Цели не ставились",
+    "add_goal_from_meeting": "Новая цель из совещания",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "meeting_delete_confirm": "Удалить совещание? Поставленные на нём цели останутся.",
+    "meeting_title": "Тема совещания",
+    "date": "Дата",
+    "time": "Время",
+    "attendees": "Участники",
+    "add_attendee": "Добавить участника",
+    "attendees_hint": "Совещание появится в календаре каждого участника",
+    "remove": "Убрать",
+    "title_required": "Заполните название",
+    "saved": "Сохранено",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "saving": "Сохранение...",
+    "new_goal": "Новая цель",
+    "edit_goal": "Редактировать цель",
+    "filter": "Фильтр",
+    "all": "Все",
+    "goals_empty": "Нет целей для показа",
+    "goal_delete_confirm": "Удалить цель и все её этапы?",
+    "target": "Срок",
+    "milestones_done": "Этапов: {done} из {total}",
+    "start": "Начало",
+    "from_meeting": "С совещания:",
+    "milestones": "Этапы",
+    "no_milestones": "Этапов пока нет",
+    "mark_done": "Выполнено",
+    "milestone_title": "Новый этап",
+    "due": "Срок",
+    "milestone_owner": "Ответственный (по умолчанию — за цель)",
+    "add_milestone": "Добавить",
+    "dates_order": "Срок раньше даты начала",
+    "goal_title": "Цель",
+    "description": "Описание",
+    "owner": "Ответственный",
+    "owner_placeholder": "Выбрать ответственного",
+    "owner_hint": "Если не выбран — вы. Срок попадёт в календарь ответственного",
+    "start_date": "Дата начала",
+    "target_date": "Срок",
+    "status": "Статус",
+    "progress": "Выполнено",
+    "meeting": "Поставлена на совещании",
+    "no_meeting": "Не связана с совещанием",
+    "goal_status": {
+      "active": "Активна",
+      "achieved": "Достигнута",
+      "dropped": "Отменена"
+    }
   }
 }

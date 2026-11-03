@@ -87,7 +87,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
  * POST /api/education/class-groups/[id]/assessments
  * Создание задания. Право: set_grades в контексте группы.
  *
- * Body: { title (обязательно), max_score?, assessment_date?, description? }
+ * Body: { title (обязательно), max_score?, assessment_date?, description?, requires_submission? }
  * max_score по умолчанию 100, должен быть > 0. created_by = текущий пользователь.
  */
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
@@ -98,6 +98,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       max_score?: number
       assessment_date?: string | null
       description?: string | null
+      requires_submission?: boolean
     }
 
     const title = body.title?.trim()
@@ -127,6 +128,9 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
       assessment_date: body.assessment_date?.trim() || null,
       description: body.description?.trim() || null,
       created_by: session.person_id,
+      // Ключ только для מטלה להגשה: до миграции колонки нет, обычные работы
+      // должны создаваться как раньше.
+      ...(body.requires_submission === true ? { requires_submission: true } : {}),
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

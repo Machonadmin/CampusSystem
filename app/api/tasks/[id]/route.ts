@@ -8,6 +8,7 @@ import { createNotifications } from '@/lib/notifications/create'
 import { canBeMaintenanceTask, isMaintenanceTask, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import { extractStudentTag, isAcceptanceTask, withStudentTag, type StudentTag } from '@/lib/tasks/student-tag'
+import { isValidRemindDaysBefore } from '@/lib/tasks/reminders'
 import { attachStudentRefs, verifyStudentTag } from '@/lib/tasks/student-tag-server'
 import type { TaskRow, TaskUpdate, TaskStatus, TaskPriority } from '@/types/database'
 
@@ -106,6 +107,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       due_date?: string | null
       due_time?: string | null
       due_all_day?: boolean
+      remind_days_before?: number | null
       status?: TaskStatus
       status_note?: string
       assignee_id?: string | null
@@ -130,7 +132,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     const update: TaskUpdate = {}
 
     // ─── Поля, требующие canEdit ───────────────────────────────────────────────
-    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'assignee_id', 'assignee_type', 'department_id', 'is_maintenance', 'student_tag'] as const
+    const EDIT_KEYS = ['title', 'description', 'priority', 'due_date', 'due_time', 'due_all_day', 'remind_days_before', 'assignee_id', 'assignee_type', 'department_id', 'is_maintenance', 'student_tag'] as const
     const hasEditFields = EDIT_KEYS.some(k => k in body)
 
     if (hasEditFields) {
@@ -148,6 +150,10 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       if (body.due_date !== undefined) update.due_date = body.due_date
       if (body.due_time !== undefined) update.due_time = body.due_time
       if (body.due_all_day !== undefined) update.due_all_day = body.due_all_day
+      if (body.remind_days_before !== undefined) {
+        if (!isValidRemindDaysBefore(body.remind_days_before)) return apiError('remind_days_before_invalid', 400)
+        update.remind_days_before = body.remind_days_before
+      }
       if (body.assignee_id !== undefined) update.assignee_id = body.assignee_id
       if (body.assignee_type !== undefined) update.assignee_type = body.assignee_type
       if (body.department_id !== undefined) update.department_id = body.department_id

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import RemindBeforeSelect from './RemindBeforeSelect'
 import { todayISO } from '@/lib/dates'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { PersonSelect } from '@/components/ui/person-select'
@@ -95,6 +96,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
   const [dueTimeType, setDueTimeType] = useState<DueTimeType>('allday')
   const [dueTime,     setDueTime]     = useState('09:00')
   const [addToCalendar, setAddToCalendar] = useState(false)
+  const [remindBefore,  setRemindBefore]  = useState<number | null>(null)
 
   // ── recurring ──
   const [frequency,            setFrequency]            = useState<RecurrenceFrequency>('weekly')
@@ -241,6 +243,8 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
             due_date:     dueDate || null,
             due_time:     !allday && dueTime ? dueTime : null,
             due_all_day:  allday,
+            // Ключ только когда напоминание выбрано (см. POST /api/tasks).
+            ...(remindBefore !== null && dueDate ? { remind_days_before: remindBefore } : {}),
           }),
         })
       } else {
@@ -528,6 +532,13 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                   <input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)} style={{ ...inp, width: 110 }} />
                 )}
               </div>
+              {dueDate && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, color: 'var(--text)' }}>🔔 {t('remind.label')}</span>
+                  <RemindBeforeSelect value={remindBefore} onChange={setRemindBefore} style={{ ...inp, width: 'auto', flex: '0 0 auto' }} />
+                </div>
+              )}
+              <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 4 }}>{t('remind.hint')}</div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, cursor: 'pointer', userSelect: 'none' }}>
                 <input type="checkbox" checked={addToCalendar} onChange={e => setAddToCalendar(e.target.checked)} style={{ accentColor: 'var(--accent-strong)' }} />
                 <span style={{ fontSize: 13, color: 'var(--text)' }}>📅 {t('create_modal.add_to_calendar')}</span>

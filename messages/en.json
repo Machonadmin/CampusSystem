@@ -274,7 +274,26 @@
       "saved": "Grades saved",
       "save_failed": "Failed to save grades",
       "close": "Close",
-      "graded_of": "Entered: {graded} of {total}"
+      "graded_of": "Entered: {graded} of {total}",
+      "submitted_short": "submitted",
+      "col_course_status": "Course status",
+      "submission_late": "late",
+      "not_submitted": "not submitted",
+      "due_date_required": "An assignment for submission needs a due date",
+      "due_date_label": "Due date",
+      "requires_submission_label": "Assignment for submission",
+      "requires_submission_hint": "Students upload a file in their portal, and you can see who submitted",
+      "final_grade_invalid": "Final grade must be between 0 and 100",
+      "course_result_title": "Course status",
+      "final_grade_label": "Final grade (0 to 100)",
+      "course_note_label": "Note (staff only)",
+      "course_status": {
+        "in_progress": "In progress",
+        "passed": "Passed",
+        "failed": "Failed",
+        "incomplete": "Incomplete",
+        "withdrawn": "Withdrew"
+      }
     },
     "journal": {
       "tab_overview": "Overview",
@@ -2383,6 +2402,37 @@
       "students": "Students",
       "jewishness": "Jewishness check",
       "contacts": "Contacts"
+    },
+    "courses": {
+      "title": "Courses and assignments",
+      "empty": "The student is not enrolled in any course",
+      "pending_assignments": "{n} open assignments",
+      "average_hint": "Average so far (no final grade yet)",
+      "final_grade": "Final grade",
+      "average": "Average",
+      "open_group": "Open class group",
+      "no_assessments": "No exams or assignments yet",
+      "due": "Due",
+      "date": "Date",
+      "upload_file": "Submit file",
+      "replace_file": "Replace file",
+      "uploading": "Uploading...",
+      "upload_ok": "File submitted",
+      "upload_failed": "Submission failed",
+      "file_open_failed": "Could not open the file",
+      "status": {
+        "in_progress": "In progress",
+        "passed": "Passed",
+        "failed": "Failed",
+        "incomplete": "Incomplete",
+        "withdrawn": "Withdrew"
+      },
+      "submission": {
+        "submitted": "Submitted",
+        "late": "Submitted late",
+        "missing": "Not submitted",
+        "open": "Awaiting submission"
+      }
     }
   },
   "tasks": {
@@ -2590,6 +2640,13 @@
       "student_none": "No student",
       "student_search": "Search student…",
       "student_empty": "No students found"
+    },
+    "remind": {
+      "label": "Early reminder:",
+      "none": "None",
+      "days_before": "{n} days before",
+      "hint": "A reminder the day before and on the due day is always sent. An overdue task reminds again on days 1, 3 and 7.",
+      "save_failed": "Could not save the reminder"
     }
   },
   "staff": {
@@ -5360,7 +5417,18 @@
     "feedback_text_required": "Write the note (up to 5000 characters)",
     "feedback_too_many_screenshots": "You can attach up to 5 screenshots",
     "feedback_bad_screenshot_type": "Only PNG, JPG or WEBP images can be attached",
-    "feedback_screenshot_too_large": "Screenshot is too large (up to 5 MB)"
+    "feedback_screenshot_too_large": "Screenshot is too large (up to 5 MB)",
+    "remind_days_before_invalid": "Invalid reminder value (2 to 30 days)",
+    "remind_days_before_requires_date": "An early reminder needs a due date",
+    "course_status_invalid": "Invalid course status",
+    "final_grade_invalid": "Final grade must be between 0 and 100",
+    "student_not_in_group": "The student is not enrolled in this group",
+    "submission_not_allowed": "This is not an assignment for submission",
+    "submission_already_graded": "The assignment is already graded, the file cannot be replaced",
+    "invalid_time": "Invalid time",
+    "goal_status_invalid": "Invalid goal status",
+    "goal_progress_invalid": "Progress must be a whole number from 0 to 100",
+    "goal_dates_order": "Target date is before the start date"
   },
   "workflow": {
     "error": "Error"
@@ -5909,5 +5977,74 @@
     "status_in_progress": "In progress",
     "status_done": "Done",
     "status_rejected": "Declined"
+  },
+  "management": {
+    "title": "Management panel",
+    "subtitle": "Meeting summaries and goals. Dates go straight into the responsible person's personal calendar",
+    "tab_meetings": "Meetings",
+    "tab_goals": "Goals",
+    "load_error": "Failed to load",
+    "action_failed": "Action failed",
+    "new_meeting": "New meeting",
+    "edit_meeting": "Edit meeting",
+    "meetings_empty": "No meetings yet",
+    "no_attendees": "No attendees",
+    "goals_count": "{n} goals",
+    "summary": "Summary",
+    "decisions": "Decisions",
+    "no_summary": "No summary",
+    "no_decisions": "No decisions",
+    "meeting_goals": "Goals set at this meeting",
+    "no_meeting_goals": "No goals were set",
+    "add_goal_from_meeting": "New goal from this meeting",
+    "edit": "Edit",
+    "delete": "Delete",
+    "meeting_delete_confirm": "Delete this meeting? Goals set at it will stay.",
+    "meeting_title": "Meeting topic",
+    "date": "Date",
+    "time": "Time",
+    "attendees": "Attendees",
+    "add_attendee": "Add attendee",
+    "attendees_hint": "The meeting shows in every attendee's calendar",
+    "remove": "Remove",
+    "title_required": "Please fill in a title",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "new_goal": "New goal",
+    "edit_goal": "Edit goal",
+    "filter": "Filter",
+    "all": "All",
+    "goals_empty": "No goals to show",
+    "goal_delete_confirm": "Delete this goal and all its milestones?",
+    "target": "Target",
+    "milestones_done": "{done} of {total} milestones",
+    "start": "Start",
+    "from_meeting": "From meeting:",
+    "milestones": "Milestones",
+    "no_milestones": "No milestones yet",
+    "mark_done": "Done",
+    "milestone_title": "New milestone",
+    "due": "Due date",
+    "milestone_owner": "Owner (default: goal owner)",
+    "add_milestone": "Add",
+    "dates_order": "Target date is before the start date",
+    "goal_title": "Goal",
+    "description": "Description",
+    "owner": "Owner",
+    "owner_placeholder": "Choose owner",
+    "owner_hint": "If none is chosen, it is you. The target date goes into the owner's calendar",
+    "start_date": "Start date",
+    "target_date": "Target date",
+    "status": "Status",
+    "progress": "Progress",
+    "meeting": "Set at meeting",
+    "no_meeting": "Not linked to a meeting",
+    "goal_status": {
+      "active": "Active",
+      "achieved": "Achieved",
+      "dropped": "Dropped"
+    }
   }
 }

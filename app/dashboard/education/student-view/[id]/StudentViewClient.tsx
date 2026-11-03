@@ -7,6 +7,7 @@ import StudentDashboardPanel from '@/components/education/StudentDashboardPanel'
 import StudentMessagesPanel from '@/components/education/StudentMessagesPanel'
 import StudentCalendarPanel from '@/components/education/StudentCalendarPanel'
 import StudentGradesPanel from '@/components/education/StudentGradesPanel'
+import StudentCoursesPanel from '@/components/education/StudentCoursesPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
 
 export default function StudentViewClient({ journeyId, name }: { journeyId: string; name: string }) {
@@ -42,6 +43,7 @@ export default function StudentViewClient({ journeyId, name }: { journeyId: stri
         <StudentMessagesPanel journeyId={journeyId} />
         <StudentDashboardPanel journeyId={journeyId} />
         <StudentCalendarPanel journeyId={journeyId} />
+        <StudentCoursesPanel journeyId={journeyId} mode="preview" />
         <StudentGradesPanel journeyId={journeyId} />
         <MeetingsPanel journeyId={journeyId} canEdit={false} />
       </div>
