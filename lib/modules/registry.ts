@@ -97,7 +97,10 @@ export const MODULES = [
       'Личный календарь: requireCalendarUser() в lib/calendar/permissions.ts ' +
       'пускает любого вошедшего, а записи фильтруются по provider_id = его person_id.',
     inAccessibleModules: false, hasColour: false, implemented: false,
-    inSidebar: false, isPrivilegeModule: false,
+    inSidebar: false,
+    // Модуль прав ТОЛЬКО ради calendar.google_sync («חבר ליומן גוגל»), которое
+    // владелец выдаёт людям на экране «אבטחת מידע». Сам календарь им не закрыт.
+    isPrivilegeModule: true,
   },
   {
     code: 'profile', navKey: 'profile', href: '/dashboard/profile',

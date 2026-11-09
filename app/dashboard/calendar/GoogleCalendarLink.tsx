@@ -7,8 +7,8 @@ import { Modal } from '@/components/ui/Modal'
 import { toast } from '@/components/ui/toast'
 
 /**
- * «חבר ליומן גוגל» — персональная iCal-подписка. Показывается ТОЛЬКО
- * суперадмину (пробный доступ по решению владельца); остальным — null.
+ * «חבר ליומן גוגל» — персональная iCal-подписка. Показывается только тем,
+ * кому владелец выдал право calendar.google_sync (и superadmin); остальным — null.
  * Тянет URL из /api/calendar/feed-link и показывает инструкцию для Google.
  */
 export function GoogleCalendarLink({ primary }: { primary: string }) {
@@ -19,7 +19,7 @@ export function GoogleCalendarLink({ primary }: { primary: string }) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  if (!me?.roles?.includes('superadmin')) return null
+  if (!me?.can_google_calendar) return null
 
   async function openDialog() {
     setOpen(true)
