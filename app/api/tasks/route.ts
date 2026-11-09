@@ -7,6 +7,7 @@ import { createNotifications } from '@/lib/notifications/create'
 import { canBeMaintenanceTask, sanitizeIncomingMetadata, withMaintenanceFlag } from '@/lib/tasks/maintenance-link'
 import { maintenanceStaffPersonIds } from '@/lib/maintenance/staff-server'
 import { extractStudentTag } from '@/lib/tasks/student-tag'
+import { isValidRemindDaysBefore } from '@/lib/tasks/reminders'
 import { attachStudentRefs, verifyStudentTag } from '@/lib/tasks/student-tag-server'
 import { TASK_SOURCES, isTaskView, mergeTaskLists, type TaskSource } from '@/lib/tasks/views'
 import type {
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
       due_date?: string | null
       due_time?: string | null
       due_all_day?: boolean
+      remind_days_before?: number | null
       watchers?: string[]
       is_maintenance?: boolean
     }
@@ -188,6 +190,10 @@ export async function POST(request: NextRequest) {
     if (due_all_day && body.due_time) return apiError('allday_no_time', 400)
     if (!due_all_day && !body.due_time) return apiError('not_allday_time_required', 400)
     if (body.due_time && !body.due_date) return apiError('time_without_date', 400)
+    // Раннее напоминание: null/не передано — нет; иначе целое 2..30 и только при сроке.
+    const remindDaysBefore = body.remind_days_before ?? null
+    if (!isValidRemindDaysBefore(remindDaysBefore)) return apiError('remind_days_before_invalid', 400)
+    if (remindDaysBefore !== null && !body.due_date) return apiError('remind_days_before_requires_date', 400)
 
     const sb = createServerClient()
 
@@ -231,6 +237,9 @@ export async function POST(request: NextRequest) {
       due_date: body.due_date ?? null,
       due_time: body.due_time ?? null,
       due_all_day,
+      // Ключ кладём только когда напоминание задано: до применения миграции
+      // колонки нет, и обычные задачи должны создаваться как раньше.
+      ...(remindDaysBefore !== null ? { remind_days_before: remindDaysBefore } : {}),
     }
     const { data: task, error: insertError } = await sb
       .from('tasks')

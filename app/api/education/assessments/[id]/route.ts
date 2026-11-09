@@ -48,7 +48,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 /**
  * PATCH /api/education/assessments/[id]
  * Редактирование задания. Право: set_grades в контексте группы задания.
- * Разрешено менять: title, max_score, assessment_date, description.
+ * Разрешено менять: title, max_score, assessment_date, description, requires_submission.
  */
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
@@ -58,6 +58,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       max_score?: number
       assessment_date?: string | null
       description?: string | null
+      requires_submission?: boolean
     }
 
     const sb = createServerClient()
@@ -82,6 +83,12 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
     }
     if (body.assessment_date !== undefined) update.assessment_date = body.assessment_date?.trim() || null
     if (body.description !== undefined) update.description = body.description?.trim() || null
+    // Deploy-safe: до миграции колонки нет (у строки нет поля) — false не пишем,
+    // иначе обычная правка задания упала бы на неизвестной колонке.
+    if (typeof body.requires_submission === 'boolean'
+      && (body.requires_submission || access.assessment.requires_submission !== undefined)) {
+      update.requires_submission = body.requires_submission
+    }
 
     if (Object.keys(update).length === 0) {
       return apiError('no_changes', 400)

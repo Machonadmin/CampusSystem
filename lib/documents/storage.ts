@@ -27,7 +27,7 @@ export function isAllowedMime(mime: string | null | undefined): boolean {
 }
 
 /** Убираем путь и небезопасные символы, сохраняя расширение; ограничиваем длину. */
-function sanitizeFileName(name: string): string {
+export function sanitizeFileName(name: string): string {
   const base = name.split(/[\\/]/).pop() ?? 'file'
   const cleaned = base.replace(/[^\w.\-]+/g, '_').replace(/_+/g, '_').slice(0, 120)
   return cleaned.replace(/^_+|_+$/g, '') || 'file'

@@ -425,6 +425,29 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     }
   }
 
+  /** Сменить раннее напоминание (null — без него). После ответа задача перечитывается. */
+  async function setRemindDaysBefore(next: number | null) {
+    setError(null)
+    setActionInProgress(true)
+    try {
+      const resp = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ remind_days_before: next }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setError(err.error ?? t('remind.save_failed'))
+        return
+      }
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tCommon('error'))
+    } finally {
+      setActionInProgress(false)
+    }
+  }
+
   /**
    * Показывать ли переключатель «задача по эксплуатации».
    * Включить метку можно только на задаче, персонально назначенной человеку из
@@ -452,7 +475,7 @@ export function useTaskDetail({ taskId, currentUserId, onAfterAction, reloadOnOp
     setShowCancelSeriesDialog, setCancelSeriesMode,
     // handlers
     getAvailableActions, handleAction, handleCancelSeries,
-    handleAddComment, handleAddWatcher, handleRemoveWatcher, toggleMaintenance,
+    handleAddComment, handleAddWatcher, handleRemoveWatcher, toggleMaintenance, setRemindDaysBefore,
     reload: load,
   }
 }

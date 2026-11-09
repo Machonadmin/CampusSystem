@@ -11,6 +11,8 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import type { CourseResultStatus } from '@/types/database'
+import { COURSE_RESULT_STATUSES } from '@/lib/education/courses'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -22,6 +24,15 @@ export interface AssessmentItem {
   assessment_date: string | null   // 'YYYY-MM-DD'
   description: string | null
   graded_count: number
+  /** מטלה להגשה: ученицы сдают файл в портале, срок = assessment_date. */
+  requires_submission?: boolean
+}
+
+interface CourseResult {
+  journey_id: string
+  status: CourseResultStatus
+  final_grade: number | null
+  note: string | null
 }
 
 interface StudentRow {
@@ -61,6 +72,11 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
   const [students, setStudents] = useState<StudentRow[]>([])
   // Оценки, ключ `${journey_id}|${assessment_id}` → число
   const [scores, setScores] = useState<Map<string, number>>(new Map())
+  // Сдачи מטלות: ключ `${journey_id}|${assessment_id}`
+  const [submitted, setSubmitted] = useState<Set<string>>(new Set())
+  // מצב בקורס по ученицам
+  const [results, setResults] = useState<Map<string, CourseResult>>(new Map())
+  const [resultFor, setResultFor] = useState<StudentRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -81,6 +97,10 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
       setAssessments(list)
       setEnrolledCount(data.enrolled_count ?? 0)
 
+      // מצב בקורס (deploy-safe: без таблицы — пусто).
+      const rr = await fetch(`/api/education/class-groups/${groupId}/results`).then(r => (r.ok ? r.json() : null)).catch(() => null)
+      setResults(new Map(((rr?.results ?? []) as CourseResult[]).map(r => [r.journey_id, r])))
+
       // Оценки по каждому заданию → заполняем матрицу (ростер + значения)
       if (list.length > 0) {
         const results = await Promise.all(
@@ -90,6 +110,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
         )
         const studentMap = new Map<string, StudentRow>()
         const scoreMap = new Map<string, number>()
+        const subSet = new Set<string>()
         results.forEach((res, idx) => {
           if (!res) return
           const a = list[idx]
@@ -104,6 +125,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
             if (s.score !== null && s.score !== undefined) {
               scoreMap.set(`${s.journey_id}|${a.id}`, Number(s.score))
             }
+            if (s.submission) subSet.add(`${s.journey_id}|${a.id}`)
           }
         })
         const roster = Array.from(studentMap.values()).sort((x, y) =>
@@ -111,9 +133,11 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
         )
         setStudents(roster)
         setScores(scoreMap)
+        setSubmitted(subSet)
       } else {
         setStudents([])
         setScores(new Map())
+        setSubmitted(new Set())
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : t('load_error'))
@@ -208,6 +232,11 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                     }}>
                       {a.graded_count} / {enrolledCount}
                     </div>
+                    {a.requires_submission && (
+                      <div style={{ fontWeight: 400, marginTop: 2, textTransform: 'none', color: 'var(--info)' }}>
+                        📎 {students.filter(st => submitted.has(`${st.journey_id}|${a.id}`)).length} {t('submitted_short')}
+                      </div>
+                    )}
                     {canSetGrades && (
                       <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
                         <RowActionsMenu
@@ -221,12 +250,13 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                     )}
                   </th>
                 ))}
+                <th style={{ ...th, minWidth: 120, whiteSpace: 'nowrap' }}>{t('col_course_status')}</th>
               </tr>
             </thead>
             <tbody>
               {students.length === 0 ? (
                 <tr>
-                  <td style={{ ...td, ...stickyLeft }} colSpan={assessments.length + 1}>
+                  <td style={{ ...td, ...stickyLeft }} colSpan={assessments.length + 2}>
                     <span style={{ color: 'var(--text-faint)' }}>{t('entry_empty')}</span>
                   </td>
                 </tr>
@@ -246,14 +276,35 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                     {assessments.map(a => {
                       const sc = scores.get(`${s.journey_id}|${a.id}`)
                       const has = sc !== undefined
+                      const sub = a.requires_submission && submitted.has(`${s.journey_id}|${a.id}`)
                       return (
                         <td key={a.id} style={{ ...td, textAlign: 'center' }}>
                           <span style={{ color: has ? 'var(--text)' : 'var(--border-strong)', fontWeight: has ? 600 : 400 }}>
                             {has ? formatScore(sc) : '—'}
                           </span>
+                          {sub && <span title={t('submitted_short')} style={{ marginInlineStart: 4, fontSize: 11 }}>📎</span>}
                         </td>
                       )
                     })}
+                    {(() => {
+                      const r = results.get(s.journey_id)
+                      const status: CourseResultStatus = r?.status ?? 'in_progress'
+                      const label = `${t(`course_status.${status}`)}${r?.final_grade != null ? ` · ${formatScore(r.final_grade)}` : ''}`
+                      return (
+                        <td style={{ ...td, whiteSpace: 'nowrap' }}>
+                          {canSetGrades ? (
+                            <button
+                              onClick={() => setResultFor(s)}
+                              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COURSE_STATUS_COLOR[status], fontWeight: 600, fontSize: 12.5 }}
+                            >
+                              {label} ✎
+                            </button>
+                          ) : (
+                            <span style={{ color: COURSE_STATUS_COLOR[status], fontWeight: 600, fontSize: 12.5 }}>{label}</span>
+                          )}
+                        </td>
+                      )
+                    })()}
                   </tr>
                 ))
               )}
@@ -270,6 +321,18 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
           accentColor={accentColor}
           onClose={() => setFormAssessment(null)}
           onDone={() => { setFormAssessment(null); load() }}
+        />
+      )}
+
+      {/* מצב בקורס одной ученицы */}
+      {resultFor && (
+        <CourseResultModal
+          groupId={groupId}
+          student={resultFor}
+          current={results.get(resultFor.journey_id) ?? null}
+          accentColor={accentColor}
+          onClose={() => setResultFor(null)}
+          onDone={() => { setResultFor(null); load() }}
         />
       )}
 
@@ -305,6 +368,7 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
   const [maxScore, setMaxScore] = useState(assessment ? String(Number(assessment.max_score)) : '100')
   const [date, setDate] = useState(assessment?.assessment_date ?? '')
   const [description, setDescription] = useState(assessment?.description ?? '')
+  const [requiresSubmission, setRequiresSubmission] = useState(assessment?.requires_submission === true)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -326,6 +390,12 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
         max_score: ms,
         assessment_date: date.trim() || null,
         description: description.trim() || null,
+        requires_submission: requiresSubmission,
+      }
+      if (requiresSubmission && !date.trim()) {
+        setFormError(t('due_date_required'))
+        setSaving(false)
+        return
       }
       const resp = assessment
         ? await fetch(`/api/education/assessments/${assessment.id}`, {
@@ -380,10 +450,17 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
               <input aria-label={t('max_score_label')} type="number" min={0} step="0.01" value={maxScore} onChange={e => setMaxScore(e.target.value)} style={inputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>{t('date_label')}</label>
+              <label style={labelStyle}>{requiresSubmission ? `${t('due_date_label')} *` : t('date_label')}</label>
               <input aria-label={t('date_label')} type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
             </div>
           </div>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
+            <input type="checkbox" checked={requiresSubmission} onChange={e => setRequiresSubmission(e.target.checked)} style={{ marginTop: 2 }} />
+            <span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{t('requires_submission_label')}</span>
+              <span style={{ display: 'block', fontSize: 11.5, color: 'var(--text-faint)', marginTop: 2 }}>{t('requires_submission_hint')}</span>
+            </span>
+          </label>
           <div>
             <label style={labelStyle}>{t('description_label')}</label>
             <textarea aria-label={t('description_label')}
@@ -423,6 +500,109 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
             {t('btn_save')}
           </SubmitButton>
         </div>
+    </Modal>
+  )
+}
+
+// ── מצב בקורס: модал статуса и ציון סופי ─────────────────────────────────────
+
+const COURSE_STATUS_COLOR: Record<CourseResultStatus, string> = {
+  in_progress: 'var(--text-muted)',
+  passed: 'var(--success)',
+  failed: 'var(--danger)',
+  incomplete: 'var(--warn)',
+  withdrawn: 'var(--text-faint)',
+}
+
+interface CourseResultModalProps {
+  groupId: string
+  student: StudentRow
+  current: CourseResult | null
+  accentColor: string
+  onClose: () => void
+  onDone: () => void
+}
+
+function CourseResultModal({ groupId, student, current, accentColor, onClose, onDone }: CourseResultModalProps) {
+  const t = useTranslations('education.grades')
+  const tCommon = useTranslations('common')
+  const [status, setStatus] = useState<CourseResultStatus>(current?.status ?? 'in_progress')
+  const [finalGrade, setFinalGrade] = useState(current?.final_grade != null ? String(current.final_grade) : '')
+  const [note, setNote] = useState(current?.note ?? '')
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const handleSubmit = async () => {
+    const fg = finalGrade.trim() === '' ? null : Number(finalGrade)
+    if (fg !== null && (!Number.isFinite(fg) || fg < 0 || fg > 100)) {
+      setFormError(t('final_grade_invalid'))
+      return
+    }
+    setSaving(true)
+    setFormError(null)
+    try {
+      const resp = await fetch(`/api/education/class-groups/${groupId}/results`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journey_id: student.journey_id, status, final_grade: fg, note: note.trim() || null }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        setFormError(err.error ?? t('action_failed'))
+        return
+      }
+      onDone()
+    } catch {
+      setFormError(t('action_failed'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4 }
+  const inputStyle: React.CSSProperties = {
+    width: '100%', padding: '8px 12px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8,
+    boxSizing: 'border-box', outline: 'none', background: 'var(--surface)', color: 'var(--text)',
+  }
+
+  return (
+    <Modal onClose={onClose} maxWidth={400} closeOnBackdrop panelStyle={{ padding: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: 0 }}>
+          {t('course_result_title')}: {student.full_name ?? student.hebrew_name ?? '—'}
+        </h2>
+        <button onClick={onClose} aria-label={tCommon('close')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <label style={labelStyle}>{t('col_course_status')}</label>
+          <select aria-label={t('col_course_status')} value={status} onChange={e => setStatus(e.target.value as CourseResultStatus)} style={inputStyle}>
+            {COURSE_RESULT_STATUSES.map(st => <option key={st} value={st}>{t(`course_status.${st}`)}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>{t('final_grade_label')}</label>
+          <input aria-label={t('final_grade_label')} type="number" min={0} max={100} step="0.01" value={finalGrade} onChange={e => setFinalGrade(e.target.value)} style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>{t('course_note_label')}</label>
+          <textarea aria-label={t('course_note_label')} value={note} onChange={e => setNote(e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
+        </div>
+      </div>
+      {formError && (
+        <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{formError}</div>
+      )}
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
+        <button onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>
+          {t('btn_cancel')}
+        </button>
+        <SubmitButton
+          onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
+          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, opacity: saving ? 0.55 : 1 }}
+        >
+          {t('btn_save')}
+        </SubmitButton>
+      </div>
     </Modal>
   )
 }
