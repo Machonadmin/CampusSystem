@@ -3,7 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { getSession } from '@/lib/auth/session'
-import { canManageUnit, GRANTABLE_EDUCATION_PRIVILEGES } from '@/lib/education/unit-access'
+import { canManageUnit, canManageUnitTeam, GRANTABLE_EDUCATION_PRIVILEGES } from '@/lib/education/unit-access'
 import { canSeatInUnit } from '@/lib/auth/seat-access'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { errorResponse } from '@/lib/api/handler'
@@ -17,7 +17,8 @@ import { errorResponse } from '@/lib/api/handler'
  *        существующего. Создаёт staff_position в единице + назначает роль.
  *
  * Право на состав (смотреть, добавить, убрать): единое правило посадки —
- * глава единицы/делегат (canManageUnit) ИЛИ право data_security.manage_units.
+ * глава единицы/делегат/заместитель (canManageUnitTeam) ИЛИ право
+ * data_security.manage_units.
  *
  * Право на ТУМБЛЕРЫ прав (подмаршрут .../privileges) шире не становится: выдача
  * прав — это `grant`, а не «посадка». Поэтому GET отдаёт `can_grant_privileges`,
@@ -32,7 +33,7 @@ async function canManageMembers(
   session: Parameters<typeof canManageUnit>[0],
   unitId: string,
 ): Promise<boolean> {
-  if (await canManageUnit(session, unitId)) return true
+  if (await canManageUnitTeam(session, unitId)) return true
   return canSeatInUnit(session, unitId)
 }
 
@@ -44,7 +45,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ unitId: 
     // Тумблеры прав остаются у главы/делегата; держатель manage_units видит
     // состав и правит посадку, но не раздаёт education-права.
     const canGrantPrivileges = await canManageUnit(session, params.unitId)
-    if (!canGrantPrivileges && !(await canSeatInUnit(session, params.unitId))) {
+    if (!canGrantPrivileges && !(await canManageMembers(session, params.unitId))) {
       return apiError('forbidden', 403)
     }
 

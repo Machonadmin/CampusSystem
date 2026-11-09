@@ -3,6 +3,7 @@ import { AUTH_CONFIG } from '@/lib/auth/config'
 import { verifyToken, isReadOnlySession } from '@/lib/auth/jwt'
 import { PROTECTED_MODULE_CODES, moduleCodeFromSegment } from '@/lib/modules/registry'
 import { todayISO } from '@/lib/dates'
+import { seatsFromRows, structurePrivilegeRows, type SeatRow } from '@/lib/permissions/structure-rules'
 
 const PUBLIC_API_PREFIXES = ['/api/auth/', '/api/dev-login', '/api/public/', '/api/portal/login', '/api/cron/', '/api/agent/']
 const PUBLIC_PAGES = ['/login', '/portal/login']
@@ -45,6 +46,29 @@ async function fetchAccessibleModules(roleCodes: string[], personId: string): Pr
       }
     }
   }
+
+  // Права «Учёбы» из оргструктуры (глава / заместитель / секретариат) — как в
+  // /api/auth/me и lib/education/permissions.ts. Добавляются ДО личных
+  // оверрайдов, чтобы личный запрет оставался сильнее. Устойчиво к отсутствию
+  // колонки is_deputy (деплой до миграции): тогда читаем без неё.
+  try {
+    let seatRes = await fetch(
+      `${url}/rest/v1/staff_positions?person_id=eq.${personId}&select=department_id,is_head,is_deputy,end_date`,
+      { headers },
+    )
+    if (!seatRes.ok) {
+      seatRes = await fetch(
+        `${url}/rest/v1/staff_positions?person_id=eq.${personId}&select=department_id,is_head,end_date`,
+        { headers },
+      )
+    }
+    if (seatRes.ok) {
+      const seats = seatsFromRows((await seatRes.json()) as SeatRow[], todayISO())
+      for (const r of structurePrivilegeRows(seats, roleCodes)) {
+        if (r.privilege_code === 'access') set.add(r.module)
+      }
+    }
+  } catch { /* fail-closed: без структурных прав */ }
 
   // Персональные оверрайды доступа к модулю (grant/deny) поверх ролей — как в
   // /api/auth/me. Устойчиво к отсутствию таблицы (просто нет оверрайдов).

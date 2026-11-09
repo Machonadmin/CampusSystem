@@ -420,6 +420,8 @@ export interface StaffPositionRow {
   position_he: string | null
   position_id: string | null
   is_head: boolean
+  /** Заместитель главы единицы (миграция 20261109120000). Необязателен при вставке. */
+  is_deputy?: boolean
   start_date: string | null
   end_date: string | null
   created_at: string

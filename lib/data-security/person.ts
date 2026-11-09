@@ -22,6 +22,8 @@ export type PrivilegeSource =
   | 'personal_deny'
   /** Личный запрет на право, которого роль и так не давала: ни на что не влияет. */
   | 'personal_deny_noop'
+  /** Право даёт место в оргструктуре (глава / заместитель / секретариат). */
+  | 'structure'
 
 export interface RolePrivilegeInput {
   module: string
@@ -61,9 +63,12 @@ export function resolvePersonPrivileges(
   rolePrivileges: readonly RolePrivilegeInput[],
   personPrivileges: readonly PersonPrivilegeInput[],
   nowMs: number,
+  /** Права из оргструктуры (lib/permissions/structure) — складываются с ролями. */
+  structurePrivileges: readonly RolePrivilegeInput[] = [],
 ): ResolvedPrivilege[] {
   const modules = new Set<string>([
     ...rolePrivileges.map(r => r.module),
+    ...structurePrivileges.map(r => r.module),
     ...personPrivileges.map(p => p.module),
   ])
 
@@ -71,7 +76,9 @@ export function resolvePersonPrivileges(
 
   // Имя `module` занято бандлером Next (no-assign-module-variable).
   for (const moduleCode of modules) {
-    const roleRows = rolePrivileges.filter(r => r.module === moduleCode)
+    const ownRoleRows = rolePrivileges.filter(r => r.module === moduleCode)
+    const structRows = structurePrivileges.filter(r => r.module === moduleCode)
+    const roleRows = [...ownRoleRows, ...structRows]
     const personRows = personPrivileges.filter(p => p.module === moduleCode)
 
     const live = personRows.filter(p => !p.expires_at || new Date(p.expires_at).getTime() > nowMs)
@@ -82,6 +89,7 @@ export function resolvePersonPrivileges(
     const effective = applyPersonGrants(fromRoles, live.map(p => ({ code: p.privilege_code, is_granted: p.is_granted })))
 
     const roleCodes = new Set(roleRows.map(r => r.privilege_code))
+    const fromRoleOnly = new Set(ownRoleRows.map(r => r.privilege_code))
     const liveByCode = new Map(live.map(p => [p.privilege_code, p]))
 
     // Только роли и ДЕЙСТВУЮЩИЕ личные строки: код, у которого осталась одна
@@ -100,7 +108,7 @@ export function resolvePersonPrivileges(
       let source: PrivilegeSource
       if (personal?.is_granted) source = 'personal_grant'
       else if (personal && !personal.is_granted) source = roleCodes.has(code) ? 'personal_deny' : 'personal_deny_noop'
-      else source = 'role'
+      else source = fromRoleOnly.has(code) ? 'role' : 'structure'
 
       out.push({
         module: moduleCode, code, granted, source, scope,

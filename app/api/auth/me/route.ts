@@ -11,6 +11,7 @@ import { canSubmitFeedback } from '@/lib/feedback/access'
 import { ALL_MODULE_CODES as REGISTRY_ALL_MODULE_CODES } from '@/lib/modules/registry'
 import type { RoleCode } from '@/types/database'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
+import { loadStructureSeats, structurePrivilegeRows } from '@/lib/permissions/structure'
 
 // Список модулей, которые видит superadmin. Берётся из реестра модулей
 // (lib/modules/registry.ts) — единственного источника правды; раньше жил здесь
@@ -103,6 +104,16 @@ export async function GET() {
     // есть и 'access' (плитка/меню), и право, которое требует сама страница.
     // Раньше здесь учитывался только 'access', из-за чего модуль мог быть виден
     // и при этом молча не открываться.
+    // Права «Учёбы» из оргструктуры (глава / заместитель / секретариат) — как
+    // ещё одна «роль»: личный запрет по-прежнему сильнее (effectivePrivileges).
+    // Студенческий вход их не получает. Fail-closed: ошибка → без них.
+    if (session.principal !== 'student') {
+      try {
+        const seats = await loadStructureSeats(session.person_id)
+        rolePrivilegeRows = [...rolePrivilegeRows, ...structurePrivilegeRows(seats, session.roles)]
+      } catch { /* fail-closed */ }
+    }
+
     accessible_modules = visibleModules(
       effectivePrivileges(rolePrivilegeRows, personPrivilegeRows, Date.now()),
     )

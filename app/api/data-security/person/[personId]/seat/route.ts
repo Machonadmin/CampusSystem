@@ -6,6 +6,7 @@ import { todayISO } from '@/lib/dates'
 import { requireDataSecurityPrivilege } from '@/lib/data-security/permissions'
 import { clearDataSecurityPermissionsCache } from '@/lib/data-security/permissions'
 import { loadPersonAccess } from '@/lib/data-security/load'
+import { clearPermissionsCache } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -18,13 +19,15 @@ import { errorResponse } from '@/lib/api/handler'
  * ⚠ Запись здесь меняет доступ ПО-НАСТОЯЩЕМУ, не выдавая при этом ни одного
  * права, — поэтому право отдельное (data_security.manage_units, critical).
  *
- * PUT { units: [{ department_id, is_head, position_he? }] } — заменяет набор
+ * PUT { units: [{ department_id, is_head, is_deputy?, position_he? }] } — заменяет набор
  * ДЕЙСТВУЮЩИХ посадок. Прошлые должности (с end_date) не трогаются: это
  * история человека, и стирать её нельзя.
  */
 
 interface SeatBody {
-  units?: { department_id: string; is_head?: boolean; position_he?: string | null }[]
+  // is_deputy необязателен: не передан → у существующей посадки не меняется
+  // (экран дерева единиц его не знает), у новой — false.
+  units?: { department_id: string; is_head?: boolean; is_deputy?: boolean; position_he?: string | null }[]
 }
 
 export async function PUT(request: NextRequest, props: { params: Promise<{ personId: string }> }) {
@@ -62,6 +65,21 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
       .eq('person_id', personId)
     if (readErr) throw readErr
 
+    // Признак заместителя читается отдельно: до миграции is_deputy колонки нет,
+    // и тогда заместителя просто нельзя назначить (400), а остальное работает.
+    const deputyById = new Map<string, boolean>()
+    const { data: deputyRows, error: deputyErr } = await sb
+      .from('staff_positions')
+      .select('id, is_deputy')
+      .eq('person_id', personId)
+    const deputySupported = !deputyErr
+    for (const r of (deputyRows ?? []) as unknown as { id: string; is_deputy: boolean | null }[]) {
+      deputyById.set(r.id, !!r.is_deputy)
+    }
+    if (!deputySupported && wanted.some(u => u.is_deputy)) {
+      return apiError('invalid_reference', 400)
+    }
+
     const active = (current ?? []).filter(p => p.end_date === null || p.end_date > today)
     const wantedIds = new Set(wanted.map(u => u.department_id))
 
@@ -83,6 +101,13 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
             .eq('id', existing.id)
           if (error) throw error
         }
+        if (deputySupported && u.is_deputy !== undefined && (deputyById.get(existing.id) ?? false) !== !!u.is_deputy) {
+          const { error } = await sb
+            .from('staff_positions')
+            .update({ is_deputy: !!u.is_deputy })
+            .eq('id', existing.id)
+          if (error) throw error
+        }
         continue
       }
       // position_ru в таблице NOT NULL. Должность как ТЕКСТ здесь не
@@ -96,6 +121,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
         position_he: u.position_he?.trim() || null,
         position_id: null,
         is_head: !!u.is_head,
+        ...(deputySupported && u.is_deputy ? { is_deputy: true } : {}),
         start_date: today,
         end_date: null,
       })
@@ -105,6 +131,8 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ perso
     // Область считается из посадки и кэшируется на 30 секунд — без сброса
     // администратор увидел бы старую картину и решил, что не сохранилось.
     clearDataSecurityPermissionsCache(personId)
+    // Посадка теперь даёт и права «Учёбы» (глава / заместитель) — их кэш тоже.
+    clearPermissionsCache(personId)
 
     const access = await loadPersonAccess(personId, getCookieLocale())
     return NextResponse.json(access)

@@ -89,8 +89,8 @@ describe('activeSeatsFromPositions', () => {
       { department_id: 'ending', is_head: false, end_date: '2026-12-31' },
       { department_id: 'closed_today', is_head: false, end_date: today },
     ], today)).toEqual([
-      { departmentId: 'college', isHead: true },
-      { departmentId: 'ending', isHead: false },
+      { departmentId: 'college', isHead: true, isDeputy: false },
+      { departmentId: 'ending', isHead: false, isDeputy: false },
     ])
   })
 
@@ -98,7 +98,7 @@ describe('activeSeatsFromPositions', () => {
     expect(activeSeatsFromPositions([
       { department_id: 'kodesh', is_head: false, end_date: null },
       { department_id: 'kodesh', is_head: true, end_date: null },
-    ], today)).toEqual([{ departmentId: 'kodesh', isHead: true }])
+    ], today)).toEqual([{ departmentId: 'kodesh', isHead: true, isDeputy: false }])
   })
 
   it('не расширяет вниз по дереву: только прямые посадки', () => {
