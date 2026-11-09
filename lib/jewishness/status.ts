@@ -127,3 +127,45 @@ export async function setJewishnessStatus(
   }
   return true
 }
+
+/**
+ * Добавляет заметку к проверке еврейства, НЕ меняя статус (решение владельца
+ * 2026-11-09): можно в любом статусе, в т.ч. после «אושר». Заметка
+ * ДОБАВЛЯЕТСЯ строкой истории (source='note', status = текущий статус,
+ * changed_by = автор) и не заменяет основную заметку карточки.
+ *
+ * Возвращает true при успехе, 'not_found' — если journey нет, false — если
+ * таблица/колонки ещё не мигрированы.
+ */
+export async function addJewishnessNote(
+  sb: SB,
+  opts: { journeyId: string; changedBy: string | null; note: string },
+): Promise<true | false | 'not_found'> {
+  const note = opts.note.trim().slice(0, 2000)
+  if (!note) throw Object.assign(new Error('empty note'), { status: 400 })
+
+  const { data: journey, error: jErr } = await sb
+    .from('education_journeys')
+    .select('id, jewishness_status')
+    .eq('id', opts.journeyId)
+    .maybeSingle()
+  if (jErr) {
+    if (isMissingRelation(jErr)) return false
+    throw jErr
+  }
+  if (!journey) return 'not_found'
+
+  const status = normalizeJewishnessStatus((journey as { jewishness_status: unknown }).jewishness_status)
+  const { error } = await sb.from('jewishness_status_history').insert({
+    journey_id: opts.journeyId,
+    status,
+    changed_by: opts.changedBy,
+    note,
+    source: 'note',
+  })
+  if (error) {
+    if (isMissingRelation(error)) return false
+    throw error
+  }
+  return true
+}
