@@ -35,6 +35,11 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
   const [heads, setHeads] = useState<Set<string>>(
     () => new Set(person.seats.filter(s => s.isHead).map(s => s.departmentId)),
   )
+  // Заместитель: те же права «Учёбы», что у главы, но без раздачи прав команде.
+  // Глава и заместитель в одной единице взаимоисключающи.
+  const [deputies, setDeputies] = useState<Set<string>>(
+    () => new Set(person.seats.filter(s => s.isDeputy).map(s => s.departmentId)),
+  )
   const [reach, setReach] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 
@@ -59,7 +64,11 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
   const toggle = (id: string) =>
     setSelected(prev => {
       const next = new Set(prev)
-      if (next.has(id)) { next.delete(id); setHeads(h => { const n = new Set(h); n.delete(id); return n }) }
+      if (next.has(id)) {
+        next.delete(id)
+        setHeads(h => { const n = new Set(h); n.delete(id); return n })
+        setDeputies(h => { const n = new Set(h); n.delete(id); return n })
+      }
       else next.add(id)
       return next
     })
@@ -71,7 +80,7 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          units: [...selected].map(id => ({ department_id: id, is_head: heads.has(id) })),
+          units: [...selected].map(id => ({ department_id: id, is_head: heads.has(id), is_deputy: deputies.has(id) })),
         }),
       })
       const body = await res.json().catch(() => null)
@@ -111,13 +120,35 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
                   <input
                     type="checkbox"
                     checked={heads.has(u.id)}
-                    onChange={() => setHeads(h => {
-                      const n = new Set(h)
-                      if (n.has(u.id)) n.delete(u.id); else n.add(u.id)
-                      return n
-                    })}
+                    onChange={() => {
+                      const turningOn = !heads.has(u.id)
+                      setHeads(h => {
+                        const n = new Set(h)
+                        if (n.has(u.id)) n.delete(u.id); else n.add(u.id)
+                        return n
+                      })
+                      if (turningOn) setDeputies(d => { const n = new Set(d); n.delete(u.id); return n })
+                    }}
                   />
                   <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('seat_is_head')}</span>
+                </label>
+              )}
+              {on && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={deputies.has(u.id)}
+                    onChange={() => {
+                      const turningOn = !deputies.has(u.id)
+                      setDeputies(d => {
+                        const n = new Set(d)
+                        if (n.has(u.id)) n.delete(u.id); else n.add(u.id)
+                        return n
+                      })
+                      if (turningOn) setHeads(h => { const n = new Set(h); n.delete(u.id); return n })
+                    }}
+                  />
+                  <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{t('seat_is_deputy')}</span>
                 </label>
               )}
             </div>

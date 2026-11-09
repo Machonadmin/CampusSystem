@@ -107,6 +107,7 @@ function seed() {
       { module: 'education', privilege_code: 'view_students' },
       { module: 'education', privilege_code: 'mark_attendance' },
       { module: 'education', privilege_code: 'set_grades' },
+      { module: 'education', privilege_code: 'view_leads' },
       { module: 'finance', privilege_code: 'view' },
       { module: 'data_security', privilege_code: 'grant' },
     ],
@@ -160,10 +161,17 @@ describe('PUT — только своя команда и только свои 
     expect(ppWrites()).toEqual([])
   })
 
-  it('право, которого у него нет (education.set_grades) — 403, записи нет', async () => {
-    const res = await put('sec', [{ module: 'education', privilege_code: 'set_grades', is_granted: true }])
+  it('право, которого у него нет (education.view_leads) — 403, записи нет', async () => {
+    const res = await put('sec', [{ module: 'education', privilege_code: 'view_leads', is_granted: true }])
     expect(res.status).toBe(403)
     expect(ppWrites()).toEqual([])
+  })
+
+  // Решение владельца 2026-11-09: глава получает права «Учёбы» из структуры
+  // (lib/permissions/structure-rules) — значит может выдать их и своей команде.
+  it('право из структуры (education.set_grades) глава выдать может', async () => {
+    const res = await put('sec', [{ module: 'education', privilege_code: 'set_grades', is_granted: true }])
+    expect(res.status).toBe(200)
   })
 
   it('снять чужую строку (finance.view) — 403, записи нет', async () => {

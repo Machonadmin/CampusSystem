@@ -61,6 +61,34 @@ export async function canManageUnit(session: SessionPayload, unitId: string): Pr
 }
 
 /**
+ * Заместитель (staff_positions.is_deputy, посадка не закрыта) именно этой
+ * единицы. До миграции is_deputy колонки нет → false (fail-closed).
+ */
+export async function isUnitDeputy(personId: string, unitId: string): Promise<boolean> {
+  const sb = createServerClient()
+  const today = todayISO()
+  const { data, error } = await sb
+    .from('staff_positions')
+    .select('end_date, is_deputy')
+    .eq('person_id', personId)
+    .eq('department_id', unitId)
+  if (error || !data) return false
+  return (data as unknown as Array<{ end_date: string | null; is_deputy: boolean | null }>)
+    .some(r => !!r.is_deputy && (r.end_date === null || r.end_date > today))
+}
+
+/**
+ * Состав единицы (смотреть, добавить секретаря/учителя, убрать): глава,
+ * делегат или ЗАМЕСТИТЕЛЬ (решение владельца 2026-11-09). Раздача прав команде
+ * сюда не входит — она остаётся за canManageUnit (глава/делегат).
+ */
+export async function canManageUnitTeam(session: SessionPayload, unitId: string): Promise<boolean> {
+  if (await canManageUnit(session, unitId)) return true
+  if (session.principal === 'student') return false
+  return isUnitDeputy(session.person_id, unitId)
+}
+
+/**
  * Каталог education-привилегий, которые руководитель может выдать лично
  * секретарю/учителю (через person_privileges). Порядок = порядок в UI.
  */

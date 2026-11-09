@@ -11,6 +11,7 @@ import { resolvePersonPrivileges, type ResolvedPrivilege } from './person'
 import { pickLang } from './localize'
 import { activeSeatsFromPositions, type PersonSeat } from './seating'
 import { todayISO } from '@/lib/dates'
+import { seatsFromRows, structurePrivilegeRows } from '@/lib/permissions/structure-rules'
 
 // ─── Загрузка данных экрана «Безопасность данных» ────────────────────────────
 //
@@ -195,11 +196,24 @@ export async function loadPersonAccess(personId: string, lang: Lang): Promise<Pe
   const pos = positions?.[0]
 
   // Та же выборка, что читает маршрут посадки, и то же правило «действует».
-  const { data: seatRows, error: seatErr } = await sb
-    .from('staff_positions')
-    .select('department_id, is_head, end_date')
-    .eq('person_id', personId)
-  if (seatErr) throw seatErr
+  // is_deputy может ещё не существовать (деплой до миграции) — тогда без неё.
+  let seatRows: { department_id: string; is_head: boolean | null; is_deputy?: boolean | null; end_date: string | null }[] | null = null
+  {
+    const withDeputy = await sb
+      .from('staff_positions')
+      .select('department_id, is_head, is_deputy, end_date')
+      .eq('person_id', personId)
+    if (!withDeputy.error) {
+      seatRows = withDeputy.data as unknown as typeof seatRows
+    } else {
+      const { data, error: seatErr } = await sb
+        .from('staff_positions')
+        .select('department_id, is_head, end_date')
+        .eq('person_id', personId)
+      if (seatErr) throw seatErr
+      seatRows = data as unknown as typeof seatRows
+    }
+  }
 
   return {
     personId,
@@ -215,6 +229,10 @@ export async function loadPersonAccess(personId: string, lang: Lang): Promise<Pe
       (rolePrivileges ?? []) as { module: string; privilege_code: string; scope: string }[],
       personPrivileges,
       Date.now(),
+      structurePrivilegeRows(
+        seatsFromRows(seatRows ?? [], todayISO()),
+        (roleRows ?? []).map(r => r.code),
+      ),
     ),
   }
 }

@@ -3,6 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
+import { loadStructureSeats } from '@/lib/permissions/structure'
 import { getCookieLocale } from '@/lib/i18n/locale'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { errorResponse } from '@/lib/api/handler'
@@ -12,7 +13,7 @@ import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 /**
  * GET /api/education/units — учебные единицы, которыми пользователь вправе
  * управлять: superadmin видит все подразделения, иначе — те, где он глава
- * (staff_positions.is_head). Для панели «состав единицы».
+ * (staff_positions.is_head) или заместитель (is_deputy). Для панели «состав единицы».
  *
  * ?scope=studies — только учебные подразделения (ветка «לימודים», где лежит
  * кафедра кодеша): в отчётах по учёбе не должно быть кухни, משק и т.п.
@@ -29,7 +30,13 @@ export async function GET(request: NextRequest) {
       const { data } = await sb.from('departments').select('id')
       unitIds = (data ?? []).map(d => (d as { id: string }).id)
     } else {
-      unitIds = await getHeadedUnitIds(session.person_id)
+      // Глава — и заместитель (решение владельца 2026-11-09): заместитель тоже
+      // ведёт состав единицы, но тумблеры прав ему не открываются.
+      const [heads, seats] = await Promise.all([
+        getHeadedUnitIds(session.person_id),
+        loadStructureSeats(session.person_id),
+      ])
+      unitIds = [...new Set([...heads, ...seats.deputyUnitIds])]
     }
     if (unitIds.length > 0 && request.nextUrl.searchParams.get('scope') === 'studies') {
       const { data: edgesRaw } = await sb.from('departments').select('id, parent_id')

@@ -7,6 +7,7 @@ import type { RoleCode, PrivilegeModule } from '@/types/database'
 import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
+import { loadStructureSeats, structurePrivilegeRows } from '@/lib/permissions/structure'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -272,15 +273,25 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   const cached = getCached(session.person_id)
   if (cached) return cached
 
-  const [rolePrivileges, departmentIds, personGrants, headedUnitIds] = await Promise.all([
+  const [rolePrivileges, departmentIds, personGrants, headedUnitIds, seats] = await Promise.all([
     loadPrivileges(session.roles),
     getUserDepartmentIds(session.person_id),
     loadPersonPrivileges(session.person_id),
     getHeadedUnitIds(session.person_id),
+    loadStructureSeats(session.person_id),
   ])
 
-  // Персональные выдачи/запреты поверх ролевых (см. applyPersonGrants).
-  const privileges = applyPersonGrants<EducationPrivilege>(rolePrivileges, personGrants)
+  // Права из оргструктуры (глава / заместитель / секретариат — решение
+  // владельца 2026-11-09, lib/permissions/structure.ts) складываются с правами
+  // ролей по максимальному scope; личные выдачи и запреты — поверх обоих.
+  const baseRows = [
+    ...Object.entries(rolePrivileges).map(([privilege_code, scope]) => ({ privilege_code, scope: scope as string })),
+    ...structurePrivilegeRows(seats, session.roles).filter(r => r.privilege_code !== 'access'),
+  ]
+  const basePrivileges = reduceScopes<EducationPrivilege>(baseRows)
+
+  // Персональные выдачи/запреты поверх ролевых и структурных (см. applyPersonGrants).
+  const privileges = applyPersonGrants<EducationPrivilege>(basePrivileges, personGrants)
 
   // Кодеш — сквозная кафедра: КАЖДАЯ студентка приписана к её группе кодеша (утром
   // все учат кодеш; «основное» подразделение — её дневной מסלול, никогда не кодеш).
@@ -294,7 +305,8 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   // «Только преподаватель» (роль teacher, не секретарь и не глава подразделения)
   // видит и ведёт только СВОИ группы: права преподавателя из 'department' → 'own'
   // (решение владельца 2026-10-12). Главы, секретари и superadmin не затрагиваются.
-  const effective = isTeacherOnly(session.roles, headedUnitIds)
+  // Заместитель — тоже управленческое положение, его права не сужаются до 'own'.
+  const effective = isTeacherOnly(session.roles, [...headedUnitIds, ...seats.deputyUnitIds])
     ? narrowToOwn<EducationPrivilege>(privileges, TEACHER_OWN_PRIVILEGES)
     : privileges
 

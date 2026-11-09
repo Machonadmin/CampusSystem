@@ -14,6 +14,12 @@ import type { UnitNode } from './units'
 export interface PersonSeat {
   departmentId: string
   isHead: boolean
+  /**
+   * Заместитель (staff_positions.is_deputy). Необязателен: дерево единиц его не
+   * знает, и набор, собранный из дерева, его не передаёт — маршрут посадки тогда
+   * оставляет прежнее значение как есть.
+   */
+  isDeputy?: boolean
 }
 
 /** Все единицы человека, собранные из дерева (оно уже отбросило истёкшие). */
@@ -56,15 +62,21 @@ export function withoutSeat(
 
 /** Формат тела запроса маршрута посадки. */
 export function toSeatPayload(seats: readonly PersonSeat[]): {
-  units: { department_id: string; is_head: boolean }[]
+  units: { department_id: string; is_head: boolean; is_deputy?: boolean }[]
 } {
-  return { units: seats.map(s => ({ department_id: s.departmentId, is_head: s.isHead })) }
+  return {
+    units: seats.map(s => (s.isDeputy === undefined
+      ? { department_id: s.departmentId, is_head: s.isHead }
+      : { department_id: s.departmentId, is_head: s.isHead, is_deputy: s.isDeputy })),
+  }
 }
 
 /** Строка staff_positions — ровно то, что нужно для расчёта посадок. */
 export interface PositionRowInput {
   department_id: string | null
-  is_head: boolean
+  is_head: boolean | null
+  /** Нет в выборке до миграции is_deputy — тогда считается false. */
+  is_deputy?: boolean | null
   end_date: string | null
 }
 
@@ -88,8 +100,12 @@ export function activeSeatsFromPositions(
     if (!r.department_id) continue
     if (!(r.end_date === null || r.end_date > todayISO)) continue
     const existing = out.find(s => s.departmentId === r.department_id)
-    if (existing) existing.isHead = existing.isHead || !!r.is_head
-    else out.push({ departmentId: r.department_id, isHead: !!r.is_head })
+    if (existing) {
+      existing.isHead = existing.isHead || !!r.is_head
+      existing.isDeputy = !!existing.isDeputy || !!r.is_deputy
+    } else {
+      out.push({ departmentId: r.department_id, isHead: !!r.is_head, isDeputy: !!r.is_deputy })
+    }
   }
   return out
 }
