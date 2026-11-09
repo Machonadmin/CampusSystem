@@ -4,7 +4,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode, PrivilegeModule } from '@/types/database'
-import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, widenKodeshViewStudents, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES, type Scope, type DepartmentEdge } from '@/lib/permissions/scope'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { loadStructureSeats, structurePrivilegeRows } from '@/lib/permissions/structure'
@@ -199,6 +199,26 @@ export async function getUserDepartmentIds(personId: string): Promise<string[]> 
 }
 
 /**
+ * Есть ли у человека активная (не закрытая) позиция прямо в кафедре кодеша.
+ * Только ПРЯМОЕ назначение — без расширения по дереву, чтобы менеджер
+ * родительского узла не получил 'all' на весь институт. Ошибка → false.
+ */
+async function hasActiveKodeshPosition(personId: string): Promise<boolean> {
+  const sb = createServerClient()
+  const today = todayISO()
+  const { data, error } = await sb
+    .from('staff_positions')
+    .select('end_date')
+    .eq('person_id', personId)
+    .eq('department_id', KODESH_DEPT_ID)
+  if (error || !data) return false
+  return data.some(r => {
+    const ed = (r as { end_date: string | null }).end_date
+    return ed === null || ed > today
+  })
+}
+
+/**
  * Загружает все education-привилегии для массива ролей.
  * Если одна привилегия есть у нескольких ролей с разными scope — берётся максимальный
  * (приоритет: all > department > own).
@@ -273,12 +293,13 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   const cached = getCached(session.person_id)
   if (cached) return cached
 
-  const [rolePrivileges, departmentIds, personGrants, headedUnitIds, seats] = await Promise.all([
+  const [rolePrivileges, departmentIds, personGrants, headedUnitIds, seats, kodeshMember] = await Promise.all([
     loadPrivileges(session.roles),
     getUserDepartmentIds(session.person_id),
     loadPersonPrivileges(session.person_id),
     getHeadedUnitIds(session.person_id),
     loadStructureSeats(session.person_id),
+    hasActiveKodeshPosition(session.person_id),
   ])
 
   // Права из оргструктуры (глава / заместитель / секретариат — решение
@@ -296,11 +317,17 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   // Кодеш — сквозная кафедра: КАЖДАЯ студентка приписана к её группе кодеша (утром
   // все учат кодеш; «основное» подразделение — её дневной מסלול, никогда не кодеш).
   // Поэтому глава кафедры кодеша ВИДИТ всех студенток института: view_students → 'all'.
+  // Решение владельца 2026-11-09: то же для ЛЮБОГО активного сотрудника кафедры
+  // кодеша, у которого уже есть view_students (по роли или персонально) — иначе
+  // scope 'department' на кодеш давал пустой список (студенток «в кодеше» нет).
   // РЕДАКТИРОВАНИЕ не расширяем — manage_* остаются 'department' (правит только кодеш).
+  // «Только преподаватель» не расширяется — ниже сужается до 'own' (свои группы).
   // Обычные главы юнитов (колледжей) не затрагиваются: правило только для кодеша.
-  if (headedUnitIds.includes(KODESH_DEPT_ID) && privileges['view_students'] !== 'all') {
-    privileges['view_students'] = 'all'
-  }
+  privileges['view_students'] = widenKodeshViewStudents(privileges['view_students'], {
+    headsKodesh: headedUnitIds.includes(KODESH_DEPT_ID),
+    kodeshMember,
+    teacherOnly: isTeacherOnly(session.roles, [...headedUnitIds, ...seats.deputyUnitIds]),
+  })
 
   // «Только преподаватель» (роль teacher, не секретарь и не глава подразделения)
   // видит и ведёт только СВОИ группы: права преподавателя из 'department' → 'own'

@@ -354,6 +354,7 @@ function DetailBody({
           {detail.notes && <Field label={t('notes_label')} value={detail.notes} />}
         </div>
         <TwoStepActions detail={detail} primary={primary} reload={reload} />
+        <AddNote journeyId={detail.journey_id} primary={primary} reload={reload} />
       </Section>
 
       {/* Документы + загрузка */}
@@ -369,6 +370,7 @@ function DetailBody({
               const sourceLabel = h.source === 'module' ? t('source_module')
                 : h.source === 'acceptance_stage' ? t('source_acceptance_stage')
                 : h.source === 'initial_check' ? t('source_initial_check')
+                : h.source === 'note' ? t('source_note')
                 : (h.source ?? '')
               return (
                 <div key={i} style={{ borderInlineStart: `3px solid ${statusColors(h.status).fg}`, paddingInlineStart: 10, paddingTop: 2, paddingBottom: 2 }}>
@@ -682,6 +684,47 @@ function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: 
         {showInitial && <button onClick={() => post({ action: 'initial_check' })} disabled={busy} style={btn(primary)}>{t('action_initial_check')}</button>}
         {showFinal && <button onClick={() => post({ status: 'verified' })} disabled={busy} style={btn('var(--success)')}>{t('action_final_approve')}</button>}
         {showReject && <button onClick={() => post({ status: 'rejected' })} disabled={busy} style={btn('var(--danger)', true)}>{t('action_reject')}</button>}
+      </div>
+      {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
+    </div>
+  )
+}
+
+/**
+ * Добавление заметки — в любом статусе, в т.ч. после «אושר» (владелец,
+ * 2026-11-09). Заметка добавляется в историю с именем автора; статус не меняется.
+ * Доступно всем, у кого есть доступ к модулю.
+ */
+function AddNote({ journeyId, primary, reload }: { journeyId: string; primary: string; reload: () => Promise<void> }) {
+  const t = useTranslations('jewishness')
+  const [busy, setBusy] = useState(false)
+  const [note, setNote] = useState('')
+  const [error, setError] = useState('')
+
+  const save = async () => {
+    if (!note.trim()) return
+    setBusy(true); setError('')
+    try {
+      const res = await fetch(`/api/jewishness/journeys/${journeyId}/note`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: note.trim() }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; setError(d.error ?? t('action_failed')); return }
+      setNote(''); await reload()
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div style={{ marginTop: 12, display: 'grid', gap: 8, borderTop: '1px solid var(--surface-2)', paddingTop: 12 }}>
+      <textarea aria-label={t('add_note_placeholder')} value={note} onChange={e => setNote(e.target.value)} placeholder={t('add_note_placeholder')}
+        rows={2} maxLength={2000}
+        style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', resize: 'vertical', fontFamily: 'inherit' }} />
+      <div>
+        <button onClick={save} disabled={busy || !note.trim()}
+          style={{ fontSize: 13, fontWeight: 600, borderRadius: 8, padding: '8px 16px', cursor: busy || !note.trim() ? 'default' : 'pointer',
+            color: primary, background: 'var(--surface)', border: `1px solid ${primary}`, opacity: busy || !note.trim() ? 0.6 : 1 }}>
+          {t('add_note_button')}
+        </button>
       </div>
       {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
     </div>
