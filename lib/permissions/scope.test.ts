@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES } from './scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES, widenKodeshViewStudents } from './scope'
 import type { DepartmentEdge } from './scope'
 
 describe('applyPersonGrants', () => {
@@ -279,5 +279,25 @@ describe('только преподаватель: own по своим груп�
   it('department: journey_id / class_group_id ничего не меняют', () => {
     expect(grantsAccess('department', { journey_id: 'x', department_id: 'd1' }, ctx)).toBe(true)
     expect(grantsAccess('department', { journey_id: 'j1', department_id: 'd2' }, ctx)).toBe(false)
+  })
+})
+
+describe('widenKodeshViewStudents', () => {
+  const base = { headsKodesh: false, kodeshMember: false, teacherOnly: false }
+  it('глава кодеша — всегда all (как раньше), даже без права', () => {
+    expect(widenKodeshViewStudents(undefined, { ...base, headsKodesh: true })).toBe('all')
+    expect(widenKodeshViewStudents('department', { ...base, headsKodesh: true })).toBe('all')
+  })
+  it('сотрудник кодеша с view_students (department) → all', () => {
+    expect(widenKodeshViewStudents('department', { ...base, kodeshMember: true })).toBe('all')
+  })
+  it('сотрудник кодеша без view_students — права не получает', () => {
+    expect(widenKodeshViewStudents(undefined, { ...base, kodeshMember: true })).toBeUndefined()
+  })
+  it('«только преподаватель» в кодеше не расширяется', () => {
+    expect(widenKodeshViewStudents('department', { ...base, kodeshMember: true, teacherOnly: true })).toBe('department')
+  })
+  it('не сотрудник кодеша — scope не меняется', () => {
+    expect(widenKodeshViewStudents('department', base)).toBe('department')
   })
 })

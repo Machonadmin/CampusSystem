@@ -205,3 +205,20 @@ export function expandWithAncestors(nodeIds: string[], edges: DepartmentEdge[]):
   }
   return Array.from(result)
 }
+
+/**
+ * Кодеш — сквозная кафедра: ни у одной студентки она не «основное» подразделение,
+ * поэтому view_students со scope 'department' на кодеш дал бы пустой список.
+ * Правило: глава кафедры кодеша → 'all' (даже без view_students, как раньше);
+ * любой другой активный сотрудник кафедры, у которого view_students УЖЕ есть
+ * (любой scope), → 'all' (решение владельца 2026-11-09). Без права — не выдаём.
+ * «Только преподаватель» не расширяется — он видит лишь свои группы.
+ */
+export function widenKodeshViewStudents(
+  current: Scope | undefined,
+  opts: { headsKodesh: boolean; kodeshMember: boolean; teacherOnly: boolean },
+): Scope | undefined {
+  if (opts.headsKodesh) return 'all'
+  if (opts.kodeshMember && !opts.teacherOnly && current) return 'all'
+  return current
+}
