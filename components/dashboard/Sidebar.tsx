@@ -134,8 +134,9 @@ function SidebarNavLink({
   /** Небольшая точка на иконке — сигнал «есть что-то моё» (напр. открытые задачи). */
   dot?: boolean
 }) {
-  // 'home' и 'calendar' — личные страницы: всегда доступны.
-  const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar'
+  // 'home', 'calendar' и 'management' (פאנל ניהול) — личные страницы: всегда
+  // доступны, свои данные отдаёт API.
+  const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar' || moduleKey === 'management'
   const implemented = isPersonalPage || isModuleImplemented(moduleKey)
   return (
     <div className="relative">
