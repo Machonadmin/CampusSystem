@@ -5941,6 +5941,9 @@
   },
   "feedback": {
     "button": "Suggestion or bug",
+    "bug_button": "Report a bug or suggest an improvement (with a screenshot)",
+    "capturing": "Capturing the screen…",
+    "auto_screenshot_note": "A screenshot of the current screen was attached automatically. You can remove it if it isn't needed.",
     "title": "Suggestion or bug",
     "intro": "Write what is not working or what could be better. The note goes to the system owner, who decides what to do. Nothing in the system changes automatically.",
     "kind_label": "Type",

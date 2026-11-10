@@ -19,7 +19,11 @@ import { shrinkScreenshot } from '@/lib/feedback/shrink'
  * Путь текущего экрана уходит вместе с замечанием, чтобы было видно, «где».
  * Замечание только сохраняется: решает владелец (см. app/api/feedback).
  */
-export default function FeedbackModal({ onClose }: { onClose: () => void }) {
+export default function FeedbackModal({ onClose, initialScreenshot = null }: {
+  onClose: () => void
+  /** Снимок экрана, сделанный кнопкой-«жучком» до открытия формы. */
+  initialScreenshot?: File | null
+}) {
   const t = useTranslations('feedback')
   const tc = useTranslations('common')
   const pathname = usePathname()
@@ -31,6 +35,8 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
   const [preparing, setPreparing] = useState(false)
   const [sent, setSent] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
+  const [autoShot, setAutoShot] = useState(false)
+  const initialAdded = useRef(false)
 
   // Превью картинок: object URL на каждый файл, освобождаем при смене списка.
   useEffect(() => {
@@ -39,12 +45,21 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
     return () => urls.forEach(u => URL.revokeObjectURL(u))
   }, [files])
 
-  async function addFiles(incoming: File[]) {
+  // Снимок от «жучка» прикладываем один раз при открытии (ref — от двойного
+  // запуска эффекта в StrictMode). Сотрудник может его убрать крестиком.
+  useEffect(() => {
+    if (!initialScreenshot || initialAdded.current) return
+    initialAdded.current = true
+    void addFiles([initialScreenshot]).then(ok => { if (ok) setAutoShot(true) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialScreenshot])
+
+  async function addFiles(incoming: File[]): Promise<boolean> {
     const images = incoming.filter(f => f.type.startsWith('image/'))
-    if (images.length === 0 || preparing) return
+    if (images.length === 0 || preparing) return false
     if (files.length + images.length > MAX_SCREENSHOTS) {
       toastError(t('too_many').replace('{max}', String(MAX_SCREENSHOTS)))
-      return
+      return false
     }
     // Сжимаем сразу при добавлении: к нажатию «שליחה» картинки уже маленькие.
     // Пока идёт сжатие, добавить/убрать картинку или отправить нельзя.
@@ -54,9 +69,10 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
       const next = [...files, ...shrunk]
       if (checkScreenshots(next)) {
         toastError(t('bad_file'))
-        return
+        return false
       }
       setFiles(next)
+      return true
     } finally {
       setPreparing(false)
     }
@@ -170,6 +186,11 @@ export default function FeedbackModal({ onClose }: { onClose: () => void }) {
               <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--text-faint)' }}>
                 {t('screenshots_hint').replace('{max}', String(MAX_SCREENSHOTS))}
               </p>
+              {autoShot && files.length > 0 && (
+                <p style={{ margin: '0 0 8px', fontSize: 12, color: 'var(--text-muted)' }}>
+                  {t('auto_screenshot_note')}
+                </p>
+              )}
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                 {previews.map((src, i) => (
                   <div key={src} style={{ position: 'relative' }}>

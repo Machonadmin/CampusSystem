@@ -8,6 +8,7 @@ import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import type { Lang } from '@/lib/i18n/translations'
 import ChangePasswordModal from '@/components/ChangePasswordModal'
 import FeedbackModal from '@/components/dashboard/FeedbackModal'
+import BugReportButton from '@/components/dashboard/BugReportButton'
 import NotificationBell from '@/components/dashboard/NotificationBell'
 import GlobalSearch from '@/components/dashboard/GlobalSearch'
 import ThemeToggle from '@/components/dashboard/ThemeToggle'
@@ -29,7 +30,9 @@ export default function Header({ userName, roles }: HeaderProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [pwdOpen, setPwdOpen] = useState(false)
   // «הצעה לשיפור או באג» — только у тех, кому владелец выдал feedback.submit.
+  // Кнопка-«жучок» на левом краю открывает форму сразу со снимком экрана.
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackShot, setFeedbackShot] = useState<File | null>(null)
   // Мобильная панель поиска людей (на телефоне поле поиска в шапке скрыто).
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -146,22 +149,6 @@ export default function Header({ userName, roles }: HeaderProps) {
         {/* Notification bell */}
         <NotificationBell />
 
-        {/* «הצעה לשיפור או באג» — на телефоне кнопка живёт в меню пользователя */}
-        {me?.can_submit_feedback && (
-          <button
-            onClick={() => setFeedbackOpen(true)}
-            aria-label={tFeedback('button')}
-            title={tFeedback('button')}
-            className="hidden sm:flex icon-ghost items-center justify-center rounded-lg transition flex-shrink-0"
-            style={{ width: 36, height: 36, color: 'var(--text-muted)' }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          </button>
-        )}
-
         {/* Language switcher — на телефоне переносим в меню пользователя */}
         <div className="hidden sm:flex gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'var(--surface-2)' }}>
           {(['ru', 'he', 'en'] as Lang[]).map(l => (
@@ -263,7 +250,7 @@ export default function Header({ userName, roles }: HeaderProps) {
               {me?.can_submit_feedback && (
                 <>
                   <button
-                    onClick={() => { setUserMenuOpen(false); setFeedbackOpen(true) }}
+                    onClick={() => { setUserMenuOpen(false); setFeedbackShot(null); setFeedbackOpen(true) }}
                     className="menu-item w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
                     style={{ color: 'var(--text-muted)' }}
                   >
@@ -342,7 +329,15 @@ export default function Header({ userName, roles }: HeaderProps) {
     )}
 
     {pwdOpen && <ChangePasswordModal onClose={() => setPwdOpen(false)} />}
-    {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
+    {me?.can_submit_feedback && !feedbackOpen && (
+      <BugReportButton onOpen={shot => { setFeedbackShot(shot); setFeedbackOpen(true) }} />
+    )}
+    {feedbackOpen && (
+      <FeedbackModal
+        initialScreenshot={feedbackShot}
+        onClose={() => { setFeedbackOpen(false); setFeedbackShot(null) }}
+      />
+    )}
     </>
   )
 }
