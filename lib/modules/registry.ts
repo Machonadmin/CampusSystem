@@ -128,6 +128,16 @@ export const MODULES = [
   },
 
   {
+    code: 'my_track', navKey: 'my_track', href: '/dashboard/my-track',
+    routeGuard: false, pageGates: false, pagePrivilege: null,
+    gateExceptionReason:
+      'המסלול שלי: как פאנל ניהול — страница только под auth, а /api/education/my-track/** ' +
+      'пускает ответственного маршрута (study_track_managers), manage_tracks или superadmin.',
+    inAccessibleModules: false, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: false,
+  },
+
+  {
     code: 'feedback', navKey: 'feedback', href: '/dashboard/feedback',
     routeGuard: false, pageGates: false, pagePrivilege: null,
     gateExceptionReason:
