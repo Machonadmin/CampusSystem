@@ -90,6 +90,22 @@ async function loadScope(
   return (effective[code] as PrivilegeScope | undefined) ?? null
 }
 
+/**
+ * Область действия права module.code для текущего пользователя:
+ * 'all' | 'department' | 'own' | null (права нет). superadmin — всегда 'all'.
+ * Нужна экранам, которые заранее решают, показывать ли кнопку и для каких
+ * подразделений (например, «מורה חדשה» на экране «מורות»).
+ */
+export async function getPrivilegeScope(
+  session: SessionPayload | null,
+  module: PrivilegeModule,
+  code: string,
+): Promise<PrivilegeScope | null> {
+  if (!session || session.principal === 'student') return null
+  if (session.roles.includes('superadmin')) return 'all'
+  return loadScope(session, module, code)
+}
+
 export async function hasPrivilege(
   session: SessionPayload | null,
   module: PrivilegeModule,
