@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { getSession } from '@/lib/auth/session'
-import { requireEducationPrivilege, getEducationPrivilegeScope } from '@/lib/education/permissions'
+import { requireEducationPrivilege, getEducationPrivilegeScope, canManageStudentLifecycleAnywhere } from '@/lib/education/permissions'
 import { errorResponse } from '@/lib/api/handler'
 
 /**
@@ -60,19 +60,26 @@ export async function POST(request: NextRequest, props: { params: Promise<{ id: 
     if (fetchErr) throw fetchErr
     if (!journey) return apiError('journey_not_found', 404)
 
-    // Право на управление студентами в его подразделении
+    // Право на управление студентами в его подразделении. Исключение: сотрудник
+    // кафедры кодеша с manage_students ведёт учебный цикл ЛЮБОЙ студентки
+    // (см. canManageStudentLifecycleAnywhere).
     const journeyDept = (journey as { primary_department_id: string | null }).primary_department_id
-    await requireEducationPrivilege('manage_students', {
-      department_id: journeyDept ?? undefined,
-    })
+    const fromStatus = (journey as { education_status: string | null }).education_status
+    const lifecycleAnywhere = (fromStatus === 'student' || fromStatus === 'on_leave')
+      && await canManageStudentLifecycleAnywhere(session)
+    if (!lifecycleAnywhere) {
+      await requireEducationPrivilege('manage_students', {
+        department_id: journeyDept ?? undefined,
+      })
 
-    // F3: смена статуса СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less journey)
-    // разрешена только при scope='all'. Иначе department-scoped пользователь смог
-    // бы менять статус ЛЮБОЙ «ничьей» записи.
-    if (journeyDept == null) {
-      const scope = await getEducationPrivilegeScope(session, 'manage_students')
-      if (scope !== 'all') {
-        return apiError('forbidden', 403)
+      // F3: смена статуса СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less journey)
+      // разрешена только при scope='all'. Иначе department-scoped пользователь смог
+      // бы менять статус ЛЮБОЙ «ничьей» записи.
+      if (journeyDept == null) {
+        const scope = await getEducationPrivilegeScope(session, 'manage_students')
+        if (scope !== 'all') {
+          return apiError('forbidden', 403)
+        }
       }
     }
 

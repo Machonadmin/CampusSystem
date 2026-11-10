@@ -1276,7 +1276,18 @@
         "status_graduated": "Graduate",
         "status_expelled": "Studies discontinued",
         "all_tracks": "All tracks",
-        "all_years": "All years"
+        "all_years": "All years",
+        "close_dialog": {
+          "title": "Close study file: {name}",
+          "intro": "Before closing the file, maybe one of these options fits better?",
+          "option_graduate": "Move to graduates",
+          "option_expel": "Discontinue studies",
+          "option_on_leave": "Academic leave",
+          "option_close": "Close study file",
+          "close_hint": "She will no longer appear in the list. Her status will not change. There is no button to reopen the file.",
+          "confirm_question": "Are you sure you want to continue?",
+          "choose_first": "Choose an option"
+        }
       },
       "semester_groups": {
         "modal_create_title": "New semester",

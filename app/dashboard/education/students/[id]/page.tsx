@@ -8,6 +8,7 @@ import { getSession } from '@/lib/auth/session'
 import {
   requireEducationPrivilege,
   hasEducationPrivilege,
+  canManageStudentLifecycleAnywhere,
   type EducationPrivilege,
 } from '@/lib/education/permissions'
 import { canRequestTuitionDiscount } from '@/lib/finance/discount-request-access'
@@ -108,6 +109,9 @@ export default async function StudentViewPage(props: Props) {
 
   // Право на управление — гейтит вкладку «Учебный цикл» (переходы статуса)
   const canManage = await hasEducationPrivilege(session, pickPrivilege(status, 'manage'), target)
+  // Переходы учебного цикла (בוגרת / הפסקה / חופשה): сотрудник кодеша с
+  // manage_students ведёт их у любой студентки — зеркало /journeys/[id]/transition.
+  const canManageLifecycle = canManage || await canManageStudentLifecycleAnywhere(session)
 
   // Блок «בקשת הנחה» — тем же правилом, что и сервер (POST discount-approvals).
   const canRequestDiscount = await canRequestTuitionDiscount(session, j.primary_department_id)
@@ -226,7 +230,7 @@ export default async function StudentViewPage(props: Props) {
       showEditButton={canManage}
       canManage={canManage}
       canConvert={false}
-      studyLifecycle={{ history: historyEntries }}
+      studyLifecycle={{ history: historyEntries, canManage: canManageLifecycle }}
       showReport
       showOverview
       routeBase="students"
