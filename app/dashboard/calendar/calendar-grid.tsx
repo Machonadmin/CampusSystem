@@ -306,25 +306,30 @@ export function WeekView({
           <div key={day} style={{
             background: 'var(--surface)', border: `1px solid ${isToday ? primary : 'var(--border)'}`, borderRadius: 14, padding: 14,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: isToday ? primary : 'var(--text)', textTransform: 'capitalize' }}>
+            {/* Шапка дня: дата и кнопки — каждая подпись в одну строку. На
+                телефоне всё не влезало в одну строку, и КАЖДАЯ подпись ломалась
+                надвое («יום ראשון, 04 / באוק'», «סימון יום / היעדרות»). Теперь
+                при нехватке места кнопки целиком уходят под дату (заметки
+                владельца 2026-10-10 по недельному виду). */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 10, rowGap: 4, marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 8, rowGap: 2 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: isToday ? primary : 'var(--text)', textTransform: 'capitalize', whiteSpace: 'nowrap' }}>
                   {label}
                 </span>
                 {hebrewDates && (
-                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-faint)' }}>{formatHebrewDate(day)}</span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>{formatHebrewDate(day)}</span>
                 )}
                 {blocked && (
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--warn)', background: 'var(--warn-tint)', borderRadius: 999, padding: '1px 8px' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--warn)', background: 'var(--warn-tint)', borderRadius: 999, padding: '1px 8px', whiteSpace: 'nowrap' }}>
                     {t('day_off')}
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => onToggleDayOff(day)} style={smallLink}>
+              <div style={{ display: 'flex', gap: 6, marginInlineStart: 'auto' }}>
+                <button onClick={() => onToggleDayOff(day)} style={{ ...smallLink, whiteSpace: 'nowrap', padding: '2px 4px' }}>
                   {blocked ? t('remove_day_off') : t('mark_day_off')}
                 </button>
-                <button onClick={() => onDayNew(day)} style={{ ...smallLink, color: primary }}>
+                <button onClick={() => onDayNew(day)} style={{ ...smallLink, color: primary, whiteSpace: 'nowrap', padding: '2px 4px' }}>
                   + {t('new_appointment')}
                 </button>
               </div>

@@ -67,7 +67,10 @@ export default function NewTeacherModal({
   const label: React.CSSProperties = { display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }
 
   return (
-    <Modal onClose={onClose} maxWidth={440} ariaLabel={t('new_teacher_title')}>
+    // Modal не даёт панели внутренних отступов — без padding текст и поля
+    // прилипали к краю и обрезались скруглением (заметка 2026-11-10:
+    // «ההוספת מורה נראה על הפנים»).
+    <Modal onClose={onClose} maxWidth={440} ariaLabel={t('new_teacher_title')} panelStyle={{ padding: 22 }}>
       <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{t('new_teacher_title')}</h3>
       <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-muted)' }}>{t('new_teacher_hint')}</p>
 

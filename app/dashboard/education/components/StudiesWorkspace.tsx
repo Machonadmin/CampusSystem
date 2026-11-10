@@ -420,7 +420,7 @@ export default function StudiesWorkspace() {
       )}
 
       {kodeshEditOpen && (
-        <Modal onClose={() => setKodeshEditOpen(false)} maxWidth={520} ariaLabel={t('workspace.kodesh_levels_title')} closeOnBackdrop>
+        <Modal onClose={() => setKodeshEditOpen(false)} maxWidth={520} ariaLabel={t('workspace.kodesh_levels_title')} closeOnBackdrop panelStyle={{ padding: 22 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <h3 style={{ margin: 0, flex: 1, fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('workspace.kodesh_levels_title')}</h3>
             <button type="button" onClick={() => setKodeshEditOpen(false)} aria-label="✕" style={{ fontSize: 16, color: 'var(--text-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
