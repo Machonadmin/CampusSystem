@@ -85,7 +85,6 @@ export default function ImportStudentsPage() {
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
         sectionCrumb,
         { label: t('title') },
       ]} />

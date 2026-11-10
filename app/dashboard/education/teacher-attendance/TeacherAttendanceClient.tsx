@@ -8,6 +8,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 interface LessonRow {
   lesson_id: string
@@ -47,6 +48,7 @@ function fmtDate(lang: string, iso: string | null): string {
 export default function TeacherAttendanceClient({ canApprove, embedded = false }: { canApprove: boolean; embedded?: boolean }) {
   const t = useTranslations('education.teacher_attendance')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
 
@@ -125,7 +127,7 @@ export default function TeacherAttendanceClient({ canApprove, embedded = false }
         <>
           <Breadcrumb items={[
             { label: tNav('home'), href: '/dashboard' },
-            { label: tNav('education'), href: '/dashboard/education' },
+            sectionCrumb,
             { label: t('title') },
           ]} />
 

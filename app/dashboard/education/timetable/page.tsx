@@ -13,6 +13,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { getModuleColor } from '@/lib/module-colors'
 import SlotFormModal, { type SlotFormSlot } from '@/components/education/SlotFormModal'
 import CancelLessonDialog from './CancelLessonDialog'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 interface Slot {
   id: string
@@ -46,6 +47,7 @@ const PENDING_TINT = 'rgba(202,138,4,0.13)'
 export default function TimetablePage() {
   const t = useTranslations('education.timetable')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
 
@@ -235,7 +237,7 @@ export default function TimetablePage() {
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 

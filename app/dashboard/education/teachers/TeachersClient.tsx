@@ -7,6 +7,7 @@ import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import TeachersHoursClient from '../teachers-hours/TeachersHoursClient'
 import TeacherAttendanceClient from '../teacher-attendance/TeacherAttendanceClient'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 /**
  * Обёртка «מורים»: один заголовок + вкладки «Часы» / «Посещаемость».
@@ -15,6 +16,7 @@ import TeacherAttendanceClient from '../teacher-attendance/TeacherAttendanceClie
 export default function TeachersClient({ canHours, canApprove }: { canHours: boolean; canApprove: boolean }) {
   const t = useTranslations('education.teachers_hub')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const [tab, setTab] = useState<'hours' | 'attendance'>(canHours ? 'hours' : 'attendance')
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
@@ -36,7 +38,7 @@ export default function TeachersClient({ canHours, canApprove }: { canHours: boo
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 

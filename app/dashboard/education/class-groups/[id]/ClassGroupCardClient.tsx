@@ -126,7 +126,6 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
       <div className="p-6 space-y-4">
         <Breadcrumb items={[
           { label: tNav('home'), href: '/dashboard' },
-          { label: tNav('education'), href: '/dashboard/education' },
           sectionCrumb,
           { label: t('class_groups.card_not_found') },
         ]} />
@@ -169,7 +168,6 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
         sectionCrumb,
         { label: localizedName(group, lang) },
       ]} />

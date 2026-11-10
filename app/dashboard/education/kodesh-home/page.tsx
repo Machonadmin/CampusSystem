@@ -5,6 +5,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import KodeshHomeClient from './KodeshHomeClient'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 /**
  * Два домашних экрана мод. иудаики (spec §4.2): подготовка семестра и семестр.
@@ -12,13 +13,14 @@ import KodeshHomeClient from './KodeshHomeClient'
  */
 export default function KodeshHomePage() {
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const t = useTranslations('education.kodesh_home')
 
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 

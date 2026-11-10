@@ -5,6 +5,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import AlertsClient from './AlertsClient'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 /**
  * Оповещения и задачи по студенткам (spec §4.4). Чувствительные оповещения
@@ -12,13 +13,14 @@ import AlertsClient from './AlertsClient'
  */
 export default function AlertsPage() {
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const t = useTranslations('education.alerts')
 
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 
