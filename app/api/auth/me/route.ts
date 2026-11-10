@@ -8,6 +8,7 @@ import { isChavrutaTeacher } from '@/lib/chavruta/teachers'
 import { canViewChavruta } from '@/lib/chavruta/access'
 import { canViewStaffComp } from '@/lib/finance/staff-comp'
 import { canSubmitFeedback } from '@/lib/feedback/access'
+import { canUseGoogleCalendar } from '@/lib/calendar/google-access'
 import { ALL_MODULE_CODES as REGISTRY_ALL_MODULE_CODES } from '@/lib/modules/registry'
 import type { RoleCode } from '@/types/database'
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
@@ -204,6 +205,11 @@ export async function GET() {
   let can_submit_feedback = false
   try { can_submit_feedback = await canSubmitFeedback(session) } catch { /* fail-closed */ }
 
+  // «חבר ליומן גוגל» — кнопка в календаре только у тех, кому владелец выдал
+  // calendar.google_sync (и у superadmin). Fail-closed: ошибка → кнопки нет.
+  let can_google_calendar = false
+  try { can_google_calendar = await canUseGoogleCalendar(session) } catch { /* fail-closed */ }
+
   return NextResponse.json({
     person_id: session.person_id,
     login_email: session.login_email,
@@ -217,5 +223,6 @@ export async function GET() {
     can_view_chavruta,
     can_view_staff_comp,
     can_submit_feedback,
+    can_google_calendar,
   })
 }
