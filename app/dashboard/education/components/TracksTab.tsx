@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import TrackModal, { type TrackRow } from './TrackModal'
+import TrackManagersModal from './TrackManagersModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -34,6 +35,7 @@ export default function TracksTab() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editing, setEditing] = useState<TrackRow | null>(null)
+  const [managersFor, setManagersFor] = useState<TrackRow | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -115,7 +117,7 @@ export default function TracksTab() {
                   <th style={thStyle}>{t('code_label')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('years_count_label')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('table_status')}</th>
-                  <th style={{ ...thStyle, width: 170 }}>{t('table_actions')}</th>
+                  <th style={{ ...thStyle, width: 250 }}>{t('table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -132,6 +134,7 @@ export default function TracksTab() {
                     <td style={tdStyle} data-label="">
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => { setEditing(tr); setModalMode('edit') }} style={btnSecondary}>{t('edit')}</button>
+                        <button onClick={() => setManagersFor(tr)} style={btnSecondary}>{t('managers_button')}</button>
                         <button onClick={() => handleDelete(tr)} style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}>{t('delete')}</button>
                       </div>
                     </td>
@@ -141,6 +144,10 @@ export default function TracksTab() {
             </table>
           </div>
         )
+      )}
+
+      {managersFor && (
+        <TrackManagersModal trackId={managersFor.id} trackName={trackName(managersFor, lang)} onClose={() => setManagersFor(null)} />
       )}
 
       {modalMode && (

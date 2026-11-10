@@ -2204,7 +2204,13 @@
       "status_active": "פעיל",
       "status_inactive": "לא פעיל",
       "edit": "עריכה",
-      "delete": "מחיקה"
+      "delete": "מחיקה",
+      "managers_button": "מנהלים",
+      "managers_title": "מנהלי המסלול «{name}»",
+      "managers_hint": "מנהל מסלול בוחר בעצמו את התלמידות של המסלול, במסך «המסלול שלי».",
+      "managers_add": "הוספת מנהל",
+      "managers_empty": "עדיין לא הוגדרו מנהלים",
+      "managers_not_migrated": "יש להריץ קודם את המיגרציה של מנהלי המסלול"
     },
     "no_lesson_days": {
       "title": "ימים ללא לימודים",
@@ -5446,7 +5452,9 @@
     "invalid_time": "שעה לא תקינה",
     "goal_status_invalid": "מצב מטרה לא תקין",
     "goal_progress_invalid": "התקדמות צריכה להיות מספר שלם בין 0 ל-100",
-    "goal_dates_order": "תאריך היעד לפני תאריך ההתחלה"
+    "goal_dates_order": "תאריך היעד לפני תאריך ההתחלה",
+    "my_track_other_track": "התלמידה כבר משובצת במסלול אחר. רק טורו ואוניברסיטה יכולים להיות יחד",
+    "my_track_two_tracks": "לתלמידה כבר יש שני מסלולים"
   },
   "workflow": {
     "error": "שגיאה"
@@ -6069,5 +6077,34 @@
       "achieved": "הושגה",
       "dropped": "בוטלה"
     }
+  },
+  "my_track": {
+    "title": "המסלול שלי",
+    "subtitle": "בחירת התלמידות של המסלול. לימודי הקודש לא משתנים כאן: כל התלמידות ממשיכות ללמוד קודש כרגיל.",
+    "track_label": "מסלול",
+    "search_placeholder": "חיפוש לפי שם או מחלקה",
+    "filter_all": "כל התלמידות",
+    "filter_mine": "במסלול",
+    "filter_free": "בלי מסלול",
+    "count_mine": "{n} תלמידות במסלול",
+    "col_name": "שם",
+    "col_department": "מחלקה",
+    "col_tracks": "מסלולים",
+    "col_action": "",
+    "add": "הוספה",
+    "remove": "הסרה",
+    "role_primary": "ראשי",
+    "role_additional": "נוסף",
+    "no_track": "בלי מסלול",
+    "blocked_hint": "משובצת במסלול אחר",
+    "added_primary": "נוספה למסלול כמסלול ראשי",
+    "added_additional": "נוספה למסלול כמסלול נוסף",
+    "removed": "הוסרה מהמסלול",
+    "confirm_remove": "להסיר את {name} מהמסלול?",
+    "empty": "לא נמצאו תלמידות",
+    "load_error": "שגיאה בטעינה",
+    "action_failed": "הפעולה נכשלה",
+    "no_tracks": "אין מסלול שמשויך אליך כמנהל. אפשר לבקש ממי שמנהל את מסלולי החול להוסיף אותך.",
+    "pair_hint": "טורו ואוניברסיטה יכולים להיות יחד: אחד ראשי והשני נוסף. שאר המסלולים לא משתלבים."
   }
 }
