@@ -93,7 +93,10 @@ export default function StudentCoursesPanel({ journeyId, mode }: { journeyId: st
       {courses.length === 0 ? (
         <div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (
-        <div style={{ display: 'grid', gap: 10 }}>
+        // minmax(0, 1fr): без этого колонка grid растягивается до полной ширины
+        // длинного названия курса (nowrap), и строка курса вылезала за рамку
+        // карточки на телефоне (заметка владельца 2026-11-10: «משהו בורח שם»).
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10 }}>
           {courses.map(c => {
             const sc = STATUS_COLOR[c.status]
             const isOpen = open.has(c.class_group_id)
@@ -110,7 +113,9 @@ export default function StudentCoursesPanel({ journeyId, mode }: { journeyId: st
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {/* Название переносится, а не режется многоточием: на телефоне
+                        «…ь 1 (университет)» не читалось. */}
+                    <div style={{ fontSize: 13.5, fontWeight: 700, overflowWrap: 'break-word' }}>
                       {c.subject ?? c.name}
                     </div>
                     <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 2 }}>
@@ -133,7 +138,7 @@ export default function StudentCoursesPanel({ journeyId, mode }: { journeyId: st
                 </button>
 
                 {isOpen && (
-                  <div style={{ padding: '0 12px 12px', display: 'grid', gap: 6 }}>
+                  <div style={{ padding: '0 12px 12px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 6 }}>
                     <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, color: 'var(--text-muted)' }}>
                       <span>{t('final_grade')}: <b style={{ color: 'var(--text)' }}>{c.final_grade ?? '—'}</b></span>
                       <span>{t('average')}: <b style={{ color: 'var(--text)' }}>{c.average_percent ?? '—'}</b></span>

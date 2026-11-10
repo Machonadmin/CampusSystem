@@ -182,12 +182,17 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
             aria-label={`${node.name} — ${t('unit_people')}`}
             className="ds-unit-name"
             style={{
-              display: 'flex', alignItems: 'center', gap: 7,
+              // На телефоне значки «N מחלקות בפנים» и счётчик уходят под имя,
+              // а не сжимают его: раньше имя рвалось посреди слова
+              // («הנהל / ה», «לימודי / ם») — заметка владельца 2026-11-10.
+              display: 'flex', alignItems: 'center', flexWrap: 'wrap', columnGap: 7, rowGap: 4,
               border: 0, background: 'none', cursor: 'pointer', textAlign: 'start', padding: 0,
             }}
           >
+            {/* Без minWidth: 0 и с break-word имя не уже самого длинного слова:
+                переносится по словам, а не по буквам. */}
             <span style={{
-              minWidth: 0, overflowWrap: 'anywhere',
+              overflowWrap: 'break-word',
               fontSize: depth === 0 ? 14 : 13.5,
               fontWeight: depth === 0 ? 700 : 600, color: 'var(--text)',
             }}>{node.name}</span>
@@ -285,6 +290,7 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
                   disabled={busy}
                   style={{
                     marginTop: node.seats.length > 0 ? 6 : 8,
+                    maxWidth: '100%', textAlign: 'start',
                     padding: '6px 12px', borderRadius: 8,
                     border: '1px dashed var(--border-strong, var(--border))',
                     background: 'transparent', color: 'var(--text-muted)',
@@ -473,7 +479,9 @@ function MiniLink({ onClick, children, disabled, danger }: {
       style={{
         border: 0, background: 'none', padding: '2px 4px',
         color: danger ? 'var(--danger)' : 'var(--text-muted)',
-        fontSize: 11.5, fontWeight: 600, whiteSpace: 'nowrap',
+        // Подпись может переноситься: «סימון כראש המחלקה (יכול לחלק…)» длиннее
+        // строки телефона и с nowrap вылезала за рамку списка людей.
+        fontSize: 11.5, fontWeight: 600, textAlign: 'start', maxWidth: '100%',
         cursor: disabled ? 'default' : 'pointer', textDecoration: 'underline',
       }}
     >{children}</button>
