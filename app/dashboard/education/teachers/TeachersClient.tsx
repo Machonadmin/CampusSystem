@@ -7,6 +7,7 @@ import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import TeachersHoursClient from '../teachers-hours/TeachersHoursClient'
 import TeacherAttendanceClient from '../teacher-attendance/TeacherAttendanceClient'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { getModuleColor } from '@/lib/module-colors'
 import NewTeacherModal from './NewTeacherModal'
@@ -25,6 +26,7 @@ export default function TeachersClient({ canHours, canApprove, newTeacherDepts =
 }) {
   const t = useTranslations('education.teachers_hub')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const [tab, setTab] = useState<'hours' | 'attendance'>(canHours ? 'hours' : 'attendance')
   const [newTeacherOpen, setNewTeacherOpen] = useState(false)
   const accent = getModuleColor('education')
@@ -48,7 +50,7 @@ export default function TeachersClient({ canHours, canApprove, newTeacherDepts =
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 

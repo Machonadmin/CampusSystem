@@ -1,11 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import EducationHeaderNav from './EducationHeaderNav'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
+import type { EducationSection } from '@/lib/education/education-hub'
+import { saveSectionReturn } from '@/lib/education/section-return'
+
+// sectionKey (ключ права) → раздел для запоминания «где был».
+const SECTION_BY_KEY: Record<'recruitment' | 'committee' | 'study', EducationSection> = {
+  recruitment: 'recruitment',
+  committee: 'admission',
+  study: 'studies',
+}
 
 /**
  * Оболочка отдельного раздела «Учёбы» как САМОСТОЯТЕЛЬНОГО модуля (запрос
@@ -31,6 +41,15 @@ export default function SectionShell({
   const tNav = useTranslations('navigation')
   const label = t(titleKey)
 
+  // Запоминаем текущее место внутри раздела (вкладка ?sec=, маршрут, семестр…),
+  // чтобы крошка раздела на экранах-инструментах вернула именно сюда.
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const qs = searchParams.toString()
+    saveSectionReturn(SECTION_BY_KEY[sectionKey], qs ? `${pathname}?${qs}` : pathname)
+  }, [sectionKey, pathname, searchParams])
+
   // null = ещё грузим, true = есть доступ, false = нет. Пока не подтверждён
   // доступ — контент НЕ рендерим (иначе секретарь кодеша на миг видит גיוс).
   // Fail-closed: любая ошибка/невалидный ответ → доступа нет.
@@ -53,7 +72,6 @@ export default function SectionShell({
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
         { label },
       ]} />
 

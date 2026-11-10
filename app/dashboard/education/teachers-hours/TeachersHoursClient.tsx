@@ -7,6 +7,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 interface Slot { group_name: string; day_of_week: number; start_time: string; end_time: string; room: string | null }
 interface Teacher { person_id: string; name: string; groups_count: number; weekly_hours: number; actual_hours?: number; actual_lessons?: number; actual_no_end_time?: number; slots: Slot[] }
@@ -31,6 +32,7 @@ function dayName(lang: string, iso: number): string {
 export default function TeachersHoursClient({ embedded = false, leading }: { embedded?: boolean; leading?: React.ReactNode } = {}) {
   const t = useTranslations('education.teachers_hours')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
   const [teachers, setTeachers] = useState<Teacher[]>([])
@@ -63,7 +65,7 @@ export default function TeachersHoursClient({ embedded = false, leading }: { emb
         <>
           <Breadcrumb items={[
             { label: tNav('home'), href: '/dashboard' },
-            { label: tNav('education'), href: '/dashboard/education' },
+            sectionCrumb,
             { label: t('title') },
           ]} />
 

@@ -10,6 +10,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import PeriodSelector from '@/components/education/PeriodSelector'
 import KodeshLevelsManager from '@/components/education/KodeshLevelsManager'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 // Заморожено по просьбе владельца: пока преждевременно (у уровней ещё нет
 // расписания). Прячем кнопку «יצירת כל השיעורים»; вернёмся позже — снять флаг.
@@ -29,6 +30,7 @@ export default function KodeshAssignmentPage() {
   // Имя уровня кодеша на языке интерфейса (name=RU / name_he=HE / name_en=EN).
   const gname = (g: Group) => (lang === 'he' ? (g.name_he || g.name) : lang === 'en' ? (g.name_en || g.name) : g.name)
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
 
   const [groups, setGroups] = useState<Group[]>([])
@@ -159,7 +161,7 @@ export default function KodeshAssignmentPage() {
       <div className="p-6 space-y-5">
         <Breadcrumb items={[
           { label: tNav('home'), href: '/dashboard' },
-          { label: tNav('education'), href: '/dashboard/education' },
+          sectionCrumb,
           { label: t('title') },
         ]} />
         <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 }}>{t('no_access')}</div>
@@ -171,7 +173,7 @@ export default function KodeshAssignmentPage() {
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 

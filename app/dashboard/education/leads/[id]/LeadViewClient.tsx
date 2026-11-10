@@ -38,7 +38,8 @@ import { PhoneLink } from '@/components/ui/PhoneLink'
 import { countryLabel } from '@/lib/geo'
 import { BackButton } from '@/components/ui/BackButton'
 import { consumeRefreshOnReturn } from '@/lib/nav/refresh-on-return'
-import { EDUCATION_SECTION_ROUTES, educationSectionForStatus } from '@/lib/education/education-hub'
+import { educationSectionForStatus } from '@/lib/education/education-hub'
+import { useSectionCrumb } from '../../components/useSectionCrumb'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -214,7 +215,10 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
   const headerColorKey = navContext?.colorKey ?? 'education'
   // Средняя крошка («גיוס» / «קבלה» / «לימודים») ведёт в СВОЙ список раздела,
   // а не на хаб «חינוך» (раньше из карточки лида крошка «גיוס» уводила в «חינוך»).
-  const sectionHref = navContext ? moduleHref : EDUCATION_SECTION_ROUTES[educationSectionForStatus(data.status)]
+  // Без navContext крошка раздела ведёт в ПОСЛЕДНЕЕ место внутри раздела
+  // (вкладка/фильтр), а скрытого хаба «חינוך» в цепочке больше нет.
+  const statusSectionCrumb = useSectionCrumb(educationSectionForStatus(data.status))
+  const sectionHref = navContext ? moduleHref : statusSectionCrumb.href
 
   // Вернулись сюда после сохранения формы правки — back отдаёт кэш, обновляем.
   useEffect(() => {
@@ -390,7 +394,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: moduleLabel, href: moduleHref },
+        ...(navContext ? [{ label: moduleLabel, href: moduleHref }] : []),
         ...(() => {
           const crumb = navContext ? navContext.sectionLabel : sectionLabel
           return crumb ? [{ label: crumb, href: sectionHref }] : []

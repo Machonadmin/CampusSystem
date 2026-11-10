@@ -9,6 +9,7 @@ import { RowActionsMenu } from '@/components/ui/RowActionsMenu'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 interface Unit { id: string; name: string }
 interface Node { id: string; name: string; name_he?: string | null; name_en?: string | null; tier: string | null; sort_order: number; head: string | null; parent_id: string | null; is_root: boolean; groups: { id: string; name: string }[] }
@@ -16,6 +17,7 @@ interface Node { id: string; name: string; name_he?: string | null; name_en?: st
 export default function StructurePage() {
   const t = useTranslations('education.structure')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const { lang } = useLang()
 
   const [units, setUnits] = useState<Unit[]>([])
@@ -113,7 +115,7 @@ export default function StructurePage() {
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 

@@ -7,8 +7,8 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { canGoBackInApp, useSafeBack } from '@/lib/hooks/useSafeBack'
 import { markRefreshOnReturn } from '@/lib/nav/refresh-on-return'
-import { EDUCATION_SECTION_ROUTES } from '@/lib/education/education-hub'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
+import { useSectionCrumb } from '../../../components/useSectionCrumb'
 
 interface Props {
   journeyId: string
@@ -25,6 +25,7 @@ export default function StudentEditClient({ journeyId, personName }: Props) {
   const router = useRouter()
   const t = useTranslations('education')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
   const [savedAt, setSavedAt] = useState<Date | null>(null)
 
@@ -49,8 +50,7 @@ export default function StudentEditClient({ journeyId, personName }: Props) {
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
-        { label: t('card.section.student'), href: EDUCATION_SECTION_ROUTES.studies },
+        { label: t('card.section.student'), href: sectionCrumb.href },
         { label: personName, href: viewHref },
         { label: tCommon('edit') },
       ]} />

@@ -5,6 +5,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import KodeshCoursesClient from './KodeshCoursesClient'
+import { useSectionCrumb } from '../components/useSectionCrumb'
 
 /**
  * Курсы кодеша по уровням (spec §4.6/§4.7). Создание курса ограничено ролью משה
@@ -12,13 +13,14 @@ import KodeshCoursesClient from './KodeshCoursesClient'
  */
 export default function KodeshCoursesPage() {
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const t = useTranslations('education.kodesh_courses')
 
   return (
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title') },
       ]} />
 

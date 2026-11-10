@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { useSectionCrumb } from '../../components/useSectionCrumb'
 
 interface Question { id: string; text: string; kind: 'rating' | 'text'; position: number }
 interface Teacher { person_id: string; name: string }
@@ -22,6 +23,7 @@ interface QDraft { text: string; kind: 'rating' | 'text' }
 export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
   const t = useTranslations('education.teaching_surveys')
   const tNav = useTranslations('navigation')
+  const sectionCrumb = useSectionCrumb('studies')
   const tCommon = useTranslations('common')
 
   const [detail, setDetail] = useState<Detail | null>(null)
@@ -104,7 +106,7 @@ export default function SurveyDetailClient({ surveyId }: { surveyId: string }) {
     <div className="p-6 space-y-5">
       <Breadcrumb items={[
         { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('education'), href: '/dashboard/education' },
+        sectionCrumb,
         { label: t('title'), href: '/dashboard/education/teaching-surveys' },
         { label: detail?.survey.title ?? '…' },
       ]} />
