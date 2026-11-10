@@ -4,7 +4,6 @@ import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Caret } from '@/components/ui/Caret'
@@ -12,8 +11,8 @@ import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { localizedName } from '@/lib/i18n/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
-import { toast } from '@/components/ui/toast'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import CloseStudentFileDialog from '@/components/education/CloseStudentFileDialog'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null; is_educational_institution?: boolean }
 interface StudyGroup { id: string; name: string; name_he?: string | null; department_id: string }
@@ -98,6 +97,10 @@ export default function StudentsTab() {
   // которые не сработают на студентках вне его юнита (класс/маршрут/переход
   // года/закрытие), оставляя только назначение в кодеш.
   const [manageRestricted, setManageRestricted] = useState(false)
+  // Сотрудник кодеша с manage_students может закрыть תיק / сменить статус ЛЮБОЙ
+  // студентки (решение владельца 2026-11-10) — тогда кнопку закрытия не прячем.
+  const [lifecycleAll, setLifecycleAll] = useState(false)
+  const [closeTarget, setCloseTarget] = useState<Student | null>(null)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -187,9 +190,10 @@ export default function StudentsTab() {
   useEffect(() => {
     fetch('/api/education/launcher-access')
       .then(r => (r.ok ? r.json() : {}))
-      .then((b: { students_view_all?: boolean; students_manage_all?: boolean }) => {
+      .then((b: { students_view_all?: boolean; students_manage_all?: boolean; students_lifecycle_all?: boolean }) => {
         const restricted = b?.students_view_all === true && b?.students_manage_all !== true
         setManageRestricted(restricted)
+        setLifecycleAll(b?.students_lifecycle_all === true)
         if (restricted) setBulkType('kodesh')
       })
       .catch(() => {})
@@ -272,28 +276,6 @@ export default function StudentsTab() {
     setBulkMsg(failReasons.size > 0 ? `${summary} — ${[...failReasons].join('; ')}` : summary)
     exitSelect()
     loadStudents(search)
-  }
-
-  const handleExpel = async (student: Student) => {
-    const name = student.person?.full_name ?? t('students.expel_fallback_name')
-    const ok0 = await confirmDialog({
-      message: t('students.expel_confirm').replace('{name}', name),
-      confirmLabel: t('students.expel_button'),
-      cancelLabel: t('common.cancel'),
-      tone: 'danger',
-    })
-    if (!ok0) return
-    try {
-      const resp = await fetch(`/api/education/students/${student.id}`, { method: 'DELETE' })
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}))
-        toast(err.error ?? t('students.expel_failed'), 'error')
-        return
-      }
-      loadStudents(search)
-    } catch (e) {
-      toast(e instanceof Error ? e.message : t('common.error_generic'), 'error')
-    }
   }
 
   const filteredGroups = filterDept
@@ -535,9 +517,9 @@ export default function StudentsTab() {
                             <button onClick={() => router.push(cardHref)} style={btnSecondary}>
                               {t('students.open_card')}
                             </button>
-                            {!expelled && !manageRestricted && (
+                            {!expelled && (!manageRestricted || lifecycleAll) && (
                               <button
-                                onClick={() => handleExpel(s)}
+                                onClick={() => setCloseTarget(s)}
                                 style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}
                               >
                                 {t('students.expel_button')}
@@ -571,6 +553,15 @@ export default function StudentsTab() {
             </table>
           </div>
         )
+      )}
+      {closeTarget && (
+        <CloseStudentFileDialog
+          journeyId={closeTarget.id}
+          name={closeTarget.person?.full_name ?? t('students.expel_fallback_name')}
+          status={closeTarget.education_status}
+          onClose={() => setCloseTarget(null)}
+          onDone={() => { setCloseTarget(null); loadStudents(search) }}
+        />
       )}
     </div>
   )

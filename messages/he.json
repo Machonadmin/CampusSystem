@@ -1276,7 +1276,18 @@
         "status_graduated": "בוגרת",
         "status_expelled": "הופסקו לימודיה",
         "all_tracks": "כל המסלולים",
-        "all_years": "כל השנים"
+        "all_years": "כל השנים",
+        "close_dialog": {
+          "title": "סגירת תיק לימודים: {name}",
+          "intro": "לפני שסוגרים את התיק, אולי אחת מהאפשרויות האלה מתאימה יותר?",
+          "option_graduate": "העברה לבוגרות",
+          "option_expel": "הפסקת לימודים",
+          "option_on_leave": "חופשה",
+          "option_close": "סגירת תיק לימודים",
+          "close_hint": "התלמידה לא תופיע יותר ברשימה. הסטטוס שלה לא ישתנה. אין כפתור לפתיחת התיק מחדש.",
+          "confirm_question": "בטוח שרוצים להמשיך?",
+          "choose_first": "יש לבחור אפשרות"
+        }
       },
       "semester_groups": {
         "modal_create_title": "סמסטר חדש",

@@ -95,8 +95,12 @@ interface Props {
   showEditButton: boolean
   canManage: boolean
   canConvert: boolean
-  /** Когда задано — показывается вкладка «Учебный цикл» (карточка студента). */
-  studyLifecycle?: { history: StatusHistoryEntry[] } | null
+  /**
+   * Когда задано — показывается вкладка «Учебный цикл» (карточка студента).
+   * canManage — отдельное право на переходы статуса (шире общего canManage для
+   * сотрудника кодеша, см. canManageStudentLifecycleAnywhere); не задано → canManage.
+   */
+  studyLifecycle?: { history: StatusHistoryEntry[]; canManage?: boolean } | null
   /** Когда true — показывается вкладка «Успеваемость» (посещаемость + оценки). */
   showReport?: boolean
   /** Когда true — первой показывается вкладка «Обзор 360» (сводка по всем модулям). */
@@ -375,7 +379,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               <StudentLifecyclePanel
                 journeyId={data.journeyId}
                 currentStatus={data.status}
-                canManage={canManage}
+                canManage={studyLifecycle.canManage ?? canManage}
                 history={studyLifecycle.history}
               />
             )}
