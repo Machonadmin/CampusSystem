@@ -2144,7 +2144,22 @@
       "title": "Teachers",
       "subtitle": "Teaching hours and attendance in one place",
       "tab_hours": "Hours",
-      "tab_attendance": "Attendance"
+      "tab_attendance": "Attendance",
+      "new_teacher_button": "New teacher",
+      "new_teacher_title": "New teacher",
+      "new_teacher_hint": "The teacher is registered as staff in the chosen unit and appears in the teacher list for course assignment.",
+      "new_teacher_first_name": "First name",
+      "new_teacher_last_name": "Last name",
+      "new_teacher_phone": "Phone",
+      "new_teacher_email": "Email",
+      "new_teacher_dept": "Unit",
+      "new_teacher_dept_ph": "— choose a unit —",
+      "new_teacher_save": "Add",
+      "new_teacher_saving": "Saving…",
+      "new_teacher_cancel": "Cancel",
+      "new_teacher_created": "Teacher added",
+      "new_teacher_failed": "Could not add the teacher",
+      "new_teacher_forbidden": "You may not add teachers in this unit"
     },
     "quick_lead": {
       "title": "New lead",
