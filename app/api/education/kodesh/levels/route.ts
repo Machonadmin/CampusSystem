@@ -54,12 +54,12 @@ export async function POST(request: NextRequest) {
 
     const sb = createServerClient()
 
-    // Предмет «קודש», как у уровней из миграции 20260903100000; нет — без предмета
-    // (subject_id nullable с 20260720150000).
+    // Предмет «יהדות» (до миграции 20261110120000 назывался «קודש»), как у уровней
+    // из миграции 20260903100000; нет — без предмета (subject_id nullable с 20260720150000).
     const { data: subj, error: subjErr } = await sb
       .from('subjects')
       .select('id')
-      .eq('name', 'קודש')
+      .in('name', ['יהדות', 'קודש'])
       .limit(1)
       .maybeSingle()
     if (subjErr) throw subjErr
