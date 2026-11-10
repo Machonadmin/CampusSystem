@@ -7,15 +7,27 @@ import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import TeachersHoursClient from '../teachers-hours/TeachersHoursClient'
 import TeacherAttendanceClient from '../teacher-attendance/TeacherAttendanceClient'
+import PageActionButton from '@/components/ui/PageActionButton'
+import { getModuleColor } from '@/lib/module-colors'
+import NewTeacherModal from './NewTeacherModal'
+
+export interface NewTeacherDept { id: string; name: string; name_he: string | null; name_en: string | null }
 
 /**
  * Обёртка «מורים»: один заголовок + вкладки «Часы» / «Посещаемость».
  * Без права на часы (view_students) вкладок нет — сразу посещаемость.
  */
-export default function TeachersClient({ canHours, canApprove }: { canHours: boolean; canApprove: boolean }) {
+export default function TeachersClient({ canHours, canApprove, newTeacherDepts = [] }: {
+  canHours: boolean
+  canApprove: boolean
+  /** Подразделения, куда можно добавить учительницу; пусто — кнопки нет. */
+  newTeacherDepts?: NewTeacherDept[]
+}) {
   const t = useTranslations('education.teachers_hub')
   const tNav = useTranslations('navigation')
   const [tab, setTab] = useState<'hours' | 'attendance'>(canHours ? 'hours' : 'attendance')
+  const [newTeacherOpen, setNewTeacherOpen] = useState(false)
+  const accent = getModuleColor('education')
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     padding: '7px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, cursor: 'pointer',
@@ -40,7 +52,18 @@ export default function TeachersClient({ canHours, canApprove }: { canHours: boo
         { label: t('title') },
       ]} />
 
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
+      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {newTeacherDepts.length > 0 && (
+            <PageActionButton label={t('new_teacher_button')} onClick={() => setNewTeacherOpen(true)} accentColor={accent} />
+          )}
+          <BackButton fallback="/dashboard/education/studies" />
+        </div>
+      } />
+
+      {newTeacherOpen && (
+        <NewTeacherModal depts={newTeacherDepts} accent={accent} onClose={() => setNewTeacherOpen(false)} />
+      )}
 
       {/* На вкладке «שעות» вкладки встают в одну строку с выбором месяца
           (владелец: «כמה שפחות שיתפוס לי מהמסך»). */}

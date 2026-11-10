@@ -2144,7 +2144,22 @@
       "title": "Преподаватели",
       "subtitle": "Часы преподавания и посещаемость в одном месте",
       "tab_hours": "Часы",
-      "tab_attendance": "Посещаемость"
+      "tab_attendance": "Посещаемость",
+      "new_teacher_button": "Новая учительница",
+      "new_teacher_title": "Новая учительница",
+      "new_teacher_hint": "Учительница будет оформлена сотрудником выбранного подразделения и появится в списке учителей для назначения на курсы.",
+      "new_teacher_first_name": "Имя",
+      "new_teacher_last_name": "Фамилия",
+      "new_teacher_phone": "Телефон",
+      "new_teacher_email": "Email",
+      "new_teacher_dept": "Подразделение",
+      "new_teacher_dept_ph": "— выберите подразделение —",
+      "new_teacher_save": "Добавить",
+      "new_teacher_saving": "Сохранение…",
+      "new_teacher_cancel": "Отмена",
+      "new_teacher_created": "Учительница добавлена",
+      "new_teacher_failed": "Не удалось добавить учительницу",
+      "new_teacher_forbidden": "Нет права добавлять учителей в это подразделение"
     },
     "quick_lead": {
       "title": "Новый лид",

@@ -2144,7 +2144,22 @@
       "title": "מורות",
       "subtitle": "שעות הוראה ונוכחות מורות במקום אחד",
       "tab_hours": "שעות",
-      "tab_attendance": "נוכחות"
+      "tab_attendance": "נוכחות",
+      "new_teacher_button": "מורה חדשה",
+      "new_teacher_title": "מורה חדשה",
+      "new_teacher_hint": "המורה תירשם כעובדת ביחידה שנבחרה, ותופיע ברשימת המורות לשיבוץ לקורסים.",
+      "new_teacher_first_name": "שם פרטי",
+      "new_teacher_last_name": "שם משפחה",
+      "new_teacher_phone": "טלפון",
+      "new_teacher_email": "אימייל",
+      "new_teacher_dept": "יחידה",
+      "new_teacher_dept_ph": "— בחירת יחידה —",
+      "new_teacher_save": "הוספה",
+      "new_teacher_saving": "שומר…",
+      "new_teacher_cancel": "ביטול",
+      "new_teacher_created": "המורה נוספה",
+      "new_teacher_failed": "לא הצלחנו להוסיף את המורה",
+      "new_teacher_forbidden": "אין לך הרשאה להוסיף מורה ביחידה הזאת"
     },
     "quick_lead": {
       "title": "ליד חדש",
