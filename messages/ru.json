@@ -3741,7 +3741,9 @@
       "col_location": "Местоположение",
       "col_email": "Email",
       "col_phone": "Телефон",
-      "open_card": "Открыть карточку"
+      "open_card": "Открыть карточку",
+      "add": "Новая выпускница",
+      "col_year_start": "Год поступления"
     },
     "card": {
       "section": "Выпускник",
@@ -3757,7 +3759,29 @@
       "save": "Сохранить",
       "saving": "Сохранение…",
       "cancel": "Отмена",
-      "save_error": "Не удалось сохранить"
+      "save_error": "Не удалось сохранить",
+      "delete": "Удалить",
+      "delete_title": "Удаление выпускницы",
+      "delete_confirm": "Выпускница будет убрана из списка выпускниц. Её данные останутся в системе. Удалить?",
+      "delete_error": "Не удалось удалить",
+      "year_start": "Год поступления",
+      "journey_note": "Заметка в деле"
+    },
+    "form": {
+      "new_title": "Новая выпускница",
+      "edit_title": "Редактирование выпускницы",
+      "name_required": "Укажите имя",
+      "section_personal": "Личные данные",
+      "last_name": "Фамилия",
+      "first_name": "Имя",
+      "middle_name": "Отчество",
+      "hebrew_name": "Еврейское имя",
+      "birth_date": "Дата рождения",
+      "email": "Email",
+      "phones": "Телефоны",
+      "phones_hint": "Несколько номеров — через запятую",
+      "country": "Страна",
+      "city": "Город"
     }
   },
   "finance": {
@@ -5473,7 +5497,12 @@
     "goal_dates_order": "Срок раньше даты начала",
     "my_track_other_track": "Студентка уже в другом маршруте. Совмещать можно только Туро и университет",
     "my_track_two_tracks": "У студентки уже два маршрута",
-    "specialization_exists": "Направление с таким кодом уже есть в маршруте"
+    "specialization_exists": "Направление с таким кодом уже есть в маршруте",
+    "alumni_name_required": "Укажите имя",
+    "alumni_invalid_date": "Неверная дата рождения",
+    "alumni_invalid_year": "Неверный год выпуска",
+    "alumni_invalid_email": "Неверный email",
+    "alumni_duplicate": "В системе уже есть человек с таким же ФИО и датой рождения"
   },
   "workflow": {
     "error": "Ошибка"

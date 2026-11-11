@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import AlumniFormModal, { type AlumniFormValues } from './AlumniFormModal'
 
 export interface AlumniProfileData {
   id: string
@@ -14,9 +17,17 @@ export interface AlumniProfileData {
 }
 
 interface Props {
-  /** Профиль выпускника. null — строки alumni_profiles ещё нет (например, выпуск до миграции). */
+  /** Профиль выпускника. null — строки alumni_profiles ещё нет (создастся при первой правке). */
   profile: AlumniProfileData | null
   canManage: boolean
+  /** id дела выпускницы — для правки и удаления. */
+  journeyId: string
+  /** Текущие значения формы (личные данные + профиль) для окна правки. */
+  formValues: AlumniFormValues
+  /** Год поступления (education_journeys.year_start). */
+  yearStart: number | null
+  /** Заметка в деле (education_journeys.notes) — у импортированных из Excel там всё из файла. */
+  journeyNote: string | null
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -28,167 +39,92 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-export default function AlumniProfilePanel({ profile, canManage }: Props) {
+/**
+ * Панель «פרופיל בוגרת» в карточке. Просмотр — всем с alumni.view.
+ * С alumni.manage: «עריכה» (окно со ВСЕМИ полями — личными и выпуска) и
+ * «מחיקה» (мягкое удаление дела выпускницы, с подтверждением).
+ */
+export default function AlumniProfilePanel({ profile, canManage, journeyId, formValues, yearStart, journeyNote }: Props) {
   const t = useTranslations('alumni')
-
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [location, setLocation] = useState(profile?.current_location ?? '')
-  const [occupation, setOccupation] = useState(profile?.current_occupation ?? '')
-  const [notes, setNotes] = useState(profile?.notes ?? '')
-
-  // Актуальные (сохранённые) значения для просмотра.
-  const [saved, setSaved] = useState({
-    current_location: profile?.current_location ?? null,
-    current_occupation: profile?.current_occupation ?? null,
-    notes: profile?.notes ?? null,
-  })
-
-  const title = t('card.profile_title')
-
-  const box: React.CSSProperties = {
-    background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px',
-  }
-  const heading = (
-    <div style={{
-      fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase',
-      letterSpacing: 0.5, marginBottom: 12,
-    }}>
-      {title}
-    </div>
-  )
-
-  if (!profile) {
-    return (
-      <div style={box}>
-        {heading}
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.no_profile')}</div>
-      </div>
-    )
-  }
-
-  async function save() {
-    setSaving(true)
+  async function remove() {
+    const ok = await confirmDialog({
+      title: t('card.delete_title'),
+      message: t('card.delete_confirm'),
+      confirmLabel: t('card.delete'),
+      tone: 'danger',
+    })
+    if (!ok) return
+    setDeleting(true)
     setError(null)
     try {
-      const res = await fetch(`/api/alumni/${profile!.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          current_location: location.trim() || null,
-          current_occupation: occupation.trim() || null,
-          notes: notes.trim() || null,
-        }),
-      })
+      const res = await fetch(`/api/alumni/journeys/${journeyId}`, { method: 'DELETE' })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        setError(body.error ?? t('card.save_error'))
+        setError(body.error ?? t('card.delete_error'))
         return
       }
-      const updated = await res.json()
-      setSaved({
-        current_location: updated.current_location ?? null,
-        current_occupation: updated.current_occupation ?? null,
-        notes: updated.notes ?? null,
-      })
-      setEditing(false)
+      router.push('/dashboard/alumni')
+      router.refresh()
     } catch {
-      setError(t('card.save_error'))
+      setError(t('card.delete_error'))
     } finally {
-      setSaving(false)
+      setDeleting(false)
     }
   }
 
-  function cancel() {
-    setLocation(saved.current_location ?? '')
-    setOccupation(saved.current_occupation ?? '')
-    setNotes(saved.notes ?? '')
-    setError(null)
-    setEditing(false)
-  }
-
-  const inputStyle: React.CSSProperties = {
-    width: '100%', fontSize: 13, padding: '7px 10px',
-    border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', boxSizing: 'border-box',
-  }
-  const labelStyle: React.CSSProperties = { fontSize: 13, color: 'var(--text-faint)', marginBottom: 4 }
+  const btn = (danger: boolean): React.CSSProperties => ({
+    padding: '5px 12px', fontSize: 12, fontWeight: 500, border: 'none', borderRadius: 8, cursor: 'pointer',
+    background: danger ? 'var(--danger-tint)' : 'var(--violet-tint)',
+    color: danger ? 'var(--danger)' : 'var(--violet)',
+  })
 
   return (
-    <div style={box}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <div style={{
-          fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5,
-        }}>
-          {title}
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '16px 20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          {t('card.profile_title')}
         </div>
-        {canManage && !editing && (
-          <button
-            onClick={() => setEditing(true)}
-            style={{
-              padding: '5px 12px', fontSize: 12, fontWeight: 500,
-              background: 'var(--violet-tint)', color: 'var(--violet)', border: 'none', borderRadius: 8, cursor: 'pointer',
-            }}
-          >
-            {t('card.edit')}
-          </button>
+        {canManage && (
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={() => setEditing(true)} style={btn(false)}>{t('card.edit')}</button>
+            <button onClick={remove} disabled={deleting} style={{ ...btn(true), opacity: deleting ? 0.6 : 1 }}>
+              {t('card.delete')}
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Данные выпуска — только просмотр (наполняются автоматически при выпуске) */}
-      <Field label={t('card.graduation_year')} value={profile.graduation_year ?? '—'} />
-      <Field label={t('card.institution')} value={profile.institution} />
-      <Field label={t('card.direction')} value={profile.direction} />
-
-      <div style={{ height: 1, background: 'var(--surface-2)', margin: '12px 0' }} />
-
-      {editing ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <div style={labelStyle}>{t('card.current_location')}</div>
-            <input style={inputStyle} value={location} onChange={e => setLocation(e.target.value)} />
-          </div>
-          <div>
-            <div style={labelStyle}>{t('card.current_occupation')}</div>
-            <input style={inputStyle} value={occupation} onChange={e => setOccupation(e.target.value)} />
-          </div>
-          <div>
-            <div style={labelStyle}>{t('card.notes')}</div>
-            <textarea style={{ ...inputStyle, minHeight: 72, resize: 'vertical' }} value={notes} onChange={e => setNotes(e.target.value)} />
-          </div>
-          {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
-          <div style={{ display: 'flex', gap: 8 }}>
-            {/* Цвет кнопки — цвет модуля «בוגרות», а не жёстко заданный. */}
-            <button
-              onClick={save}
-              disabled={saving}
-              style={{
-                padding: '7px 16px', fontSize: 13, fontWeight: 500,
-                background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', border: 'none', borderRadius: 8,
-                cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1,
-              }}
-            >
-              {saving ? t('card.saving') : t('card.save')}
-            </button>
-            <button
-              onClick={cancel}
-              disabled={saving}
-              style={{
-                padding: '7px 16px', fontSize: 13, fontWeight: 500,
-                background: 'var(--surface-2)', color: 'var(--text-muted)', border: 'none', borderRadius: 8, cursor: 'pointer',
-              }}
-            >
-              {t('card.cancel')}
-            </button>
-          </div>
-        </div>
-      ) : (
+      <Field label={t('card.year_start')} value={yearStart ?? '—'} />
+      {profile ? (
         <>
-          <Field label={t('card.current_location')} value={saved.current_location} />
-          <Field label={t('card.current_occupation')} value={saved.current_occupation} />
-          <Field label={t('card.notes')} value={saved.notes} />
+          <Field label={t('card.graduation_year')} value={profile.graduation_year ?? '—'} />
+          <Field label={t('card.institution')} value={profile.institution} />
+          <Field label={t('card.direction')} value={profile.direction} />
+          <div style={{ height: 1, background: 'var(--surface-2)', margin: '12px 0' }} />
+          <Field label={t('card.current_location')} value={profile.current_location} />
+          <Field label={t('card.current_occupation')} value={profile.current_occupation} />
+          <Field label={t('card.notes')} value={profile.notes} />
         </>
+      ) : (
+        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.no_profile')}</div>
+      )}
+      {journeyNote && <Field label={t('card.journey_note')} value={journeyNote} />}
+
+      {error && <div role="alert" style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8 }}>{error}</div>}
+
+      {editing && (
+        <AlumniFormModal
+          mode="edit"
+          journeyId={journeyId}
+          initial={formValues}
+          onClose={() => setEditing(false)}
+          onSaved={() => { setEditing(false); router.refresh() }}
+        />
       )}
     </div>
   )

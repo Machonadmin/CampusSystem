@@ -8,6 +8,8 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import EmptyState from '@/components/ui/EmptyState'
+import PageActionButton from '@/components/ui/PageActionButton'
+import AlumniFormModal from '@/components/alumni/AlumniFormModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -19,6 +21,9 @@ interface AlumniItem {
   email: string | null
   phones: string[]
   photo_url: string | null
+  city: string | null
+  country: string | null
+  year_start: number | null
   alumni_profile_id: string | null
   graduation_year: number | null
   institution: string | null
@@ -45,6 +50,9 @@ export default function AlumniPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  // «+ בוגרת חדשה» — только с alumni.manage (сервер присылает can_manage).
+  const [canManage, setCanManage] = useState(false)
+  const [creating, setCreating] = useState(false)
   // Клик по строке сразу открывает карточку (owner: лишний слой раскрытия убран).
 
   const load = useCallback(async () => {
@@ -65,6 +73,7 @@ export default function AlumniPage() {
       }
       const body = await res.json()
       setItems(body.alumni ?? [])
+      setCanManage(body.can_manage === true)
     } catch {
       setError(t('list.load_error'))
     } finally {
@@ -84,7 +93,9 @@ export default function AlumniPage() {
         (a.email ?? '').toLowerCase().includes(q) ||
         a.phones.join(' ').toLowerCase().includes(q) ||
         (a.institution ?? '').toLowerCase().includes(q) ||
-        (a.direction ?? '').toLowerCase().includes(q))
+        (a.direction ?? '').toLowerCase().includes(q) ||
+        (a.city ?? '').toLowerCase().includes(q) ||
+        (a.country ?? '').toLowerCase().includes(q))
     : items
 
   const primary = getModuleColor('alumni', 'primary')
@@ -105,7 +116,19 @@ export default function AlumniPage() {
         breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('alumni') },
-      ]} module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
+      ]} module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')}
+        actions={canManage ? (
+          <PageActionButton label={t('list.add')} icon={<span aria-hidden="true">+</span>} onClick={() => setCreating(true)} />
+        ) : undefined}
+      />
+
+      {creating && (
+        <AlumniFormModal
+          mode="create"
+          onClose={() => setCreating(false)}
+          onSaved={journeyId => { setCreating(false); router.push(`/dashboard/alumni/${journeyId}`) }}
+        />
+      )}
 
       {/* Поиск, счётчик под ним (общая шапка списков). */}
       <ListToolbar
@@ -126,8 +149,12 @@ export default function AlumniPage() {
             <thead>
               <tr>
                 <th style={th}>{t('list.col_name')}</th>
+                <th style={th}>{t('list.col_year_start')}</th>
                 <th style={th}>{t('list.col_graduation_year')}</th>
                 <th style={th}>{t('list.col_institution')}</th>
+                <th style={th}>{t('list.col_direction')}</th>
+                <th style={th}>{t('list.col_location')}</th>
+                <th style={th}>{t('list.col_phone')}</th>
                 <th style={th}>{t('list.col_occupation')}</th>
               </tr>
             </thead>
@@ -156,8 +183,12 @@ export default function AlumniPage() {
                         <span style={{ fontWeight: 500 }}>{a.full_name || '—'}</span>
                       </div>
                     </td>
+                    <td data-label={t('list.col_year_start')} style={td}>{a.year_start ?? '—'}</td>
                     <td data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
                     <td data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
+                    <td data-label={t('list.col_direction')} style={td}>{a.direction || '—'}</td>
+                    <td data-label={t('list.col_location')} style={td}>{[a.city, a.country].filter(Boolean).join(', ') || '—'}</td>
+                    <td data-label={t('list.col_phone')} style={td}><span dir="ltr">{a.phones[0] ?? '—'}</span></td>
                     <td data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
                   </tr>
                 )

@@ -3741,7 +3741,9 @@
       "col_location": "Location",
       "col_email": "Email",
       "col_phone": "Phone",
-      "open_card": "Open card"
+      "open_card": "Open card",
+      "add": "New graduate",
+      "col_year_start": "Entry year"
     },
     "card": {
       "section": "Graduate",
@@ -3757,7 +3759,29 @@
       "save": "Save",
       "saving": "Saving…",
       "cancel": "Cancel",
-      "save_error": "Failed to save"
+      "save_error": "Failed to save",
+      "delete": "Delete",
+      "delete_title": "Delete graduate",
+      "delete_confirm": "The graduate will be removed from the alumni list. Her details stay in the system. Delete?",
+      "delete_error": "Delete failed",
+      "year_start": "Entry year",
+      "journey_note": "Note on file"
+    },
+    "form": {
+      "new_title": "New graduate",
+      "edit_title": "Edit graduate",
+      "name_required": "First name is required",
+      "section_personal": "Personal details",
+      "last_name": "Last name",
+      "first_name": "First name",
+      "middle_name": "Middle name",
+      "hebrew_name": "Hebrew name",
+      "birth_date": "Date of birth",
+      "email": "Email",
+      "phones": "Phones",
+      "phones_hint": "Separate several numbers with commas",
+      "country": "Country",
+      "city": "City"
     }
   },
   "finance": {
@@ -5473,7 +5497,12 @@
     "goal_dates_order": "Target date is before the start date",
     "my_track_other_track": "The student is already in another track. Only Touro and University can be combined",
     "my_track_two_tracks": "The student already has two tracks",
-    "specialization_exists": "A specialization with this code already exists in the track"
+    "specialization_exists": "A specialization with this code already exists in the track",
+    "alumni_name_required": "First name is required",
+    "alumni_invalid_date": "Invalid date of birth",
+    "alumni_invalid_year": "Invalid graduation year",
+    "alumni_invalid_email": "Invalid email",
+    "alumni_duplicate": "A person with the same name and date of birth already exists"
   },
   "workflow": {
     "error": "Error"
