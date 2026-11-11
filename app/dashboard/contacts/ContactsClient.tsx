@@ -7,9 +7,8 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { requiredFieldMsg } from '@/lib/i18n/required'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Button } from '@/components/ui/Button'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
@@ -18,6 +17,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { PersonLinkBanner } from '@/components/persons/PersonLinkBanner'
 import type { PersonLinkView } from '@/lib/persons/record-link'
 import EmptyState from '@/components/ui/EmptyState'
+import { FormField, FormGrid } from '@/components/ui/FormField'
 
 interface Contact {
   id: string
@@ -281,9 +281,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <DownloadIcon /> {tCommon('export_csv')}
-          </Button>
+          <ListExportButton onClick={exportCsv} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         }
         filters={<>
           <select
@@ -330,43 +328,43 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
               />
             </div>
           )}
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-            <Field label={`${t('fields.name')} *`}>
+          <FormGrid>
+            <FormField label={`${t('fields.name')} *`}>
               <input value={form.name} onChange={e => setField('name', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.contact_type')}>
+            </FormField>
+            <FormField label={t('fields.contact_type')}>
               <select value={form.contact_type} onChange={e => setField('contact_type', e.target.value)} style={inp}>
                 {CONTACT_TYPES.map(tp => (
                   <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
                 ))}
               </select>
-            </Field>
-            <Field label={t('fields.category')}>
+            </FormField>
+            <FormField label={t('fields.category')}>
               <select value={form.category} onChange={e => setField('category', e.target.value)} style={inp}>
                 {CONTACT_CATEGORIES.map(cat => (
                   <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
                 ))}
               </select>
-            </Field>
-            <Field label={t('fields.email')}>
+            </FormField>
+            <FormField label={t('fields.email')}>
               <input value={form.email} onChange={e => setField('email', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.phone')}>
+            </FormField>
+            <FormField label={t('fields.phone')}>
               <input value={form.phone} onChange={e => setField('phone', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.contact_person')}>
+            </FormField>
+            <FormField label={t('fields.contact_person')}>
               <input value={form.contact_person} onChange={e => setField('contact_person', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.address')} full>
+            </FormField>
+            <FormField label={t('fields.address')} full>
               <input value={form.address} onChange={e => setField('address', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.website')} full>
+            </FormField>
+            <FormField label={t('fields.website')} full>
               <input value={form.website} onChange={e => setField('website', e.target.value)} placeholder="https://" style={inp} />
-            </Field>
-            <Field label={t('fields.notes')} full>
+            </FormField>
+            <FormField label={t('fields.notes')} full>
               <textarea value={form.notes} onChange={e => setField('notes', e.target.value)} rows={2} style={area} />
-            </Field>
-          </div>
+            </FormField>
+          </FormGrid>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
             <input
               type="checkbox"
@@ -376,7 +374,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
             {t('fields.is_active')}
           </label>
           <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <SubmitButton loading={busy} onClick={save} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+            <SubmitButton loading={busy} onClick={save} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
             <Button onClick={closeForm} disabled={busy}>{tCommon('cancel')}</Button>
             {editingId !== '' && (
               <Button variant="danger" onClick={remove} disabled={busy} style={{ marginInlineStart: 'auto' }}>
@@ -451,14 +449,6 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
   )
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
-      {label}
-      {children}
-    </label>
-  )
-}
 
 const th: React.CSSProperties = {
   textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
@@ -470,5 +460,11 @@ const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1
 const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }

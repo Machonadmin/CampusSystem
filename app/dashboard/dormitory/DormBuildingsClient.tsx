@@ -124,7 +124,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
             <option value="female">{t('gender.female')}</option>
           </select>
           <input aria-label={t('form.address')} value={address} onChange={e => setAddress(e.target.value)} placeholder={t('form.address')} style={inp(240)} />
-          <SubmitButton loading={busy} onClick={submit} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+          <SubmitButton loading={busy} onClick={submit} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
           {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
         </div>
       )}
@@ -187,5 +187,11 @@ function inp(width: number): React.CSSProperties {
   return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }

@@ -6,13 +6,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import QuickLeadModal from './QuickLeadModal'
 import RecruitmentSummary from './RecruitmentSummary'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
@@ -238,14 +237,7 @@ export default function RecruitmentTab() {
             )}
             <Caret open={filtersOpen} variant="toggle" color="currentColor" />
           </button>
-          <button
-            type="button"
-            onClick={exportLeads}
-            disabled={filtered.length === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-          >
-            <DownloadIcon /> {tCommon('export_csv')}
-          </button>
+          <ListExportButton onClick={exportLeads} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         </>}
       />
 

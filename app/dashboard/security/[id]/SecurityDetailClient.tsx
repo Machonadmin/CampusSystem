@@ -242,7 +242,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
                     onClick={() => patch({ resolution: resolutionDraft })}
                     loading={busy}
                     disabled={busy || resolutionDraft === (incident.resolution ?? '')}
-                    style={btn(primary)}
+                    style={btn('var(--action)')}
                   >
                     {tCommon('save')}
                   </SubmitButton>
@@ -277,7 +277,13 @@ const fieldLabelStyle: React.CSSProperties = {
   fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5,
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 function outlineBtn(color: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '6px 14px', border: `1px solid ${color}`, borderRadius: 8, background: 'var(--surface)', color, cursor: 'pointer' }

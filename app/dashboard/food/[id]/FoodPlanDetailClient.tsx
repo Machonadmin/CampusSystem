@@ -214,7 +214,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
               </span>
               <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
               <input aria-label={t('form.to')} type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
-              <SubmitButton onClick={enroll} loading={busy} style={btn(primary)}>{t('plan.enroll')}</SubmitButton>
+              <SubmitButton onClick={enroll} loading={busy} style={btn('var(--action)')}>{t('plan.enroll')}</SubmitButton>
             </div>
           ) : (
             <div style={{ position: 'relative' }}>
@@ -316,7 +316,7 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
               <textarea value={diet.notes ?? ''} onChange={e => setDiet(d => ({ ...d, notes: e.target.value }))} rows={2} style={area} />
             </label>
             <div>
-              <SubmitButton onClick={saveDiet} loading={dietBusy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+              <SubmitButton onClick={saveDiet} loading={dietBusy} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
             </div>
           </div>
         </div>
@@ -338,5 +338,11 @@ function inp(width: number): React.CSSProperties {
   return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }

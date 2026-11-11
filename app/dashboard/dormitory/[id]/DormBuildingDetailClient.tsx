@@ -239,7 +239,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
           <input aria-label={t('form.room_number')} value={roomNumber} onChange={e => setRoomNumber(e.target.value)} placeholder={t('form.room_number')} style={inp(120)} />
           <input aria-label={t('form.floor')} value={floor} onChange={e => setFloor(e.target.value)} placeholder={t('form.floor')} type="number" style={inp(90)} />
           <input aria-label={t('form.capacity')} value={capacity} onChange={e => setCapacity(e.target.value)} placeholder={t('form.capacity')} type="number" min="1" style={inp(110)} />
-          <SubmitButton onClick={addRoom} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+          <SubmitButton onClick={addRoom} loading={busy} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
           {roomError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{roomError}</span>}
         </div>
       )}
@@ -299,7 +299,7 @@ export default function DormBuildingDetailClient({ buildingId, buildingName, can
                   </span>
                   <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp(150)} />
                   <input aria-label={t('form.to')} type="date" value={to} onChange={e => setTo(e.target.value)} placeholder={t('form.to')} style={inp(150)} />
-                  <SubmitButton onClick={assign} loading={busy} style={btn(primary)}>{t('room.assign')}</SubmitButton>
+                  <SubmitButton onClick={assign} loading={busy} style={btn('var(--action)')}>{t('room.assign')}</SubmitButton>
                 </div>
               ) : (
                 <div style={{ position: 'relative' }}>
@@ -392,7 +392,13 @@ function inp(width: number): React.CSSProperties {
   return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 function outlineBtn(color: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, border: `1px solid ${color}`, background: 'transparent', color, cursor: 'pointer' }

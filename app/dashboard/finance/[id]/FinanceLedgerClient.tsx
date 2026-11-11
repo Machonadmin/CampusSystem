@@ -378,7 +378,7 @@ export default function FinanceLedgerClient({
                 <input aria-label={t('form.description')} value={cDesc} onChange={e => setCDesc(e.target.value)} placeholder={t('form.description')} style={inp(220)} />
                 <input aria-label={t('form.period')} value={cPeriod} onChange={e => setCPeriod(e.target.value)} placeholder={t('form.period')} style={inp(140)} />
                 <input type="date" value={cDue} onChange={e => setCDue(e.target.value)} style={inp(150)} />
-                <SubmitButton onClick={submitCharge} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+                <SubmitButton onClick={submitCharge} loading={busy} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
               </FormRow>
             )}
             {ledger.charges.length === 0 ? (
@@ -498,7 +498,7 @@ export default function FinanceLedgerClient({
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)' }}>{t('ledger.signature')} · {t('ledger.signature_on_receipt')}</div>
                   <SignatureCapture signerName={me?.full_name} onChange={setPSignature} />
                 </div>
-                <SubmitButton onClick={submitPayment} loading={busy} disabled={busy || !paymentValid} style={{ ...btn(primary), opacity: (busy || !paymentValid) ? 0.5 : 1, cursor: (busy || !paymentValid) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
+                <SubmitButton onClick={submitPayment} loading={busy} disabled={busy || !paymentValid} style={{ ...btn('var(--action)'), opacity: (busy || !paymentValid) ? 0.5 : 1, cursor: (busy || !paymentValid) ? 'default' : 'pointer' }}>{tCommon('save')}</SubmitButton>
               </FormRow>
             )}
             {ledger.payments.length === 0 ? (
@@ -564,7 +564,13 @@ function inp(width: number): React.CSSProperties {
   return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 
 function TotalCard({ label, value, color, strong }: { label: string; value: string; color: string; strong?: boolean }) {

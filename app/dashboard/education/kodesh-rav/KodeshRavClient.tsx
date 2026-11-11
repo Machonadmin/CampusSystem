@@ -1,14 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
 import { Icon } from '@/components/ui/Icon'
-
-const accent = getModuleColor('education')
 
 interface PersonRef { id: string; full_name: string | null; hebrew_name: string | null }
 interface Approval {
@@ -188,7 +185,7 @@ export default function KodeshRavClient() {
                         </td>
                         <td style={td}>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button disabled={busy} onClick={() => saveQuota(q)} style={btn(accent)}>{t('save')}</button>
+                            <button disabled={busy} onClick={() => saveQuota(q)} style={{ ...btn('var(--action)'), color: 'var(--action-contrast)', boxShadow: 'inset 0 0 0 1px var(--action-border)' }}>{t('save')}</button>
                             <button disabled={busy} onClick={() => setEditTeacher(null)} style={{ ...btn('var(--surface)'), color: 'var(--text-faint)', border: '1px solid var(--border-strong)' }}>✕</button>
                           </div>
                         </td>
