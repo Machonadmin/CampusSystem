@@ -13,6 +13,7 @@ import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, SEVERITIES, STATUSES } from '@/lib/security/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Incident {
   id: string
@@ -212,8 +213,8 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
           {canManage && (
             <button onClick={() => setShowForm(v => !v)} style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
-              color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid var(--action-border)', background: 'var(--action)',
+              color: 'var(--action-contrast)', cursor: 'pointer', whiteSpace: 'nowrap',
             }}>
               + {t('list.new_incident')}
             </button>
@@ -309,7 +310,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
       ) : loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : items.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+        <EmptyState module="security" text={t('list.empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {items.map(r => {

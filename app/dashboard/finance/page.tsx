@@ -1,5 +1,6 @@
 'use client'
 
+import EmptyState from '@/components/ui/EmptyState'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -345,7 +346,7 @@ export default function FinancePage() {
       ) : (loading || !filtersReady) ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('list.empty')}</div>
+        <EmptyState module="finance" text={t('list.empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>

@@ -8,6 +8,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import EmptyState from '@/components/ui/EmptyState'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -119,7 +120,7 @@ export default function AlumniPage() {
       ) : loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+        <EmptyState module="alumni" text={t('list.empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>

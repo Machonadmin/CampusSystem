@@ -1,5 +1,6 @@
 'use client'
 
+import EmptyState from '@/components/ui/EmptyState'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -291,9 +292,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
         {loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : !hasAny ? (
-          <div style={{ padding: '48px 24px', textAlign: 'center', fontSize: 13, color: 'var(--text-faint)' }}>
-            {search || deptFilter ? t('no_results') : t('no_employees')}
-          </div>
+          <EmptyState module="staff" text={search || deptFilter ? t('no_results') : t('no_employees')} />
         ) : (
           <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
             <thead>
