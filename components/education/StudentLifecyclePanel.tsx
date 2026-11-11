@@ -206,15 +206,25 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
           maxWidth={420}
           zIndex={50}
           closeOnBackdrop
-          panelStyle={{ padding: 24, boxShadow: 'var(--shadow-lg)' }}
+          title={`${t('modal_title')}: ${tStatus(modalTarget, modalTarget)}`}
+          footer={<>
+            <button
+              onClick={onModalSubmit}
+              disabled={submitting}
+              style={{
+                padding: '8px 14px', fontSize: 13, fontWeight: 500, color: '#fff',
+                background: 'var(--success)', border: 'none', borderRadius: 8,
+                cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
+              }}
+            >
+              {t('submit')}
+            </button>
+          </>}
         >
           <div
             dir={isRTL ? 'rtl' : 'ltr'}
             style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
           >
-            <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
-              {t('modal_title')}: {tStatus(modalTarget, modalTarget)}
-            </h3>
 
             <div>
               <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }}>
@@ -245,29 +255,6 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
-              <button
-                onClick={() => setModalTarget(null)}
-                disabled={submitting}
-                style={{
-                  padding: '8px 14px', fontSize: 13, color: 'var(--text)',
-                  background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
-                }}
-              >
-                {t('cancel')}
-              </button>
-              <button
-                onClick={onModalSubmit}
-                disabled={submitting}
-                style={{
-                  padding: '8px 14px', fontSize: 13, fontWeight: 500, color: '#fff',
-                  background: 'var(--success)', border: 'none', borderRadius: 8,
-                  cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.7 : 1,
-                }}
-              >
-                {t('submit')}
-              </button>
-            </div>
           </div>
         </Modal>
       )}

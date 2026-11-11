@@ -522,29 +522,26 @@ export default function RecruitmentTab() {
       </div>
 
       {deleteTarget && (
-        <Modal onClose={() => setDeleteTarget(null)} maxWidth={400} panelStyle={{ padding: '28px 28px 24px', width: '90%', boxShadow: 'var(--shadow-lg)' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>
-              {t('leads.delete_confirm.title')}
-            </h2>
-            <p style={{ fontSize: 14, color: 'var(--text)', margin: '0 0 24px', lineHeight: 1.5 }}>
+        <Modal
+          onClose={() => { if (!deleteLoading) setDeleteTarget(null) }}
+          maxWidth={400}
+          title={t('leads.delete_confirm.title')}
+          // Короткое подтверждение: на телефоне остаётся карточкой, не на весь экран.
+          sheetOnPhone={false}
+          panelStyle={{ width: '90%' }}
+          footer={<>
+            <button
+              onClick={confirmDelete}
+              disabled={deleteLoading}
+              style={{ padding: '8px 18px', fontSize: 13, border: 'none', borderRadius: 8, background: 'var(--danger)', color: '#fff', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}
+            >
+              {t('leads.delete_confirm.confirm')}
+            </button>
+          </>}
+        >
+            <p style={{ fontSize: 14, color: 'var(--text)', margin: 0, lineHeight: 1.5 }}>
               <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message').replace('{filter}', t('leads.process_status.deleted'))}
             </p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setDeleteTarget(null)}
-                disabled={deleteLoading}
-                style={{ padding: '8px 18px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}
-              >
-                {t('leads.delete_confirm.cancel')}
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleteLoading}
-                style={{ padding: '8px 18px', fontSize: 13, border: 'none', borderRadius: 8, background: 'var(--danger)', color: '#fff', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}
-              >
-                {t('leads.delete_confirm.confirm')}
-              </button>
-            </div>
         </Modal>
       )}
 

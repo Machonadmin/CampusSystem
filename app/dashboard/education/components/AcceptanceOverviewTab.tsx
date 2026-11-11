@@ -300,10 +300,19 @@ export default function AcceptanceOverviewTab() {
 
       {/* Sign modal */}
       {modal && (
-        <Modal onClose={() => !signing && setModal(null)} maxWidth={520} closeOnBackdrop panelStyle={{ padding: 20, boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 12 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>
-              {t(`acceptance_stages.${modal.cell.stage_code}`, modal.cell.stage_name)} — {modal.applicant}
-            </div>
+        <Modal
+          onClose={() => !signing && setModal(null)}
+          maxWidth={520}
+          closeOnBackdrop
+          title={t(`acceptance_stages.${modal.cell.stage_code}`, modal.cell.stage_name)}
+          subtitle={modal.applicant}
+          bodyStyle={{ display: 'grid', gap: 12 }}
+          footer={<>
+            <button onClick={submitSign} disabled={signing || !selectedFinal || !sig} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: signing || !selectedFinal || !sig ? 'var(--text-faint)' : 'var(--accent)', color: '#fff', cursor: signing || !selectedFinal || !sig ? 'default' : 'pointer' }}>
+              {tCommon('confirm')}
+            </button>
+          </>}
+        >
 
             {/* Финальное утверждение: директор сначала видит все подписи и заметки,
                 затем утверждает — «мי חתם, החתימות שלהם וההערות». */}
@@ -363,14 +372,6 @@ export default function AcceptanceOverviewTab() {
 
             {signError && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{signError}</div>}
 
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={() => setModal(null)} disabled={signing} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
-                {tCommon('cancel')}
-              </button>
-              <button onClick={submitSign} disabled={signing || !selectedFinal || !sig} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: signing || !selectedFinal || !sig ? 'var(--text-faint)' : 'var(--accent)', color: '#fff', cursor: signing || !selectedFinal || !sig ? 'default' : 'pointer' }}>
-                {tCommon('confirm')}
-              </button>
-            </div>
         </Modal>
       )}
     </div>

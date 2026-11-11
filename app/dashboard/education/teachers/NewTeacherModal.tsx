@@ -67,13 +67,29 @@ export default function NewTeacherModal({
   const label: React.CSSProperties = { display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }
 
   return (
-    // Modal не даёт панели внутренних отступов — без padding текст и поля
-    // прилипали к краю и обрезались скруглением (заметка 2026-11-10:
+    // Стандартный вид Modal (title/footer): отступы тела, ✕ в шапке и
+    // закреплённые кнопки даёт сам Modal (заметка 2026-11-10:
     // «ההוספת מורה נראה על הפנים»).
-    <Modal onClose={onClose} maxWidth={440} ariaLabel={t('new_teacher_title')} panelStyle={{ padding: 22 }}>
-      <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{t('new_teacher_title')}</h3>
-      <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-muted)' }}>{t('new_teacher_hint')}</p>
-
+    <Modal
+      onClose={onClose}
+      maxWidth={440}
+      title={t('new_teacher_title')}
+      subtitle={t('new_teacher_hint')}
+      icon={<UserPlusIcon />}
+      footer={<>
+        <button
+          type="button"
+          onClick={save}
+          disabled={!canSave}
+          style={{
+            padding: '8px 18px', fontSize: 13.5, fontWeight: 600, color: '#fff', background: accent,
+            border: 'none', borderRadius: 8, cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : 0.55,
+          }}
+        >
+          {busy ? t('new_teacher_saving') : t('new_teacher_save')}
+        </button>
+      </>}
+    >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div>
           <label style={label} htmlFor="nt-first">{t('new_teacher_first_name')}</label>
@@ -111,26 +127,14 @@ export default function NewTeacherModal({
         <div style={{ marginTop: 12, fontSize: 12.5, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '7px 10px' }}>{err}</div>
       )}
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-        <button
-          type="button"
-          onClick={save}
-          disabled={!canSave}
-          style={{
-            padding: '8px 18px', fontSize: 13.5, fontWeight: 600, color: '#fff', background: accent,
-            border: 'none', borderRadius: 8, cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : 0.55,
-          }}
-        >
-          {busy ? t('new_teacher_saving') : t('new_teacher_save')}
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{ padding: '8px 16px', fontSize: 13.5, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
-        >
-          {t('new_teacher_cancel')}
-        </button>
-      </div>
     </Modal>
+  )
+}
+
+function UserPlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+    </svg>
   )
 }
