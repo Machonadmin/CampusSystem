@@ -141,8 +141,11 @@ export default function KodeshCoursesClient() {
       {levels.map(level => {
         const courses = coursesByLevel.get(level.id) ?? []
         return (
-          <div key={level.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+          // Без overflow:hidden: выпадающий список «בחר מורה» (PersonSelect,
+          // position:absolute) обрезался бы краем карточки и открывался «внутри
+          // квадрата» (жалоба 2026-11-11). Скругление шапки — её собственным radius.
+          <div key={level.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', borderRadius: '11px 11px 0 0' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{gname(level)}</span>
               <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('courses_count').replace('{n}', String(courses.length))}</span>
               <div style={{ flex: 1 }} />
