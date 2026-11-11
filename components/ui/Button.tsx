@@ -42,10 +42,11 @@ const SIZE: Record<ButtonSize, CSSProperties> = {
 
 const VARIANT: Record<ButtonVariant, CSSProperties> = {
   primary: {
-    // Единый цвет действия (этап 2 дизайн-плана) — тот же, что у PageActionButton.
+    // Цвет действия (этап 2 дизайн-плана): мягкий оттенок модуля страницы —
+    // --action/--action-contrast/--action-border задаются в globals.css по data-module.
     background: 'var(--action)',
     color: 'var(--action-contrast)',
-    border: '1px solid var(--action)',
+    border: '1px solid var(--action-border)',
   },
   secondary: {
     background: 'var(--surface)',

@@ -256,7 +256,7 @@ export default function SubjectModal({ mode, initial, tracks, defaults, onClose,
               loadingLabel={t('common.saving')}
               style={{
                 padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
-                background: 'var(--action)', border: 'none', borderRadius: 8,
+                background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
                 opacity: saving ? 0.6 : 1,
               }}
             >

@@ -419,7 +419,7 @@ export default function GeneralView({
                   onClick={() => setEditing('new')}
                   style={{
                     padding: '8px 16px', borderRadius: 9, border: 0,
-                    background: 'var(--action)', color: 'var(--action-contrast)',
+                    background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)',
                     fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
                   }}
                 >+ {t('new_node')}</button>

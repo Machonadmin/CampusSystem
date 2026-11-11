@@ -165,7 +165,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
               disabled={saving}
               style={{
                 padding: '7px 16px', fontSize: 13, fontWeight: 500,
-                background: 'var(--action)', color: 'var(--action-contrast)', border: 'none', borderRadius: 8,
+                background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', border: 'none', borderRadius: 8,
                 cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1,
               }}
             >

@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { SidebarProvider, useSidebar } from '@/lib/sidebar/SidebarContext'
 import { UiPrefsProvider } from '@/lib/prefs/UiPrefsContext'
 import Header from './Header'
@@ -14,6 +15,13 @@ interface Props {
 function ShellContent({ children, userName, roles }: Props) {
   const { isOpen, isMobile, close } = useSidebar()
   const mainStart = isMobile ? 0 : isOpen ? 240 : 56
+  // Код модуля из URL (/dashboard/quality-control/... → quality_control,
+  // /dashboard → dashboard). По нему globals.css красит основные кнопки в
+  // мягкий оттенок модуля (data-module → --action*). Для страниц без своего
+  // цвета (профиль, календарь…) правила нет — остаётся оттенок по умолчанию.
+  const pathname = usePathname() ?? ''
+  const segment = pathname.split('/')[2] ?? ''
+  const moduleCode = segment ? segment.replace(/-/g, '_') : 'dashboard'
 
   return (
     <>
@@ -28,6 +36,7 @@ function ShellContent({ children, userName, roles }: Props) {
         />
       )}
       <main
+        data-module={moduleCode}
         style={{
           paddingTop: 64,
           paddingInlineStart: mainStart,

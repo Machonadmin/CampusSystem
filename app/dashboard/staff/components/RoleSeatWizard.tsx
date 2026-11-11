@@ -340,7 +340,7 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
       {/* footer */}
       <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         {done ? (
-          <button onClick={onClose} style={{ padding: '9px 22px', borderRadius: 8, border: 'none', background: 'var(--action)', color: 'var(--action-contrast)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{t('finish_close')}</button>
+          <button onClick={onClose} style={{ padding: '9px 22px', borderRadius: 8, border: 'none', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{t('finish_close')}</button>
         ) : (
           <>
             <button onClick={onClose} disabled={busy} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', fontSize: 13.5, cursor: 'pointer' }}>{tCommon('cancel')}</button>

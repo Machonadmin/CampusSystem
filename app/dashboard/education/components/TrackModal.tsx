@@ -156,7 +156,7 @@ export default function TrackModal({ mode, initial, onClose, onSaved }: Props) {
           <button type="button" onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>
             {tCommon('cancel')}
           </button>
-          <SubmitButton type="submit" loading={saving} loadingLabel={tCommon('saving')} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>
+          <SubmitButton type="submit" loading={saving} loadingLabel={tCommon('saving')} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>
             {mode === 'create' ? tCommon('create') : tCommon('save')}
           </SubmitButton>
         </div>

@@ -446,7 +446,7 @@ export default function StudentsTab() {
           <button
             onClick={applyBulk}
             disabled={bulkBusy || !bulkTarget || selected.size === 0}
-            style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--action)', color: 'var(--action-contrast)', borderColor: 'var(--action)', opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
+            style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', borderColor: 'var(--action-border)', opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
           >
             {t('students.bulk.apply')}
           </button>

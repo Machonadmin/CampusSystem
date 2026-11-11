@@ -1167,7 +1167,7 @@ export default function EducationJourneyForm({ mode, onClose, onSaved, initialPe
               </button>
             )}
             <button onClick={handleSave} disabled={saving}
-              style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--action)', color: 'var(--action-contrast)', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
+              style={{ padding: '8px 18px', border: 'none', borderRadius: 8, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 13, opacity: saving ? 0.7 : 1 }}>
               {saving ? t('form.saving') : saveLabel}
             </button>
           </div>

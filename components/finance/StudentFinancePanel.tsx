@@ -183,7 +183,7 @@ export default function StudentFinancePanel({ journeyId }: { journeyId: string }
                 disabled={!personId || granting}
                 style={{
                   fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, border: 'none',
-                  background: 'var(--action)', color: 'var(--action-contrast)',
+                  background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)',
                   cursor: !personId || granting ? 'default' : 'pointer',
                   opacity: !personId || granting ? 0.5 : 1,
                 }}

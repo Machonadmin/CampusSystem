@@ -82,7 +82,7 @@ export default function NewTeacherModal({
           onClick={save}
           disabled={!canSave}
           style={{
-            padding: '8px 18px', fontSize: 13.5, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)',
+            padding: '8px 18px', fontSize: 13.5, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)',
             border: 'none', borderRadius: 8, cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : 0.55,
           }}
         >

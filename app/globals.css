@@ -27,11 +27,6 @@
   --accent-strong: #0f766e;
   --accent-contrast: #ffffff;
   --accent-tint: rgba(13, 148, 136, 0.10);
-  /* Цвет ДЕЙСТВИЯ: заливка основной кнопки во ВСЕХ модулях (дизайн-план,
-     этап 2). Цвет модуля — только опознавательный знак (полоса, иконка,
-     пункт меню), кнопки им больше не красим. Контраст текста ≥ 4.5:1. */
-  --action: #0f766e;
-  --action-contrast: #ffffff;
   --warn: #98620c;
   --warn-tint: rgba(196, 127, 16, 0.12);
   --danger: #cc333f;
@@ -62,8 +57,6 @@
     --accent-strong: #14b8a6;
     --accent-contrast: #06231f;
     --accent-tint: rgba(45, 212, 191, 0.10);
-    --action: #2dd4bf;
-    --action-contrast: #06231f;
     --warn: #f0b429;
     --warn-tint: rgba(240, 180, 41, 0.13);
     --danger: #e05260;
@@ -88,7 +81,6 @@
   --text: #1b2230; --text-muted: #5d6577; --text-faint: #666e80;
   --accent: #0d9488; --accent-strong: #0f766e; --accent-contrast: #ffffff;
   --accent-tint: rgba(13, 148, 136, 0.10);
-  --action: #0f766e; --action-contrast: #ffffff;
   --warn: #98620c; --warn-tint: rgba(196, 127, 16, 0.12);
   --danger: #cc333f; --danger-tint: rgba(207, 63, 74, 0.10);
   --success: #257c54; --success-tint: rgba(47, 158, 107, 0.12);
@@ -105,7 +97,6 @@
   --text: #e8ebf0; --text-muted: #8b93a3; --text-faint: #7a8397;
   --accent: #2dd4bf; --accent-strong: #14b8a6; --accent-contrast: #06231f;
   --accent-tint: rgba(45, 212, 191, 0.10);
-  --action: #2dd4bf; --action-contrast: #06231f;
   --warn: #f0b429; --warn-tint: rgba(240, 180, 41, 0.13);
   --danger: #e05260; --danger-tint: rgba(224, 82, 96, 0.13);
   --success: #3fbf87; --success-tint: rgba(63, 191, 135, 0.13);
@@ -310,6 +301,43 @@
   --mod-settings: #7881A5;        --mod-settings-tint: #252833;
   --mod-fallback: #A9B2BC;        --mod-fallback-tint: #2A2E32;
 }
+
+/* Цвет ДЕЙСТВИЯ (дизайн-план, этап 2, вариант 3 по решению владельца
+   2026-11-11): основная кнопка — мягкая: светлый оттенок модуля как фон,
+   текст и тонкая рамка — цвет модуля. DashboardShell ставит data-module на
+   <main> по сегменту URL; всё, что внутри (включая модалки — они рендерятся
+   без портала), наследует эти переменные. Вне модуля — бирюзовый по умолчанию.
+   Оттенки --mod-X/--mod-X-tint сами меняются со светлой/тёмной темой. */
+:root {
+  --action: var(--accent-tint);
+  --action-contrast: var(--accent-strong);
+  --action-border: color-mix(in oklab, var(--accent) 40%, transparent);
+}
+[data-module="admission"] { --action: var(--mod-admission-tint); --action-contrast: var(--mod-admission); --action-border: color-mix(in oklab, var(--mod-admission) 40%, transparent); }
+[data-module="alumni"] { --action: var(--mod-alumni-tint); --action-contrast: var(--mod-alumni); --action-border: color-mix(in oklab, var(--mod-alumni) 40%, transparent); }
+[data-module="chavruta"] { --action: var(--mod-chavruta-tint); --action-contrast: var(--mod-chavruta); --action-border: color-mix(in oklab, var(--mod-chavruta) 40%, transparent); }
+[data-module="contacts"] { --action: var(--mod-contacts-tint); --action-contrast: var(--mod-contacts); --action-border: color-mix(in oklab, var(--mod-contacts) 40%, transparent); }
+[data-module="dashboard"] { --action: var(--mod-dashboard-tint); --action-contrast: var(--mod-dashboard); --action-border: color-mix(in oklab, var(--mod-dashboard) 40%, transparent); }
+[data-module="data_security"] { --action: var(--mod-data_security-tint); --action-contrast: var(--mod-data_security); --action-border: color-mix(in oklab, var(--mod-data_security) 40%, transparent); }
+[data-module="doctor"] { --action: var(--mod-doctor-tint); --action-contrast: var(--mod-doctor); --action-border: color-mix(in oklab, var(--mod-doctor) 40%, transparent); }
+[data-module="documents"] { --action: var(--mod-documents-tint); --action-contrast: var(--mod-documents); --action-border: color-mix(in oklab, var(--mod-documents) 40%, transparent); }
+[data-module="dormitory"] { --action: var(--mod-dormitory-tint); --action-contrast: var(--mod-dormitory); --action-border: color-mix(in oklab, var(--mod-dormitory) 40%, transparent); }
+[data-module="education"] { --action: var(--mod-education-tint); --action-contrast: var(--mod-education); --action-border: color-mix(in oklab, var(--mod-education) 40%, transparent); }
+[data-module="finance"] { --action: var(--mod-finance-tint); --action-contrast: var(--mod-finance); --action-border: color-mix(in oklab, var(--mod-finance) 40%, transparent); }
+[data-module="food"] { --action: var(--mod-food-tint); --action-contrast: var(--mod-food); --action-border: color-mix(in oklab, var(--mod-food) 40%, transparent); }
+[data-module="health"] { --action: var(--mod-health-tint); --action-contrast: var(--mod-health); --action-border: color-mix(in oklab, var(--mod-health) 40%, transparent); }
+[data-module="jewishness"] { --action: var(--mod-jewishness-tint); --action-contrast: var(--mod-jewishness); --action-border: color-mix(in oklab, var(--mod-jewishness) 40%, transparent); }
+[data-module="maintenance"] { --action: var(--mod-maintenance-tint); --action-contrast: var(--mod-maintenance); --action-border: color-mix(in oklab, var(--mod-maintenance) 40%, transparent); }
+[data-module="persons"] { --action: var(--mod-persons-tint); --action-contrast: var(--mod-persons); --action-border: color-mix(in oklab, var(--mod-persons) 40%, transparent); }
+[data-module="psychologist"] { --action: var(--mod-psychologist-tint); --action-contrast: var(--mod-psychologist); --action-border: color-mix(in oklab, var(--mod-psychologist) 40%, transparent); }
+[data-module="quality_control"] { --action: var(--mod-quality_control-tint); --action-contrast: var(--mod-quality_control); --action-border: color-mix(in oklab, var(--mod-quality_control) 40%, transparent); }
+[data-module="recruitment"] { --action: var(--mod-recruitment-tint); --action-contrast: var(--mod-recruitment); --action-border: color-mix(in oklab, var(--mod-recruitment) 40%, transparent); }
+[data-module="reports"] { --action: var(--mod-reports-tint); --action-contrast: var(--mod-reports); --action-border: color-mix(in oklab, var(--mod-reports) 40%, transparent); }
+[data-module="security"] { --action: var(--mod-security-tint); --action-contrast: var(--mod-security); --action-border: color-mix(in oklab, var(--mod-security) 40%, transparent); }
+[data-module="settings"] { --action: var(--mod-settings-tint); --action-contrast: var(--mod-settings); --action-border: color-mix(in oklab, var(--mod-settings) 40%, transparent); }
+[data-module="sponsors"] { --action: var(--mod-sponsors-tint); --action-contrast: var(--mod-sponsors); --action-border: color-mix(in oklab, var(--mod-sponsors) 40%, transparent); }
+[data-module="staff"] { --action: var(--mod-staff-tint); --action-contrast: var(--mod-staff); --action-border: color-mix(in oklab, var(--mod-staff) 40%, transparent); }
+[data-module="tasks"] { --action: var(--mod-tasks-tint); --action-contrast: var(--mod-tasks); --action-border: color-mix(in oklab, var(--mod-tasks) 40%, transparent); }
 
 /* Шрифт приложения (Rubik) — для ВСЕХ языков, не только иврита.
    Раньше правило висело на html[lang="he"], поэтому русские и английские

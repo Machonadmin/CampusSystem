@@ -136,7 +136,7 @@ export default function CourseModal({ semesterId, roster, onClose, onSaved }: Pr
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
             <button type="button" onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>{t('common.cancel')}</button>
-            <SubmitButton type="submit" loading={saving} loadingLabel={t('common.saving')} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>{t('common.create')}</SubmitButton>
+            <SubmitButton type="submit" loading={saving} loadingLabel={t('common.saving')} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>{t('common.create')}</SubmitButton>
           </div>
         </form>
     </Modal>

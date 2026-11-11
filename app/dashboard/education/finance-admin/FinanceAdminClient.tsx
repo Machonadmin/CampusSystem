@@ -90,7 +90,7 @@ export default function FinanceAdminClient() {
               <input value={settings.currency} disabled={!canEditSettings} onChange={e => setSettings({ ...settings, currency: e.target.value })} style={{ ...inp, width: 80 }} /></label>
             <label style={{ display: 'grid', gap: 4 }}><span style={{ fontSize: 12, color: 'var(--text)' }}>{t('discount_pct')}</span>
               <input type="number" min={0} max={100} value={settings.default_discount_percent} disabled={!canEditSettings} onChange={e => setSettings({ ...settings, default_discount_percent: Number(e.target.value) })} style={{ ...inp, width: 90 }} /></label>
-            {canEditSettings && <button onClick={saveSettings} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>{t('save')}</button>}
+            {canEditSettings && <button onClick={saveSettings} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>{t('save')}</button>}
           </div>
         </section>
       )}

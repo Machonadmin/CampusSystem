@@ -92,7 +92,7 @@ export default function StudentStructuresPanel({ journeyId }: { journeyId: strin
           type="button"
           onClick={add}
           disabled={busy || !pick}
-          style={{ padding: '7px 14px', fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, cursor: busy || !pick ? 'default' : 'pointer', opacity: busy || !pick ? 0.5 : 1 }}
+          style={{ padding: '7px 14px', fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, cursor: busy || !pick ? 'default' : 'pointer', opacity: busy || !pick ? 0.5 : 1 }}
         >
           {t('add')}
         </button>

@@ -29,7 +29,7 @@ export default function PageActionButton({
         display: 'inline-flex', alignItems: 'center', gap: 6,
         flexDirection: isRTL ? 'row-reverse' : 'row',
         padding: '10px 18px', fontSize: 13, fontWeight: 500,
-        background: 'var(--action)', color: 'var(--action-contrast)',
+        background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)',
         border: 'none', borderRadius: 8,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,

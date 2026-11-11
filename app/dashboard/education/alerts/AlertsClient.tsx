@@ -114,7 +114,7 @@ export default function AlertsClient() {
         </>}
         actions={<>
           <button onClick={() => setShowTypes(true)} style={{ ...inp, cursor: 'pointer', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{t('manage_types')}</button>
-          <button onClick={() => setShowCreate(true)} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('new_alert')}</button>
+          <button onClick={() => setShowCreate(true)} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}>{t('new_alert')}</button>
         </>}
       />
 
@@ -205,7 +205,7 @@ function CreateAlertModal({ types, onClose, onSaved, t }: { types: AlertType[]; 
         {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <button onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>{tCommon('cancel')}</button>
-          <button onClick={submit} disabled={saving} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>{saving ? tCommon('saving') : tCommon('create')}</button>
+          <button onClick={submit} disabled={saving} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>{saving ? tCommon('saving') : tCommon('create')}</button>
         </div>
       </div>
     </Modal>
@@ -250,7 +250,7 @@ function TypesModal({ types, onClose, onChanged, t }: { types: AlertType[]; onCl
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         <input aria-label={t('type_name')} value={nameHe} onChange={e => setNameHe(e.target.value)} placeholder={t('type_name')} dir="rtl" style={{ ...inp, flex: 1 }} />
         <input aria-label={t('type_code_latin')} value={code} onChange={e => setCode(e.target.value)} placeholder={t('type_code_latin')} dir="ltr" style={{ ...inp, width: 150 }} />
-        <button onClick={add} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{tCommon('create')}</button>
+        <button onClick={add} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{tCommon('create')}</button>
       </div>
       <div style={{ display: 'grid', gap: 4, maxHeight: 320, overflowY: 'auto' }}>
         {types.map(ty => (

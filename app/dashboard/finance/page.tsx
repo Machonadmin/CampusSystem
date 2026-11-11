@@ -328,7 +328,7 @@ export default function FinancePage() {
           <button
             onClick={() => { if (selected.size > 0) setChargeOpen(true) }}
             disabled={selected.size === 0}
-            style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: selected.size === 0 ? 'default' : 'pointer', background: 'var(--action)', color: 'var(--action-contrast)', border: 'none', opacity: selected.size === 0 ? 0.5 : 1 }}
+            style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: selected.size === 0 ? 'default' : 'pointer', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', border: 'none', opacity: selected.size === 0 ? 0.5 : 1 }}
           >
             {t('bulk.charge')}
           </button>
@@ -458,7 +458,7 @@ export default function FinancePage() {
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18 }}>
               <button onClick={() => setChargeOpen(false)} disabled={bulkBusy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{tCommon('cancel')}</button>
-              <button onClick={applyBulkCharge} disabled={bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--action)', color: 'var(--action-contrast)', cursor: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
+              <button onClick={applyBulkCharge} disabled={bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
             </div>
         </Modal>
       )}

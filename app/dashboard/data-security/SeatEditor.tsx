@@ -105,7 +105,7 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
         <SubmitButton
           loading={saving}
           onClick={save}
-          style={{ width: '100%', padding: '11px 0', borderRadius: 9, border: 0, background: 'var(--action)', color: 'var(--action-contrast)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+          style={{ width: '100%', padding: '11px 0', borderRadius: 9, border: 0, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
         >{t('seat_save')}</SubmitButton>
       }
     >

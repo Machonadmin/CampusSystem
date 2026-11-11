@@ -131,7 +131,7 @@ export default function NoLessonDaysClient() {
   const scopeLabel = (s: string) => (s === 'all' ? t('scope_all') : s === KODESH_DEPT_ID ? t('scope_kodesh') : s)
 
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', outline: 'none' }
-  const btn: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }
+  const btn: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }
   const rowSel: React.CSSProperties = { padding: '4px 8px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', outline: 'none' }
 
   if (forbidden) return <ForbiddenState />
@@ -327,7 +327,7 @@ function DayTypesModal({ onClose, onChanged, t }: { onClose: () => void; onChang
           {chk(kod, () => setKod(v => !v), t('blocks_kodesh'))}
           {chk(short, () => setShort(v => !v), t('is_shortened'))}
           <div style={{ flex: 1 }} />
-          <button onClick={add} disabled={busy} style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{t('add_type')}</button>
+          <button onClick={add} disabled={busy} style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{t('add_type')}</button>
         </div>
       </div>
 

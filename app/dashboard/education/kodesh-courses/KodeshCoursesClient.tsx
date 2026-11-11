@@ -158,7 +158,7 @@ export default function KodeshCoursesClient() {
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
                 <input aria-label={t('course_name')} value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('course_name')} dir="rtl" autoFocus style={{ ...inp, flex: 1, minWidth: 160 }} />
                 <input aria-label={t('hours')} value={newHours} onChange={e => setNewHours(e.target.value)} placeholder={t('hours')} type="number" min={0} style={{ ...inp, width: 90 }} />
-                <button disabled={busy} onClick={() => createCourse(level.id)} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer' }}>{t('create')}</button>
+                <button disabled={busy} onClick={() => createCourse(level.id)} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer' }}>{t('create')}</button>
               </div>
             )}
 

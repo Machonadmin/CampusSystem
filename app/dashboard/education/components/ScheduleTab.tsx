@@ -128,7 +128,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
             </button>
             <button
               onClick={() => setGenerating(true)}
-              style={{ padding: '4px 10px', fontSize: 12, color: 'var(--action-contrast)', background: 'var(--action)', border: `1px solid var(--action)`, borderRadius: 6, cursor: 'pointer' }}
+              style={{ padding: '4px 10px', fontSize: 12, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: `1px solid var(--action-border)`, borderRadius: 6, cursor: 'pointer' }}
             >
               {t('generate')}
             </button>
@@ -321,7 +321,7 @@ function GenerateModal({ groupId, periodStart, periodEnd, onClose }: GenerateMod
           loadingLabel={t('generating')}
           style={{
             padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
-            background: 'var(--action)', border: 'none', borderRadius: 8,
+            background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
             cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.55 : 1,
           }}
         >

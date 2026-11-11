@@ -493,7 +493,7 @@ function AssessmentFormModal({ groupId, assessment, onClose, onDone }: Assessmen
             onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
             style={{
               padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
-              background: 'var(--action)', border: 'none', borderRadius: 8,
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
               opacity: saving ? 0.55 : 1,
             }}
           >
@@ -598,7 +598,7 @@ function CourseResultModal({ groupId, student, current, onClose, onDone }: Cours
         </button>
         <SubmitButton
           onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
-          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, opacity: saving ? 0.55 : 1 }}
+          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, opacity: saving ? 0.55 : 1 }}
         >
           {t('btn_save')}
         </SubmitButton>

@@ -122,7 +122,7 @@ export default function DiscountRequestPanel({ journeyId, defaultPercent }: { jo
             disabled={!valid || sending}
             style={{
               fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, border: 'none',
-              background: 'var(--action)', color: 'var(--action-contrast)',
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)',
               cursor: !valid || sending ? 'default' : 'pointer',
               opacity: !valid || sending ? 0.5 : 1,
             }}
