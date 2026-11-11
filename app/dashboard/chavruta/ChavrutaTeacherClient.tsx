@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { DateInput } from '@/components/ui/date-input'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -340,12 +339,12 @@ export default function ChavrutaTeacherClient({ initialDate }: { initialDate?: s
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="chavruta" title={t('title')} subtitle={t('subtitle')} />
+      ]} module="chavruta" title={t('title')} subtitle={t('subtitle')} />
 
       {!studentsLoaded ? (
         <SkeletonRows rows={4} />

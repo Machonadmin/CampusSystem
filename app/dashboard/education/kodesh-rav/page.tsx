@@ -1,6 +1,5 @@
 'use client'
 
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
@@ -18,13 +17,13 @@ export default function KodeshRavPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="education"
         compact
         icon={<svg style={{ width: 19, height: 19, color: 'currentColor' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -83,14 +82,14 @@ export default function FinanceAccessPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      {/* Header */}
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('finance'), href: '/dashboard/finance' },
         { label: t('title') },
-      ]} />
-
-      {/* Header */}
-      <ModuleHeader module="finance" title={t('title')} subtitle={t('subtitle')} />
+      ]} module="finance" title={t('title')} subtitle={t('subtitle')} />
 
       {forbidden ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{t('forbidden')}</div>

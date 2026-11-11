@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -60,14 +59,14 @@ export default function ChavrutaTeachersClient() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      {/* Header */}
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('finance'), href: '/dashboard/finance' },
         { label: t('teachers_title') },
-      ]} />
-
-      {/* Header */}
-      <ModuleHeader module="finance" title={t('teachers_title')} subtitle={t('teachers_readonly_subtitle')} />
+      ]} module="finance" title={t('teachers_title')} subtitle={t('teachers_readonly_subtitle')} />
 
       {!loaded ? (
         <SkeletonRows rows={4} />

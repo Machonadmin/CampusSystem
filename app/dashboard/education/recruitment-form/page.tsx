@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
@@ -175,13 +174,13 @@ export default function RecruitmentFormSettingsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="education"
         title={t('title')}
         subtitle={t('subtitle')}

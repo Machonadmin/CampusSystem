@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
@@ -187,13 +186,13 @@ export default function FoodPlanDetailClient({ planId, planName, canManage }: Pr
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('food'), href: '/dashboard/food' },
         { label: planName || '—' },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="food"
         title={planName}
         subtitle={<>{t('list.enrolled')}: {activeShown}</>}

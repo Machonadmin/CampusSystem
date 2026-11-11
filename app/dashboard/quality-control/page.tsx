@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useUrlTab } from '@/lib/nav/useUrlTab'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import CreateCheckModal from './components/CreateCheckModal'
 import TemplatesTab from './components/TemplatesTab'
 import { hasFeatureAccess } from '@/lib/permissions'
@@ -156,13 +155,13 @@ export default function QualityControlPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
 
       {/* Page header */}
-      <ModuleHeader module="quality_control" title={t('title')} />
+      <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
+      ]} module="quality_control" title={t('title')} />
 
       {/* Tabs */}
       <ModuleTabs

@@ -167,13 +167,12 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        sectionCrumb,
-        { label: localizedName(group, lang) },
-      ]} />
-
       <ModuleHeader
+        breadcrumb={[
+          { label: tNav('home'), href: '/dashboard' },
+          sectionCrumb,
+          { label: localizedName(group, lang) },
+        ]}
         module="education"
         title={localizedName(group, lang)}
         actions={<BackButton fallback={EDUCATION_SECTION_ROUTES.studies} />}

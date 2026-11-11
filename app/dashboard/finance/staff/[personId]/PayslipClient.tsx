@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
@@ -387,14 +386,14 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('finance'), href: '/dashboard/finance' },
         { label: t('title'), href: '/dashboard/finance/staff' },
         { label: displayName },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="finance"
         title={displayName}
         subtitle={t('subtitle')}

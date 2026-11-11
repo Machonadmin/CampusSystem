@@ -900,3 +900,6 @@ p { text-wrap: pretty; }
 @media (min-width: 768px) {
   main table thead th { background: var(--surface-2); }
 }
+
+/* Путь «где я» внутри шапки модуля (ModuleHeader.breadcrumb). */
+.mh-crumb:hover { color: var(--text) !important; text-decoration: underline !important; }

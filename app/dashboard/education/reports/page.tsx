@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { DownloadIcon } from '@/components/ui/DownloadIcon'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
@@ -105,13 +104,13 @@ export default function ReportsPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
+      ]} module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {/* Выбор единицы + период */}
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

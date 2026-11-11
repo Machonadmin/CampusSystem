@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
@@ -190,13 +189,13 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title'), href: '/dashboard/documents' },
         { label: studentName },
-      ]} />
-
-      <ModuleHeader module="documents" title={studentName} actions={<BackButton fallback="/dashboard/documents" />} />
+      ]} module="documents" title={studentName} actions={<BackButton fallback="/dashboard/documents" />} />
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (

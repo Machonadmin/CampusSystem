@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { roleLabel } from '@/lib/roles/role-label'
 import { processName, stageName, finalName, workflowDescription } from '@/lib/workflow/labels'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import type { TemplateListRow, StageTemplate, Final, TaskTemplate, Transition, TemplateDetail, Role } from './workflow-shared'
@@ -159,13 +158,13 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('settings'), href: '/dashboard/settings' },
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="settings"
         title={t('title')}
         subtitle={t('subtitle')}

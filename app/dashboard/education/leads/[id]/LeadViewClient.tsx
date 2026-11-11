@@ -4,7 +4,6 @@ import StudentCoursesPanel from '@/components/education/StudentCoursesPanel'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate as sharedFormatDate } from '@/lib/i18n/format-date'
@@ -392,7 +391,9 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         ...(navContext ? [{ label: moduleLabel, href: moduleHref }] : []),
         ...(() => {
@@ -400,9 +401,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
           return crumb ? [{ label: crumb, href: sectionHref }] : []
         })(),
         { label: person.full_name || cardTypeLabel },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module={headerColorKey}
         icon={
           <div style={{

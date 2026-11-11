@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -141,14 +140,14 @@ export default function ChavrutaHubClient({ canManage, isTeacher }: { canManage:
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        sectionCrumb,
-        { label: t('hub_title') },
-      ]} />
 
       {/* Header */}
       <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        sectionCrumb,
+        { label: t('hub_title') },
+      ]}
         module="education"
         title={t('hub_title')}
         subtitle={t('hub_subtitle')}
