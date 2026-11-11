@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 /**
  * Единый модальный контейнер вместо ~43 руками собранных оверлеев (у которых
@@ -16,6 +17,16 @@ import { useEffect, useRef } from 'react'
  * Клик по самой панели НЕ закрывает (stopPropagation). closeOnBackdrop=false по
  * умолчанию — чтобы случайный клик мимо формы не терял введённые данные; включай
  * там, где старый оверлей действительно закрывался по фону.
+ *
+ * СТАНДАРТНЫЙ ВИД (дизайн-план, этап 1). Если передан `title`, Modal сам рисует
+ * единую «анатомию» окна:
+ *   • шапка: необязательная иконка, заголовок, подзаголовок и кнопка закрытия
+ *     (✕ на компьютере, стрелка «назад» на телефоне);
+ *   • тело с отступами, которое прокручивается само по себе;
+ *   • `footer` — закреплённый низ с кнопками: «שמירה/ביטול» видны всегда,
+ *     даже когда форма длинная;
+ *   • на телефоне (≤640px) окно раскрывается на весь экран, как в приложении.
+ * Без `title` поведение прежнее: разметка целиком на вызывающем.
  */
 export function Modal({
   onClose,
@@ -27,6 +38,12 @@ export function Modal({
   ariaLabel,
   ariaLabelledBy,
   padding = 16,
+  title,
+  subtitle,
+  icon,
+  footer,
+  bodyStyle,
+  sheetOnPhone = true,
 }: {
   onClose: () => void
   children: React.ReactNode
@@ -37,7 +54,23 @@ export function Modal({
   ariaLabel?: string
   ariaLabelledBy?: string
   padding?: number
+  /** Заголовок окна. Включает стандартный вид (шапка + тело + закреплённый низ). */
+  title?: ReactNode
+  /** Строка контекста под заголовком: о ком/о чём это окно. */
+  subtitle?: ReactNode
+  /** Иконка слева от заголовка (в RTL — справа). */
+  icon?: ReactNode
+  /** Закреплённый низ окна: кнопки действий. Только при `title`. */
+  footer?: ReactNode
+  /** Доп. стили тела окна (только при `title`). */
+  bodyStyle?: React.CSSProperties
+  /** На телефоне раскрывать окно на весь экран (по умолчанию да). Для коротких
+   *  подтверждений («למחוק?») — false: остаётся карточкой по центру. */
+  sheetOnPhone?: boolean
 }) {
+  const tCommon = useTranslations('common')
+  const standard = title != null
+  const sheet = standard && sheetOnPhone
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -91,10 +124,12 @@ export function Modal({
     return () => { document.body.style.overflow = prevOverflow }
   }, [])
 
+  const closeLabel = tCommon('close', 'סגירה')
+
   return (
     <div
       role="presentation"
-      className="anim-fade"
+      className={sheet ? 'anim-fade modal-backdrop modal-sheet' : 'anim-fade modal-backdrop'}
       onClick={closeOnBackdrop ? onClose : undefined}
       style={{
         position: 'fixed', inset: 0, zIndex, background: 'rgba(0,0,0,0.45)',
@@ -105,19 +140,37 @@ export function Modal({
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ?? (standard && typeof title === 'string' ? title : undefined)}
         aria-labelledby={ariaLabelledBy}
         tabIndex={-1}
-        className="anim-pop"
+        className={sheet ? 'anim-pop modal-panel modal-sheet-panel' : 'anim-pop modal-panel'}
         onClick={e => e.stopPropagation()}
         style={{
           background: 'var(--surface)', borderRadius: 14, width: '100%',
           maxWidth, maxHeight: '90vh', overflowY: 'auto', outline: 'none',
           boxShadow: 'var(--shadow-lg, 0 20px 60px rgba(0,0,0,0.2))',
+          ...(standard ? { display: 'flex', flexDirection: 'column', overflowY: 'hidden' } : null),
           ...panelStyle,
         }}
       >
-        {children}
+        {standard ? (
+          <>
+            <div className="modal-head">
+              {icon && <span className="modal-head-icon" aria-hidden="true">{icon}</span>}
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <h2 className="modal-title">{title}</h2>
+                {subtitle && <div className="modal-subtitle">{subtitle}</div>}
+              </div>
+              <button type="button" className="modal-close" onClick={onClose} aria-label={closeLabel} title={closeLabel}>
+                {/* ✕ на компьютере; на телефоне — стрелка «назад» по направлению письма. */}
+                <svg className="modal-close-x" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 18 18 6M6 6l12 12" /></svg>
+                <svg className="modal-close-back dir-flip" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+              </button>
+            </div>
+            <div className="modal-body" style={bodyStyle}>{children}</div>
+            {footer && <div className="modal-foot">{footer}</div>}
+          </>
+        ) : children}
       </div>
     </div>
   )

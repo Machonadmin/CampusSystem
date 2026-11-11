@@ -126,9 +126,17 @@ export default function AddToCalendar({
           maxWidth={440}
           zIndex={70}
           closeOnBackdrop
-          panelStyle={{ padding: 20, boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 12 }}
+          title={t('title')}
+          subtitle={!done && defaultTitle ? defaultTitle : undefined}
+          icon={<CalendarIcon />}
+          bodyStyle={{ display: 'grid', gap: 12 }}
+          footer={done ? undefined : <>
+            <button onClick={save} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: saving ? 'var(--text-faint)' : 'var(--accent-strong)', color: '#fff', cursor: saving ? 'default' : 'pointer' }}>
+              {saving ? t('saving') : t('save')}
+            </button>
+            <button onClick={() => setOpen(false)} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('cancel')}</button>
+          </>}
         >
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('title')}</div>
 
             {done ? (
               <div style={{ fontSize: 14, fontWeight: 600, color: done === 'added' ? 'var(--success)' : 'var(--text-muted)', padding: '12px 0', textAlign: 'center' }}>
@@ -163,12 +171,6 @@ export default function AddToCalendar({
 
                 {error && <div style={{ fontSize: 12, color: 'var(--danger)' }}>{error}</div>}
 
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button onClick={() => setOpen(false)} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('cancel')}</button>
-                  <button onClick={save} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: saving ? 'var(--text-faint)' : 'var(--accent-strong)', color: '#fff', cursor: saving ? 'default' : 'pointer' }}>
-                    {saving ? t('saving') : t('save')}
-                  </button>
-                </div>
               </>
             )}
         </Modal>
@@ -179,3 +181,11 @@ export default function AddToCalendar({
 
 const fieldLabel: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)' }
 const inp: React.CSSProperties = { fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%', boxSizing: 'border-box' }
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+    </svg>
+  )
+}

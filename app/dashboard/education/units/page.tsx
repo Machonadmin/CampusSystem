@@ -232,8 +232,20 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
   const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' }
 
   return (
-    <Modal onClose={onClose} maxWidth={420} closeOnBackdrop panelStyle={{ padding: 20, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('units.add_member')}</div>
+    <Modal
+      onClose={onClose}
+      maxWidth={420}
+      closeOnBackdrop
+      title={t('units.add_member')}
+      bodyStyle={{ display: 'grid', gap: 12 }}
+      footer={<>
+        <SubmitButton onClick={submit} loading={saving} disabled={saving || (mode === 'create' ? !firstName.trim() : !personId.trim())}
+          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: accent, color: '#fff', opacity: saving ? 0.6 : 1 }}>
+          {t('units.create_btn')}
+        </SubmitButton>
+        <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('units.cancel')}</button>
+      </>}
+    >
 
         {/* role */}
         <div style={{ display: 'flex', gap: 8 }}>
@@ -272,13 +284,6 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
           />
         )}
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('units.cancel')}</button>
-          <SubmitButton onClick={submit} loading={saving} disabled={saving || (mode === 'create' ? !firstName.trim() : !personId.trim())}
-            style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: accent, color: '#fff', opacity: saving ? 0.6 : 1 }}>
-            {t('units.create_btn')}
-          </SubmitButton>
-        </div>
     </Modal>
   )
 }

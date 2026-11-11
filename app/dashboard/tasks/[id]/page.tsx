@@ -69,7 +69,7 @@ export default function TaskPage() {
               color: 'var(--text)', padding: '4px 10px', cursor: 'pointer', fontSize: 13,
             }}
           >
-            ← {tCommon('back')}
+            <span className="dir-flip" aria-hidden="true" style={{ display: 'inline-block' }}>←</span> {tCommon('back')}
           </button>
         }
         title={d.loading ? tCommon('loading') : (task?.title ?? t('title'))}

@@ -437,15 +437,17 @@ export default function TasksPage() {
           onClose={() => { if (!bulkBusy) { setAssignOpen(false); setAssignPerson(null) } }}
           maxWidth={420}
           closeOnBackdrop
-          panelStyle={{ borderRadius: 14, padding: 22, maxHeight: 'none', overflowY: 'visible' }}
+          title={t('bulk.assign_title')}
+          subtitle={t('bulk.selected').replace('{n}', String(selectedIds.size))}
+          // Выпадающий список PersonSelect не должен обрезаться краем окна.
+          panelStyle={{ maxHeight: 'none', overflowY: 'visible' }}
+          bodyStyle={{ overflowY: 'visible' }}
+          footer={<>
+            <button onClick={bulkAssign} disabled={bulkBusy || !assignPerson} style={{ ...inp, cursor: bulkBusy || !assignPerson ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !assignPerson ? 0.6 : 1 }}>{tCommon('save')}</button>
+            <button onClick={() => { setAssignOpen(false); setAssignPerson(null) }} disabled={bulkBusy} style={{ ...inp, cursor: 'pointer', fontWeight: 600 }}>{tCommon('cancel')}</button>
+          </>}
         >
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>{t('bulk.assign_title')}</h2>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>{t('bulk.selected').replace('{n}', String(selectedIds.size))}</p>
             <PersonSelect value={assignPerson} onChange={id => setAssignPerson(id)} label={t('bulk.assign_to')} accentColor={accent} />
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18 }}>
-              <button onClick={() => { setAssignOpen(false); setAssignPerson(null) }} disabled={bulkBusy} style={{ ...inp, cursor: 'pointer', fontWeight: 600 }}>{tCommon('cancel')}</button>
-              <button onClick={bulkAssign} disabled={bulkBusy || !assignPerson} style={{ ...inp, cursor: bulkBusy || !assignPerson ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !assignPerson ? 0.6 : 1 }}>{tCommon('save')}</button>
-            </div>
         </Modal>
       )}
 

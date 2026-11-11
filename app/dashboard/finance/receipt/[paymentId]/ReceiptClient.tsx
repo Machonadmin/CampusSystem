@@ -72,7 +72,7 @@ export default function ReceiptClient({ payment, journeyId, studentName, student
       {/* Панель действий — не печатается */}
       <div className="receipt-actions" style={{ width: '100%', maxWidth: 620, display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <button type="button" onClick={goBack} style={{ fontSize: 13, color: 'var(--text-muted)', background: 'none', border: 'none', textDecoration: 'none', cursor: 'pointer', padding: 0 }}>
-          ← {t('back')}
+          <span className="dir-flip" aria-hidden="true" style={{ display: 'inline-block' }}>←</span> {t('back')}
         </button>
         <button
           type="button"
