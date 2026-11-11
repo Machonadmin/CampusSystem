@@ -681,7 +681,7 @@ function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: 
       <input aria-label={t('note_optional')} value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_optional')}
         style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {showInitial && <button onClick={() => post({ action: 'initial_check' })} disabled={busy} style={btn(primary)}>{t('action_initial_check')}</button>}
+        {showInitial && <button onClick={() => post({ action: 'initial_check' })} disabled={busy} style={{ ...btn(primary), background: 'var(--action)', color: 'var(--action-contrast)', boxShadow: 'inset 0 0 0 1px var(--action-border)' }}>{t('action_initial_check')}</button>}
         {showFinal && <button onClick={() => post({ status: 'verified' })} disabled={busy} style={btn('var(--success)')}>{t('action_final_approve')}</button>}
         {showReject && <button onClick={() => post({ status: 'rejected' })} disabled={busy} style={btn('var(--danger)', true)}>{t('action_reject')}</button>}
       </div>

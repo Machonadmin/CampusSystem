@@ -276,7 +276,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
             <select value={priority} onChange={e => setPriority(e.target.value)} style={sel(140)}>
               {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
             </select>
-            <SubmitButton onClick={submit} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+            <SubmitButton onClick={submit} loading={busy} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
             {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
           </div>
         </div>
@@ -491,6 +491,12 @@ function sel(width: number): React.CSSProperties {
   return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 const area: React.CSSProperties = { width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit' }

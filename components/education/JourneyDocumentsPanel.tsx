@@ -8,6 +8,7 @@ import { DOC_TYPES, DOC_CATEGORIES, REVIEW_STATUSES } from '@/lib/documents/vali
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
 import { Icon } from '@/components/ui/Icon'
+import { FormField, FormGrid } from '@/components/ui/FormField'
 
 /**
  * Journey-scoped панель документов для карточки лида/абитуриента/студента.
@@ -193,31 +194,31 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
                 {t('add.title')}
               </div>
               {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                <Field label={t('fields.category')}>
+              <FormGrid>
+                <FormField label={t('fields.category')}>
                   <select value={dCategory} onChange={e => setDCategory(e.target.value)} style={inp}>
                     {DOC_CATEGORIES.map(cat => (
                       <option key={cat} value={cat}>{t(`categories.${cat}`)}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label={t('fields.doc_type')}>
+                </FormField>
+                <FormField label={t('fields.doc_type')}>
                   <select value={dType} onChange={e => setDType(e.target.value)} style={inp}>
                     {DOC_TYPES.map(tp => (
                       <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label={t('fields.title')}>
+                </FormField>
+                <FormField label={t('fields.title')}>
                   <input value={dTitle} onChange={e => setDTitle(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('fields.issued_date')}>
+                </FormField>
+                <FormField label={t('fields.issued_date')}>
                   <input type="date" value={dIssued} onChange={e => setDIssued(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('fields.expiry_date')}>
+                </FormField>
+                <FormField label={t('fields.expiry_date')}>
                   <input type="date" value={dExpiry} onChange={e => setDExpiry(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('fields.upload_file')} full>
+                </FormField>
+                <FormField label={t('fields.upload_file')} full>
                   <input
                     key={fileKey}
                     type="file"
@@ -231,11 +232,11 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
                     style={inp}
                   />
                   <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 400 }}>{t('fields.upload_hint')}</span>
-                </Field>
-                <Field label={t('fields.notes')} full>
+                </FormField>
+                <FormField label={t('fields.notes')} full>
                   <textarea value={dNotes} onChange={e => setDNotes(e.target.value)} rows={2} style={area} />
-                </Field>
-              </div>
+                </FormField>
+              </FormGrid>
               <div style={{ marginTop: 12 }}>
                 <button onClick={addDocument} disabled={busy} style={btn}>{t('add.submit')}</button>
               </div>
@@ -312,14 +313,6 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
   )
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
-      {label}
-      {children}
-    </label>
-  )
-}
 
 const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', width: '100%', boxSizing: 'border-box' }
 const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }

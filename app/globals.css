@@ -877,3 +877,6 @@ p { text-wrap: pretty; }
   .stat-card-row { flex-direction: column; align-items: flex-start !important; gap: 8px !important; }
   .stat-card-value { font-size: 18px !important; overflow-wrap: anywhere; }
 }
+
+/* Сетка полей формы (FormGrid): на телефоне — одно поле в строке. */
+@media (max-width: 640px) { .form-grid { grid-template-columns: minmax(0, 1fr) !important; } }

@@ -20,6 +20,7 @@ import { formatMoney } from '@/lib/finance/money'
 import type { PersonLinkView } from '@/lib/persons/record-link'
 import EmptyState from '@/components/ui/EmptyState'
 import { StatCard, StatGrid } from '@/components/ui/StatCard'
+import { FormField, FormGrid } from '@/components/ui/FormField'
 
 interface Sponsor {
   id: string
@@ -256,33 +257,33 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
             {t('form.new_title')}
           </h2>
           {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-            <Field label={`${t('fields.name')} *`}>
+          <FormGrid>
+            <FormField label={`${t('fields.name')} *`}>
               <input value={form.name} onChange={e => setField('name', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.sponsor_type')}>
+            </FormField>
+            <FormField label={t('fields.sponsor_type')}>
               <select value={form.sponsor_type} onChange={e => setField('sponsor_type', e.target.value)} style={inp}>
                 {SPONSOR_TYPES.map(tp => (
                   <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
                 ))}
               </select>
-            </Field>
-            <Field label={t('fields.email')}>
+            </FormField>
+            <FormField label={t('fields.email')}>
               <input value={form.email} onChange={e => setField('email', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.phone')}>
+            </FormField>
+            <FormField label={t('fields.phone')}>
               <input value={form.phone} onChange={e => setField('phone', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.contact_person')}>
+            </FormField>
+            <FormField label={t('fields.contact_person')}>
               <input value={form.contact_person} onChange={e => setField('contact_person', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.address')} full>
+            </FormField>
+            <FormField label={t('fields.address')} full>
               <input value={form.address} onChange={e => setField('address', e.target.value)} style={inp} />
-            </Field>
-            <Field label={t('fields.notes')} full>
+            </FormField>
+            <FormField label={t('fields.notes')} full>
               <textarea value={form.notes} onChange={e => setField('notes', e.target.value)} rows={2} style={area} />
-            </Field>
-          </div>
+            </FormField>
+          </FormGrid>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
             <input
               type="checkbox"
@@ -292,7 +293,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
             {t('fields.is_active')}
           </label>
           <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <SubmitButton loading={busy} onClick={save} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+            <SubmitButton loading={busy} onClick={save} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
             <Button onClick={closeForm} disabled={busy}>{tCommon('cancel')}</Button>
           </div>
         </div>
@@ -364,14 +365,6 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
 }
 
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
-      {label}
-      {children}
-    </label>
-  )
-}
 
 const th: React.CSSProperties = {
   textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
@@ -384,5 +377,11 @@ const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1
 const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }

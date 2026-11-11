@@ -11,6 +11,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError } from '@/components/ui/toast'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { FormField, FormGrid } from '@/components/ui/FormField'
 
 interface Profile {
   presenting_concerns: string | null
@@ -190,30 +191,30 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('profile.title')}</h2>
             {profileError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{profileError}</div>}
-            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-              <Field label={t('profile.risk_level')}>
+            <FormGrid>
+              <FormField label={t('profile.risk_level')}>
                 <select value={profile.risk_level ?? 'none'} onChange={e => setField('risk_level', e.target.value)} disabled={!canManage} style={inp}>
                   {RISK_LEVELS.map(r => (
                     <option key={r} value={r}>{t(`risk.${r}`)}</option>
                   ))}
                 </select>
-              </Field>
-              <Field label={t('profile.referral_source')}>
+              </FormField>
+              <FormField label={t('profile.referral_source')}>
                 <input value={profile.referral_source ?? ''} onChange={e => setField('referral_source', e.target.value)} disabled={!canManage} style={inp} />
-              </Field>
-              <Field label={t('profile.presenting_concerns')} full>
+              </FormField>
+              <FormField label={t('profile.presenting_concerns')} full>
                 <textarea value={profile.presenting_concerns ?? ''} onChange={e => setField('presenting_concerns', e.target.value)} disabled={!canManage} rows={2} style={area} />
-              </Field>
-              <Field label={t('profile.background')} full>
+              </FormField>
+              <FormField label={t('profile.background')} full>
                 <textarea value={profile.background ?? ''} onChange={e => setField('background', e.target.value)} disabled={!canManage} rows={2} style={area} />
-              </Field>
-              <Field label={t('profile.notes')} full>
+              </FormField>
+              <FormField label={t('profile.notes')} full>
                 <textarea value={profile.notes ?? ''} onChange={e => setField('notes', e.target.value)} disabled={!canManage} rows={2} style={area} />
-              </Field>
-            </div>
+              </FormField>
+            </FormGrid>
             {canManage && (
               <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <SubmitButton onClick={saveProfile} loading={savingProfile} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+                <SubmitButton onClick={saveProfile} loading={savingProfile} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
                 {profileSaved && <span style={{ fontSize: 12, color: primary }}>{t('profile.saved')}</span>}
               </div>
             )}
@@ -224,26 +225,26 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
             <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('session.record_title')}</h2>
               {sessionError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{sessionError}</div>}
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-                <Field label={t('session.session_date')}>
+              <FormGrid>
+                <FormField label={t('session.session_date')}>
                   <input type="date" value={sDate} onChange={e => setSDate(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('session.session_type')}>
+                </FormField>
+                <FormField label={t('session.session_type')}>
                   <select value={sType} onChange={e => setSType(e.target.value)} style={inp}>
                     {SESSION_TYPES.map(ty => (
                       <option key={ty} value={ty}>{t(`session.types.${ty}`)}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label={t('session.follow_up_date')}>
+                </FormField>
+                <FormField label={t('session.follow_up_date')}>
                   <input type="date" value={sFollowUp} onChange={e => setSFollowUp(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('session.summary')} full>
+                </FormField>
+                <FormField label={t('session.summary')} full>
                   <textarea value={sSummary} onChange={e => setSSummary(e.target.value)} rows={2} style={area} />
-                </Field>
-              </div>
+                </FormField>
+              </FormGrid>
               <div style={{ marginTop: 12 }}>
-                <SubmitButton onClick={recordSession} loading={busy} style={btn(primary)}>{t('session.record')}</SubmitButton>
+                <SubmitButton onClick={recordSession} loading={busy} style={btn('var(--action)')}>{t('session.record')}</SubmitButton>
               </div>
             </div>
           )}
@@ -300,14 +301,6 @@ export default function PsychologistStudentClient({ journeyId, studentName, canM
   )
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
-      {label}
-      {children}
-    </label>
-  )
-}
 
 const th: React.CSSProperties = {
   textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
@@ -319,7 +312,13 @@ const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1
 const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 function linkBtn(color: string): React.CSSProperties {
   return { background: 'none', border: 'none', color, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '2px 6px' }
