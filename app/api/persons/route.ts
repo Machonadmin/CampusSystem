@@ -62,7 +62,9 @@ export async function GET(request: NextRequest) {
     }
 
     let qb = sb.from('persons').select('id, full_name, hebrew_name, email, phones').order('full_name').limit(15)
-    if (q.length >= 2) qb = qb.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
+    // Ищем и по ивритскому имени: иначе человека, записанного латиницей/кириллицей,
+    // не найти, набрав имя на иврите (выбор מנהל מסלול, участников и т.п.).
+    if (q.length >= 2) qb = qb.or(`full_name.ilike.%${q}%,hebrew_name.ilike.%${q}%,email.ilike.%${q}%`)
 
     const { data } = await qb
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
