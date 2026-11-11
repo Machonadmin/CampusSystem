@@ -24,6 +24,7 @@ import {
   type Lead, type LeadSortKey, type ProcessStatusFilter,
 } from './education-shared'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { Icon } from '@/components/ui/Icon'
 
 // ─── Вкладка «Набор» (лиды) ──────────────────────────────────────────────────
 // Выделена из education/page.tsx (Workstream 3b). Владеет всем состоянием,
@@ -467,7 +468,7 @@ export default function RecruitmentTab() {
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--success-tint)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           >
-                            ♻ {t('leads.actions.restore')}
+                            <Icon name="restore" /> {t('leads.actions.restore')}
                           </button>
                         ) : (
                           <>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale, formatDateLong } from '@/lib/i18n/format-date'
 import { monthGrid, toISODate } from '@/lib/calendar/calendar'
+import { Icon } from '@/components/ui/Icon'
 
 interface Lesson {
   id: string; date: string; time: string | null; end_time: string | null
@@ -298,13 +299,13 @@ export default function StudentCalendarPanel({ journeyId, personal = false }: { 
                 </button>
               </div>
               {peErr && <div style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5 }}>{peErr}</div>}
-              <div style={{ fontSize: 10.5, color: 'var(--text-faint)', marginTop: 5 }}>🔒 {t('personal_hint')}</div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-faint)', marginTop: 5 }}><Icon name="lock" /> {t('personal_hint')}</div>
             </div>
           )}
 
           {(meetingsByDay.get(selected) ?? []).map(mt => (
             <div key={mt.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 9px', marginBottom: 6, borderRadius: 8, background: 'var(--violet-tint)', border: '1px solid var(--violet)' }}>
-              <span>🤝</span>
+              <span><Icon name="meeting" /></span>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--violet)', minWidth: 42 }}>{mt.time ?? '—'}</div>
               <div style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: 'var(--text)' }}>{mt.title}</div>
               <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t(`meeting_${mt.status}`, mt.status)}</span>

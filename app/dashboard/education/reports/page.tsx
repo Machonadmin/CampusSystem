@@ -1,5 +1,6 @@
 'use client'
 
+import { Icon } from '@/components/ui/Icon'
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -263,7 +264,7 @@ function AttBreakdown({ att, labels, variant }: {
 }) {
   const items = [
     { icon: '✓', n: att.present, color: 'var(--success)', label: labels.present },
-    { icon: '⏱', n: att.late, color: 'var(--warn)', label: labels.late },
+    { icon: <Icon name="clock" />, n: att.late, color: 'var(--warn)', label: labels.late },
     { icon: '✕', n: att.absent, color: 'var(--danger)', label: labels.absent },
   ]
   if (variant === 'summary') {

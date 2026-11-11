@@ -6,6 +6,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { Icon } from '@/components/ui/Icon'
 
 const accent = getModuleColor('education')
 
@@ -198,7 +199,7 @@ export default function KodeshRavClient() {
                         <td style={{ ...td, textAlign: 'center', color: 'var(--text-muted)' }}>{q.assigned_hours}</td>
                         <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>
                           {q.actual_hours ?? 0}
-                          {(q.actual_no_end_time ?? 0) > 0 && <span title={t('no_end_time_warning').replace('{n}', String(q.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 4 }}>⚠</span>}
+                          {(q.actual_no_end_time ?? 0) > 0 && <span title={t('no_end_time_warning').replace('{n}', String(q.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 4 }}><Icon name="alert" /></span>}
                         </td>
                         <td style={{ ...td, textAlign: 'center', color: q.over ? 'var(--warn)' : 'var(--text)', fontWeight: q.over ? 700 : 400 }}>
                           {q.remaining ?? '—'}{q.over ? ` · ${t('over')}` : ''}

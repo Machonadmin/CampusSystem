@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
+import { Icon } from '@/components/ui/Icon'
 
 interface ReferralOrigin {
   from_stage: string
@@ -268,7 +269,7 @@ function ReferralCard({
               <div style={{ display: 'grid', gap: 6 }}>
                 {referral.documents.map(d => (
                   <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                    <span style={{ color: 'var(--text)' }}>📄 {d.title || d.file_name || d.doc_type}</span>
+                    <span style={{ color: 'var(--text)' }}><Icon name="document" /> {d.title || d.file_name || d.doc_type}</span>
                     {(d.storage_path || d.file_url) && (
                       <button onClick={() => openDoc(d.id)} style={{ fontSize: 12, fontWeight: 600, color: primary, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                         {t('referrals.download')}

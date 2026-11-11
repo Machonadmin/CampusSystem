@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/toast'
 import SubmissionLink from './SubmissionLink'
 import type { CourseResultStatus } from '@/types/database'
 import type { SubmissionState } from '@/lib/education/courses'
+import { Icon } from '@/components/ui/Icon'
 
 interface CourseAssessment {
   id: string
@@ -204,7 +205,7 @@ function AssessmentRow({ a, mode, lang, onSubmitted }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {a.requires_submission ? '📝 ' : ''}{a.title}
+            {a.requires_submission ? <><Icon name="note" />{' '}</> : ''}{a.title}
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>
             {a.date ? `${a.requires_submission ? t('due') : t('date')} ${formatDate(a.date, lang)}` : ''}
@@ -227,7 +228,7 @@ function AssessmentRow({ a, mode, lang, onSubmitted }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
           {a.submission && (mode === 'staff' || mode === 'student'
             ? <SubmissionLink submissionId={a.submission.id} fileName={a.submission.file_name} />
-            : <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>📎 {a.submission.file_name}</span>)}
+            : <span style={{ fontSize: 12, color: 'var(--text-muted)' }}><Icon name="paperclip" /> {a.submission.file_name}</span>)}
           {canUpload && (
             <>
               <input

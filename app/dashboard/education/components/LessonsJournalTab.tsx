@@ -11,6 +11,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { Icon } from '@/components/ui/Icon'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -214,7 +215,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canCorrec
                               <span style={{ color: 'var(--success)', fontWeight: 600 }} title={tAtt('present')}>✓ {lesson.present_count}</span>
                             )}
                             {lesson.late_count > 0 && (
-                              <span style={{ color: 'var(--warn)', fontWeight: 600 }} title={tAtt('late')}>⏱ {lesson.late_count}</span>
+                              <span style={{ color: 'var(--warn)', fontWeight: 600 }} title={tAtt('late')}><Icon name="clock" /> {lesson.late_count}</span>
                             )}
                             {lesson.absent_count > 0 && (
                               <span style={{ color: 'var(--danger)', fontWeight: 600 }} title={tAtt('absent')}>✕ {lesson.absent_count}</span>

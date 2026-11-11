@@ -6,6 +6,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toastError } from '@/components/ui/toast'
 import { getModuleColor } from '@/lib/module-colors'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * «מיזוג כפילויות» — находит записи-дубли одного человека и объединяет их:
@@ -198,7 +199,7 @@ function MergeDetail({ pair, onBack, onDone, onClose }: { pair: [ClusterPerson, 
   if (done) {
     return (
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
-        <div style={{ fontSize: 40 }}>✅</div>
+        <div style={{ fontSize: 40 }}><Icon name="checkCircle" style={{ color: 'var(--success, #257c54)' }} /></div>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginTop: 8 }}>{t('done')}</div>
         <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 6 }}>{t('done_body')}</div>
         <button onClick={onClose} style={{ marginTop: 18, padding: '9px 22px', borderRadius: 8, border: 'none', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tCommon('close')}</button>
@@ -275,7 +276,7 @@ function MergeDetail({ pair, onBack, onDone, onClose }: { pair: [ClusterPerson, 
 
           {/* confirm */}
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'grid', gap: 10 }}>
-            <div style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 600 }}>⚠ {t('confirm_warn').replace('{name}', nameOf(otherId))}</div>
+            <div style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 600 }}><Icon name="alert" /> {t('confirm_warn').replace('{name}', nameOf(otherId))}</div>
             <SubmitButton onClick={doMerge} loading={busy} disabled={busy}
               style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
               {t('confirm_btn').replace('{keep}', nameOf(survivorId))}

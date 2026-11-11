@@ -14,6 +14,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import SlotFormModal, { type SlotFormSlot } from '@/components/education/SlotFormModal'
 import CancelLessonDialog from './CancelLessonDialog'
 import { useSectionCrumb } from '../components/useSectionCrumb'
+import { Icon } from '@/components/ui/Icon'
 
 interface Slot {
   id: string
@@ -261,7 +262,7 @@ export default function TimetablePage() {
           style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', padding: '4px 8px', borderRadius: 999,
             color: conflicts.length ? 'var(--danger)' : 'var(--success)',
             background: conflicts.length ? 'var(--danger-tint)' : 'var(--success-tint)' }}>
-          {conflicts.length === 0 ? '✓' : `⚠ ${conflicts.length}`}
+          {conflicts.length === 0 ? '✓' : <><Icon name="alert" /> {conflicts.length}</>}
         </span>
         {canEdit && view === 'week' && <span className="tt-hint" style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור שבועי ליום אחר')}</span>}
         <div className="tt-spacer" style={{ flex: 1 }} />
@@ -357,7 +358,7 @@ export default function TimetablePage() {
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                             {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
                               <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
-                                ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                                <Icon name="alert" /> {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
                               </span>
                             ))}
                           </div>
@@ -443,7 +444,7 @@ export default function TimetablePage() {
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                               {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
                                 <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
-                                  ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                                  <Icon name="alert" /> {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
                                 </span>
                               ))}
                             </div>

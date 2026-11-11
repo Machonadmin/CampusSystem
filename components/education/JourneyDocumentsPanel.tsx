@@ -7,6 +7,7 @@ import { isExpired, isExpiringSoon } from '@/lib/documents/expiry'
 import { DOC_TYPES, DOC_CATEGORIES, REVIEW_STATUSES } from '@/lib/documents/validation'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * Journey-scoped панель документов для карточки лида/абитуриента/студента.
@@ -276,7 +277,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
                                 <span style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{d.title}</span>
                               )}
                             </div>
-                            {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>📎 {d.file_name}</div>}
+                            {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}><Icon name="paperclip" /> {d.file_name}</div>}
                             {d.expiry_date && (
                               <div style={{ fontSize: 11, color: expiryColor(d), fontWeight: (isExpired(d, today) || isExpiringSoon(d, today)) ? 600 : 400 }}>
                                 {t('fields.expiry_date')}: {d.expiry_date}

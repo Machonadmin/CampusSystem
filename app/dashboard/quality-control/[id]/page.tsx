@@ -10,6 +10,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateLong } from '@/lib/i18n/format-date'
 import { hasFeatureAccess, type FeatureAccess } from '@/lib/permissions'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { Icon } from '@/components/ui/Icon'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -138,7 +139,7 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
         {!disabled && (
           <button type="button" onClick={() => setCommentOpen(o => !o)} title={t('fill.add_comment_title')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: '2px 4px', borderRadius: 4, color: entry.comment ? 'var(--accent)' : 'var(--border-strong)', flexShrink: 0, transition: 'color 0.15s' }}>
-            💬
+            <Icon name="comment" />
           </button>
         )}
       </div>

@@ -6,6 +6,7 @@ import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Icon } from '@/components/ui/Icon'
 
 export default function PortalError({
   error,
@@ -27,7 +28,7 @@ export default function PortalError({
         border: '1px solid var(--border)', borderRadius: 14, padding: '36px 32px',
         boxShadow: 'var(--shadow-lg, 0 8px 30px rgba(20,24,33,.08))',
       }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+        <div style={{ fontSize: 40, marginBottom: 12 }}><Icon name="alert" style={{ color: 'var(--warn, #98620c)' }} /></div>
         <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: 'var(--text)' }}>{t('error.title')}</h1>
         <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '0 0 22px', lineHeight: 1.6 }}>
           {t('error.body')}

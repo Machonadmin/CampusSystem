@@ -10,6 +10,7 @@ import { parseCsv } from '@/lib/csv-parse'
 import { IMPORT_FIELDS, guessField, type ImportField } from '@/lib/education/import-map'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { Icon } from '@/components/ui/Icon'
 
 interface RowResult { index: number; name: string; action: 'create' | 'duplicate' | 'error'; message?: string }
 interface ImportResult { dry_run: boolean; summary: { total: number; created: number; duplicates: number; errors: number }; results: RowResult[] }
@@ -119,7 +120,7 @@ export default function ImportStudentsPage() {
               </label>
             ))}
           </div>
-          {!hasName && <div style={{ fontSize: 12.5, color: 'var(--warn)', marginTop: 10 }}>⚠ {t('need_name')}</div>}
+          {!hasName && <div style={{ fontSize: 12.5, color: 'var(--warn)', marginTop: 10 }}><Icon name="alert" /> {t('need_name')}</div>}
         </div>
       )}
 

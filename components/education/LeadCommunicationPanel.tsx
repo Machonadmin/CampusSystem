@@ -1,5 +1,6 @@
 'use client'
 
+import { Icon, type IconName } from '@/components/ui/Icon'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
@@ -25,8 +26,8 @@ interface ProcessEvent {
   created_at: string
 }
 
-const EVENT_ICON: Record<string, string> = {
-  note: '📝', call: '📞', meeting: '🤝', message: '✉️', email: '📧',
+const EVENT_ICON: Record<string, IconName> = {
+  note: 'note', call: 'phone', meeting: 'meeting', message: 'message', email: 'mail',
 }
 const MANUAL_TYPES = ['call', 'meeting', 'message', 'email', 'note'] as const
 
@@ -102,7 +103,7 @@ export default function LeadCommunicationPanel({ journeyId, canManage }: Props) 
                   color: newType === tp ? 'var(--success)' : 'var(--text-muted)',
                 }}
               >
-                {EVENT_ICON[tp]} {t(`types.${tp}`, tp)}
+                <Icon name={EVENT_ICON[tp]} /> {t(`types.${tp}`, tp)}
               </button>
             ))}
           </div>
@@ -160,7 +161,7 @@ export default function LeadCommunicationPanel({ journeyId, canManage }: Props) 
                       {t('system_prefix')}
                     </span>
                   ) : (
-                    <span style={{ fontSize: 14 }}>{EVENT_ICON[ev.event_type] ?? ''}</span>
+                    <span style={{ fontSize: 14 }}>{EVENT_ICON[ev.event_type] ? <Icon name={EVENT_ICON[ev.event_type]} /> : null}</span>
                   )}
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDateTime(ev.created_at, lang)}</span>
                   {ev.author_name && !isSystem && (

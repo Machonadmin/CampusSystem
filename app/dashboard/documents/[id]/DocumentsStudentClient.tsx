@@ -14,6 +14,7 @@ import { DOC_TYPES } from '@/lib/documents/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
+import { Icon } from '@/components/ui/Icon'
 
 interface Doc {
   id: string
@@ -292,7 +293,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                           ) : (
                             <span style={{ fontWeight: 500 }}>{d.title}</span>
                           )}
-                          {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>📎 {d.file_name}</div>}
+                          {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}><Icon name="paperclip" /> {d.file_name}</div>}
                           {d.notes && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{d.notes}</div>}
                         </td>
                         <td data-label={t('fields.issued_date')} style={td}>{d.issued_date || '—'}</td>

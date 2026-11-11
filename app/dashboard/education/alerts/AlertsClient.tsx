@@ -1,5 +1,6 @@
 'use client'
 
+import { Icon } from '@/components/ui/Icon'
 import { useCallback, useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
@@ -255,7 +256,7 @@ function TypesModal({ types, onClose, onChanged, t }: { types: AlertType[]; onCl
       <div style={{ display: 'grid', gap: 4, maxHeight: 320, overflowY: 'auto' }}>
         {types.map(ty => (
           <div key={ty.code} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 8px', borderRadius: 8, background: 'var(--surface-2)' }}>
-            <span style={{ flex: 1, fontSize: 13, color: ty.is_active ? 'var(--text)' : 'var(--text-faint)' }}>{tn(ty)}{ty.default_sensitive ? ' 🔒' : ''}</span>
+            <span style={{ flex: 1, fontSize: 13, color: ty.is_active ? 'var(--text)' : 'var(--text-faint)' }}>{tn(ty)}{ty.default_sensitive ? <> <Icon name="lock" /></> : ''}</span>
             <button onClick={() => toggleActive(ty)} style={{ fontSize: 12, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer' }}>{ty.is_active ? t('deactivate') : t('activate')}</button>
             <button onClick={() => remove(ty)} style={{ fontSize: 12, color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer' }}>{tCommon('delete')}</button>
           </div>

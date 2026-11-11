@@ -17,6 +17,7 @@ import {
   LevelBadge, RiskBadge, ScopeBadge, PrivilegeName, MissingDescription,
   AreaTile, BackToAreas, cardStyle, type T,
 } from './shared'
+import { Icon } from '@/components/ui/Icon'
 
 // ─── Общий вид: здесь наводят порядок ────────────────────────────────────────
 //
@@ -351,7 +352,7 @@ export default function GeneralView({
               {node.parentId && (
                 <IconBtn label={t('move_out')} onClick={() => moveOut(node)} disabled={busy}>⇤</IconBtn>
               )}
-              <IconBtn label={t('edit_node')} onClick={() => setEditing(node)} disabled={busy}>✎</IconBtn>
+              <IconBtn label={t('edit_node')} onClick={() => setEditing(node)} disabled={busy}><Icon name="pencil" /></IconBtn>
               {!node.moduleCode && (
                 <IconBtn label={t('delete_node')} onClick={() => removeNode(node)} disabled={busy}>✕</IconBtn>
               )}

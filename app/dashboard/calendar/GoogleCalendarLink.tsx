@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
 import { Modal } from '@/components/ui/Modal'
 import { toast } from '@/components/ui/toast'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * «חבר ליומן גוגל» — персональная iCal-подписка. Показывается только тем,
@@ -69,7 +70,7 @@ export function GoogleCalendarLink({ primary }: { primary: string }) {
           display: 'inline-flex', alignItems: 'center', gap: 6,
         }}
       >
-        📅 {t('button')}
+        <Icon name="calendar" /> {t('button')}
       </button>
 
       {open && (
