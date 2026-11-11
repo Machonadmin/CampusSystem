@@ -73,7 +73,7 @@ export function ModalError({ text }: { text: string }) {
 }
 
 export function ModalActions({
-  accentColor, saving, onCancel, onSubmit, cancelLabel, saveLabel,
+  saving, onCancel, onSubmit, cancelLabel, saveLabel,
 }: { accentColor: string; saving: boolean; onCancel: () => void; onSubmit: () => void; cancelLabel: string; saveLabel: string }) {
   return (
     <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--surface-2)' }}>
@@ -85,7 +85,7 @@ export function ModalActions({
       </button>
       <SubmitButton
         onClick={onSubmit} loading={saving}
-        style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.55 : 1 }}
+        style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.55 : 1 }}
       >
         {saveLabel}
       </SubmitButton>

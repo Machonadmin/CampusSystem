@@ -2,7 +2,6 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import EmptyState from '@/components/ui/EmptyState'
@@ -56,7 +55,6 @@ const STATUS_STYLE: Record<StudentStatus, React.CSSProperties> = {
   expelled:  { background: 'var(--surface-2)', color: 'var(--text-muted)' },
 }
 
-const accent = getModuleColor('education')
 
 export default function StudentsTab() {
   const t = useTranslations('education.study')
@@ -448,7 +446,7 @@ export default function StudentsTab() {
           <button
             onClick={applyBulk}
             disabled={bulkBusy || !bulkTarget || selected.size === 0}
-            style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
+            style={{ ...inp, cursor: bulkBusy || !bulkTarget || selected.size === 0 ? 'default' : 'pointer', fontWeight: 600, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', borderColor: 'var(--action-border)', opacity: bulkBusy || !bulkTarget || selected.size === 0 ? 0.5 : 1 }}
           >
             {t('students.bulk.apply')}
           </button>

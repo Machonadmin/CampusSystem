@@ -173,7 +173,7 @@ export default function EmployeeCard({
             {t('end_employment')}
           </button>
         ) : <span />}
-        <button onClick={onClose} style={{ fontSize: 13.5, fontWeight: 600, padding: '8px 18px', borderRadius: 8, cursor: 'pointer', background: accent, color: '#fff', border: 'none' }}>
+        <button onClick={onClose} style={{ fontSize: 13.5, fontWeight: 600, padding: '8px 18px', borderRadius: 8, cursor: 'pointer', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', border: 'none' }}>
           {tCommon('close')}
         </button>
       </div>

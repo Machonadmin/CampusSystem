@@ -443,7 +443,7 @@ export default function TasksPage() {
           panelStyle={{ maxHeight: 'none', overflowY: 'visible' }}
           bodyStyle={{ overflowY: 'visible' }}
           footer={<>
-            <button onClick={bulkAssign} disabled={bulkBusy || !assignPerson} style={{ ...inp, cursor: bulkBusy || !assignPerson ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !assignPerson ? 0.6 : 1 }}>{tCommon('save')}</button>
+            <button onClick={bulkAssign} disabled={bulkBusy || !assignPerson} style={{ ...inp, cursor: bulkBusy || !assignPerson ? 'default' : 'pointer', fontWeight: 600, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', borderColor: 'var(--action-border)', opacity: bulkBusy || !assignPerson ? 0.6 : 1 }}>{tCommon('save')}</button>
           </>}
         >
             <PersonSelect value={assignPerson} onChange={id => setAssignPerson(id)} label={t('bulk.assign_to')} accentColor={accent} />

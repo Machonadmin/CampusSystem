@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -14,7 +13,6 @@ interface Settings {
   last_rolled_year: number | null
 }
 
-const accent = getModuleColor('education')
 
 // Заморожено по просьбе владельца: авто/ручной переход отключены (см. lib/education/year-rollover).
 // Тут только отражаем это в UI — снять флаг вместе с ROLLOVER_FROZEN в движке.
@@ -124,7 +122,7 @@ export default function YearRolloverTab() {
             loading={saving}
             disabled={saving || FROZEN}
             loadingLabel={t('common.saving')}
-            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: saving || FROZEN ? 0.6 : 1 }}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, cursor: saving ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: saving || FROZEN ? 0.6 : 1 }}
           >
             {t('common.save')}
           </SubmitButton>

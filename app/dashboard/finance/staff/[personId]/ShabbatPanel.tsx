@@ -115,7 +115,7 @@ export default function ShabbatPanel({ personId, canManage, year, month, onChang
         <div style={cardTitle}>{t('sh_title')}</div>
         {canManage && !adding && (
           <button onClick={() => setAdding(true)}
-            style={{ fontSize: 13, fontWeight: 600, padding: '7px 14px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: 'pointer' }}>
+            style={{ fontSize: 13, fontWeight: 600, padding: '7px 14px', border: 'none', borderRadius: 8, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: 'pointer' }}>
             + {t('sh_add_event')}
           </button>
         )}
@@ -309,7 +309,7 @@ function ShabbatForm({ onSubmit, onCancel, busy }: {
           {tCommon('cancel')}
         </button>
         <SubmitButton onClick={submit} loading={busy}
-          style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+          style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
           {t('sh_save')}
         </SubmitButton>
       </div>

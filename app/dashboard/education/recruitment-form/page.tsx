@@ -338,7 +338,7 @@ export default function RecruitmentFormSettingsPage() {
           </section>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')} style={{ fontSize: 14, fontWeight: 600, padding: '10px 22px', border: 'none', borderRadius: 9, background: accent, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+            <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')} style={{ fontSize: 14, fontWeight: 600, padding: '10px 22px', border: 'none', borderRadius: 9, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
               {t('save')}
             </SubmitButton>
           </div>

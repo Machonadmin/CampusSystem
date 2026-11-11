@@ -219,7 +219,7 @@ function ReferralCard({
         </div>
         <button
           onClick={() => setOpen(o => !o)}
-          style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: primary, border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+          style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
         >
           {open ? t('referrals.hide') : canSign ? t('referrals.open') : t('referrals.view')}
         </button>

@@ -324,8 +324,8 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
             onClick={handleEnroll} loading={saving} disabled={selected.size === 0 || saving}
             loadingLabel={t('class_groups.enrolling_button')}
             style={{
-              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-              background: accentColor, border: 'none', borderRadius: 8,
+              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
               cursor: (selected.size === 0 || saving) ? 'not-allowed' : 'pointer',
               opacity: (selected.size === 0 || saving) ? 0.55 : 1,
             }}

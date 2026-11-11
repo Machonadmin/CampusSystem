@@ -360,7 +360,7 @@ interface AssessmentFormModalProps {
   onDone: () => void
 }
 
-function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone }: AssessmentFormModalProps) {
+function AssessmentFormModal({ groupId, assessment, onClose, onDone }: AssessmentFormModalProps) {
   const t = useTranslations('education.grades')
   const tCommon = useTranslations('common')
 
@@ -492,8 +492,8 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
           <SubmitButton
             onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
             style={{
-              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-              background: accentColor, border: 'none', borderRadius: 8,
+              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
               opacity: saving ? 0.55 : 1,
             }}
           >
@@ -523,7 +523,7 @@ interface CourseResultModalProps {
   onDone: () => void
 }
 
-function CourseResultModal({ groupId, student, current, accentColor, onClose, onDone }: CourseResultModalProps) {
+function CourseResultModal({ groupId, student, current, onClose, onDone }: CourseResultModalProps) {
   const t = useTranslations('education.grades')
   const tCommon = useTranslations('common')
   const [status, setStatus] = useState<CourseResultStatus>(current?.status ?? 'in_progress')
@@ -598,7 +598,7 @@ function CourseResultModal({ groupId, student, current, accentColor, onClose, on
         </button>
         <SubmitButton
           onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
-          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, opacity: saving ? 0.55 : 1 }}
+          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, opacity: saving ? 0.55 : 1 }}
         >
           {t('btn_save')}
         </SubmitButton>

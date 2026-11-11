@@ -44,7 +44,7 @@ interface Props {
   onDone: (dateISO: string) => void
 }
 
-export default function CancelLessonDialog({ slot, accentColor, onClose, onDone }: Props) {
+export default function CancelLessonDialog({ slot, onClose, onDone }: Props) {
   const t = useTranslations('education.timetable')
   const tCommon = useTranslations('common')
 
@@ -158,7 +158,7 @@ export default function CancelLessonDialog({ slot, accentColor, onClose, onDone 
         </button>
         <SubmitButton
           onClick={submit} loading={busy}
-          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.55 : 1 }}
+          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.55 : 1 }}
         >
           {t('cancel_confirm', 'בטל את השיעור')}
         </SubmitButton>

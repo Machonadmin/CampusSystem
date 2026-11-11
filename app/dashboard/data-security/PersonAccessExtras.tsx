@@ -276,7 +276,7 @@ function FinanceSection({ personId, t }: { personId: string; t: T }) {
               onClick={grantAll}
               style={{
                 marginTop: 10, padding: '7px 16px', borderRadius: 8, border: 0,
-                background: getModuleColor('finance'), color: '#fff',
+                background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)',
                 fontSize: 13, fontWeight: 700, cursor: 'pointer',
               }}
             >{t('extras_finance_grant_all')}</SubmitButton>
