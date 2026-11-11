@@ -6,8 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import PsychReferrals from '@/components/psychologist/PsychReferrals'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -161,14 +160,7 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <button
-            type="button"
-            onClick={exportCsv}
-            disabled={filtered.length === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-          >
-            <DownloadIcon /> {tCommon('export_csv')}
-          </button>
+          <ListExportButton onClick={exportCsv} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         }
       />
 

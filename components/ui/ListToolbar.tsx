@@ -66,7 +66,7 @@ export function ListToolbar({ search, actions, filters, count }: Props) {
         )}
       </div>
       {filters && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div className="list-toolbar-filterrow" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {filters}
         </div>
       )}

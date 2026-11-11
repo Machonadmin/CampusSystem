@@ -389,6 +389,13 @@ body { transition: background-color .25s ease, color .25s ease; }
    flex-basis 0 перебивает инлайновую ширину. */
 .list-toolbar-filters > select { flex: 1 1 0; min-width: 0; max-width: 200px; }
 .list-toolbar-filters > button { flex: none; white-space: nowrap; }
+/* Строка фильтров под поиском: на телефоне — одна строка с прокруткой вбок
+   (как чипы в мобильных приложениях), а не стопка из двух-трёх строк. */
+@media (max-width: 640px) {
+  .list-toolbar-filterrow { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .list-toolbar-filterrow::-webkit-scrollbar { display: none; }
+  .list-toolbar-filterrow > * { flex: none; }
+}
 /* Подпись, которую на телефоне прячем и оставляем только иконку. */
 @media (max-width: 640px) { .label-hide-sm { display: none; } }
 

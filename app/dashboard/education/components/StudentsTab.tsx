@@ -7,7 +7,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import EmptyState from '@/components/ui/EmptyState'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Caret } from '@/components/ui/Caret'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { localizedName } from '@/lib/i18n/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
@@ -351,23 +351,7 @@ export default function StudentsTab() {
             >
               {selectMode ? t('students.bulk.exit') : t('students.bulk.select')}
             </button>
-            <button
-              type="button"
-              onClick={exportCsv}
-              disabled={students.length === 0}
-              title={t('students.export_button')}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 13,
-                cursor: students.length === 0 ? 'not-allowed' : 'pointer', borderRadius: 8, fontWeight: 600,
-                fontFamily: 'inherit', whiteSpace: 'nowrap', border: '1px solid var(--border-strong)',
-                background: 'var(--surface)', color: 'var(--text-muted)', opacity: students.length === 0 ? 0.5 : 1,
-              }}
-            >
-              <svg style={{ width: 15, height: 15 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-              </svg>
-              {t('students.export_button')}
-            </button>
+            <ListExportButton onClick={exportCsv} disabled={students.length === 0} label={t('students.export_button')} />
             {/* Импорт студенток — здесь, рядом с экспортом (перенесён из «Настроек»:
                 owner — меньше карточек; импорт = операция над списком студенток). */}
             <button

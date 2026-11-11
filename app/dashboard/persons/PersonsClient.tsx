@@ -6,9 +6,8 @@ import { useUrlTab } from '@/lib/nav/useUrlTab'
 import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { downloadCsv } from '@/lib/csv'
 import { firstPhone } from '@/lib/persons/phone'
 import { compareNames } from '@/lib/persons/name'
@@ -248,14 +247,7 @@ export default function PersonsClient() {
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <button
-            type="button"
-            onClick={exportCsv}
-            disabled={rows.length === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: rows.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: rows.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-          >
-            <DownloadIcon /> {tCommon('export_csv')}
-          </button>
+          <ListExportButton onClick={exportCsv} disabled={rows.length === 0} label={tCommon('export_csv')} />
         }
         count={!loading && !error ? t('list.count').replace('{count}', String(total)) : null}
       />

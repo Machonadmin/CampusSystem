@@ -7,9 +7,8 @@ import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Button } from '@/components/ui/Button'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSponsorSearch, type DonationStats } from '@/lib/sponsors/donations'
 import { SPONSOR_TYPES } from '@/lib/sponsors/validation'
@@ -219,9 +218,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <DownloadIcon /> {tCommon('export_csv')}
-          </Button>
+          <ListExportButton onClick={exportCsv} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         }
         filters={<>
           <select

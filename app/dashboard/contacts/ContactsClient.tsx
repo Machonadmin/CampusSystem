@@ -7,9 +7,8 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { requiredFieldMsg } from '@/lib/i18n/required'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Button } from '@/components/ui/Button'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import { matchesSearch, isValidEmail, type ContactStats } from '@/lib/contacts/directory'
 import { CONTACT_TYPES, CONTACT_CATEGORIES } from '@/lib/contacts/validation'
@@ -282,9 +281,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <Button type="button" onClick={exportCsv} disabled={filtered.length === 0} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <DownloadIcon /> {tCommon('export_csv')}
-          </Button>
+          <ListExportButton onClick={exportCsv} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         }
         filters={<>
           <select
