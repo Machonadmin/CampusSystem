@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Button } from '@/components/ui/Button'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * Панель управления входом студентки в личный портал (staff-only).
@@ -60,7 +61,7 @@ export default function PortalCredentialsPanel({ journeyId }: { journeyId: strin
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10 }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>🔑 {t('title')}</h3>
+        <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}><Icon name="key" /> {t('title')}</h3>
         <span style={{ fontSize: 11.5, color: exists ? 'var(--success)' : 'var(--text-faint)' }}>
           {exists ? t('exists') : t('no_login')}
         </span>

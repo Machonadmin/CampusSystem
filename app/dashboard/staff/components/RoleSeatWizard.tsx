@@ -8,6 +8,7 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toastError } from '@/components/ui/toast'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { getModuleColor } from '@/lib/module-colors'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * «הוספת בעל תפקיד» — ОДИН экран вместо 3-4 (создание человека, посадка,
@@ -195,7 +196,7 @@ export default function RoleSeatWizard({ onClose, onDone, defaultDepartmentId }:
       <div style={{ overflowY: 'auto', padding: '4px 20px 8px', flex: 1 }}>
         {done ? (
           <div style={{ textAlign: 'center', padding: '24px 0' }}>
-            <div style={{ fontSize: 40 }}>✅</div>
+            <div style={{ fontSize: 40 }}><Icon name="checkCircle" style={{ color: 'var(--success, #257c54)' }} /></div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginTop: 8 }}>{t('done_title')}</div>
             <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 6 }}>{t('done_created').replace('{name}', personName || '—')}</div>
             {genPassword && (

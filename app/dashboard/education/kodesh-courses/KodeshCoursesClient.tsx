@@ -7,6 +7,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { Icon } from '@/components/ui/Icon'
 
 const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 const accent = getModuleColor('education')
@@ -181,7 +182,7 @@ export default function KodeshCoursesClient() {
                       </span>
                     ) : (
                       <button onClick={() => { setEditHoursFor(c.id); setHoursVal(c.hours != null ? String(c.hours) : '') }} style={{ ...linkBtn, color: 'var(--text-muted)', fontWeight: 500 }}>
-                        {t('hours')}: {c.hours ?? '—'} ✎
+                        {t('hours')}: {c.hours ?? '—'} <Icon name="pencil" />
                       </button>
                     )}
                     {noTeacher && <span style={badge('var(--warn)')}>{t('badge_no_teacher')}</span>}

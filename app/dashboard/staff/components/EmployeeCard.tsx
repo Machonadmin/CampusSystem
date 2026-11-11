@@ -7,6 +7,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { personDisplayName } from '@/lib/persons/name'
 import { PhoneLink } from '@/components/ui/PhoneLink'
 import type { UserRow } from '@/app/dashboard/settings/users/UsersAccessPanel'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * «Карточка сотрудника» — ВСЁ об одном сотруднике в одном месте (запрос
@@ -159,7 +160,7 @@ export default function EmployeeCard({
           )}
           {isSuperadmin && onViewAs && (
             <button onClick={onViewAs} style={{ ...actBtn, marginTop: 10, background: 'var(--accent-tint)', borderColor: 'transparent' }}>
-              👁 {t('view_as')}
+              <Icon name="eye" /> {t('view_as')}
             </button>
           )}
         </div>

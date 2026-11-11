@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import type { RecurrenceRule, RecurrenceFrequency } from '@/lib/tasks/recurrence'
 import { compareNames } from '@/lib/persons/name'
+import { Icon } from '@/components/ui/Icon'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -501,7 +502,7 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
                   />
                   <span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block' }}>
-                      🔧 {t('create_modal.maintenance_label')}
+                      <Icon name="wrench" /> {t('create_modal.maintenance_label')}
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                       {t('create_modal.maintenance_hint')}
@@ -534,14 +535,14 @@ export default function TaskCreateModal({ currentUserId, onClose, onSaved }: Tas
               </div>
               {dueDate && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 13, color: 'var(--text)' }}>🔔 {t('remind.label')}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text)' }}><Icon name="bell" /> {t('remind.label')}</span>
                   <RemindBeforeSelect value={remindBefore} onChange={setRemindBefore} style={{ ...inp, width: 'auto', flex: '0 0 auto' }} />
                 </div>
               )}
               <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 4 }}>{t('remind.hint')}</div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, cursor: 'pointer', userSelect: 'none' }}>
                 <input type="checkbox" checked={addToCalendar} onChange={e => setAddToCalendar(e.target.checked)} style={{ accentColor: 'var(--accent-strong)' }} />
-                <span style={{ fontSize: 13, color: 'var(--text)' }}>📅 {t('create_modal.add_to_calendar')}</span>
+                <span style={{ fontSize: 13, color: 'var(--text)' }}><Icon name="calendar" /> {t('create_modal.add_to_calendar')}</span>
               </label>
             </div>
           )}

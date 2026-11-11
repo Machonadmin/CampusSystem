@@ -14,6 +14,7 @@ import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
+import { Icon } from '@/components/ui/Icon'
 
 interface Ticket {
   id: string
@@ -395,7 +396,7 @@ function MaintenanceTasksSection() {
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
         <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--text)' }}>
-          🔧 {t('tasks.title')}
+          <Icon name="wrench" /> {t('tasks.title')}
           {!loading && tasks.length > 0 && (
             <span style={{ marginInlineStart: 6, fontVariantNumeric: 'tabular-nums', color: 'var(--text-muted)', fontWeight: 600 }}>
               {tasks.length}

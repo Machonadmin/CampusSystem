@@ -12,6 +12,7 @@ import type { StaffSummary } from '@/lib/data-security/load'
 import { personSeats, withSeat, withoutSeat, toSeatPayload } from '@/lib/data-security/seating'
 import { changedFields } from '@/lib/data-security/edit-patch'
 import { cardStyle, type T } from './shared'
+import { Icon } from '@/components/ui/Icon'
 
 // ─── Учебные единицы: НАСТОЯЩАЯ граница доступа ──────────────────────────────
 //
@@ -231,7 +232,7 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
               <IconBtn label={t('units_new_under').replace('{name}', node.name)} disabled={busy}
                 onClick={() => setEditing({ parent_id: node.id, name_he: '', name: '', name_en: '' })}>+</IconBtn>
               <IconBtn label={t('units_edit')} disabled={busy}
-                onClick={() => setEditing({ id: node.id, parent_id: node.parentId, name_he: node.names.he, name: node.names.ru, name_en: node.names.en })}>✎</IconBtn>
+                onClick={() => setEditing({ id: node.id, parent_id: node.parentId, name_he: node.names.he, name: node.names.ru, name_en: node.names.en })}><Icon name="pencil" /></IconBtn>
               <IconBtn label={t('units_delete')} disabled={busy} onClick={() => remove(node)}>✕</IconBtn>
             </span>
           )}

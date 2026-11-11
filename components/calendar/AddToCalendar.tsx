@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { requiredFieldMsg } from '@/lib/i18n/required'
 import { localTodayISO } from '@/lib/dates'
 import { Modal } from '@/components/ui/Modal'
+import { Icon } from '@/components/ui/Icon'
 
 interface Props {
   /** Предзаполненный заголовок. */
@@ -112,11 +113,11 @@ export default function AddToCalendar({
     <>
       {hideTrigger ? null : variant === 'link' ? (
         <button onClick={openDialog} style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-          📅 {t('button')}
+          <Icon name="calendar" /> {t('button')}
         </button>
       ) : (
         <button onClick={openDialog} style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', border: '1px solid var(--accent)', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
-          📅 {t('button')}
+          <Icon name="calendar" /> {t('button')}
         </button>
       )}
 

@@ -21,6 +21,7 @@ import {
   LESSON_BG, LESSON_FG, LESSON_ACCENT, SCHEDULE_BG, SCHEDULE_FG, SCHEDULE_ACCENT,
   TASK_BG, TASK_FG, TASK_ACCENT, BIRTHDAY_BG, BIRTHDAY_FG, BIRTHDAY_ACCENT,
 } from './calendar-utils'
+import { Icon } from '@/components/ui/Icon'
 
 // ─────────────────────────────────────────────
 // Детали личного события календаря
@@ -43,11 +44,11 @@ export function CalEventDetail({ ev, onClose, onDeleted }: { ev: CalEvent; onClo
   return (
     <div onClick={() => !deleting && onClose()} className="anim-fade" style={{ position: 'fixed', inset: 0, background: 'rgba(17,24,39,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 70, padding: 16 }}>
       <div onClick={e => e.stopPropagation()} className="anim-pop" style={{ background: 'var(--surface)', borderRadius: 14, padding: 20, width: 'min(420px,100%)', boxShadow: 'var(--shadow-lg)', display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>📅 {ev.title}</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}><Icon name="calendar" /> {ev.title}</div>
         <div style={{ fontSize: 13, color: 'var(--text)' }}>
           {formatDate(ev.event_date, lang)}{!ev.all_day && ev.event_time ? ` · ${ev.event_time.slice(0, 5)}` : ''}
         </div>
-        {ev.reminder_at && <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600 }}>🔔 {tAdd('has_reminder')}</div>}
+        {ev.reminder_at && <div style={{ fontSize: 12, color: '#6366F1', fontWeight: 600 }}><Icon name="bell" /> {tAdd('has_reminder')}</div>}
         {ev.notes && <div style={{ fontSize: 13, color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>{ev.notes}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 4 }}>
           <SubmitButton onClick={remove} loading={deleting} loadingLabel={tAdd('deleting')} style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>
@@ -159,7 +160,7 @@ export function DayDetail({
                 return (
                   <button key={`e-${ce.id}`} onClick={() => onOpenEvent(ce)} style={dayRowBtn(isRTL, 'var(--accent-tint)', 'var(--violet)', '#6366F1')}>
                     <span style={dayRowTime}>{ev.time || t('all_day')}</span>
-                    <span style={dayRowTitle}>📅 {ce.title}</span>
+                    <span style={dayRowTitle}><Icon name="calendar" /> {ce.title}</span>
                     <span style={dayRowKind}>{t('event')}</span>
                   </button>
                 )
@@ -169,7 +170,7 @@ export function DayDetail({
                 return (
                   <div key={`b-${b.dateISO}`} style={{ ...dayRowBtn(isRTL, BIRTHDAY_BG, BIRTHDAY_FG, BIRTHDAY_ACCENT), cursor: 'default' }}>
                     <span style={dayRowTime}>{t('all_day')}</span>
-                    <span style={dayRowTitle}>🎂 {t('birthday')} · {b.age}</span>
+                    <span style={dayRowTitle}><Icon name="cake" /> {t('birthday')} · {b.age}</span>
                     <span style={dayRowKind}>{t('birthday')}</span>
                   </div>
                 )

@@ -2,6 +2,7 @@
 
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import type { TaskStudentRef } from '@/lib/tasks/student-tag'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * Чип «תלמידה קשורה» на задаче — имя תלמידה, к которой привязана задача
@@ -23,7 +24,7 @@ export default function StudentChip({ student }: { student: TaskStudentRef | nul
         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
       }}
     >
-      🎓 {name}
+      <Icon name="student" /> {name}
     </span>
   )
 }

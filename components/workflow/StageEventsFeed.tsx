@@ -1,5 +1,6 @@
 'use client'
 
+import { Icon, type IconName } from '@/components/ui/Icon'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
@@ -18,12 +19,8 @@ interface ProcessEvent {
   created_at: string
 }
 
-const EVENT_ICON: Record<string, string> = {
-  note: '📝',
-  call: '📞',
-  meeting: '🤝',
-  message: '✉️',
-  email: '📧',
+const EVENT_ICON: Record<string, IconName> = {
+  note: 'note', call: 'phone', meeting: 'meeting', message: 'message', email: 'mail',
 }
 
 const MANUAL_TYPES = ['note', 'call', 'meeting', 'message', 'email'] as const
@@ -114,7 +111,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage, stageCode 
                       {t('system_prefix')}
                     </span>
                   ) : (
-                    <span style={{ fontSize: 13 }}>{EVENT_ICON[ev.event_type] ?? ''}</span>
+                    <span style={{ fontSize: 13 }}>{EVENT_ICON[ev.event_type] ? <Icon name={EVENT_ICON[ev.event_type]} /> : null}</span>
                   )}
                   <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                     {formatDateTime(ev.created_at, lang)}
@@ -157,7 +154,7 @@ export default function StageEventsFeed({ stageInstanceId, canManage, stageCode 
               style={{ fontSize: 12, padding: '5px 8px', border: '1px solid var(--border-strong)', borderRadius: 6, background: 'var(--surface)', color: 'var(--text)' }}
             >
               {MANUAL_TYPES.map(tp => (
-                <option key={tp} value={tp}>{EVENT_ICON[tp]} {t(`types.${tp}`, tp)}</option>
+                <option key={tp} value={tp}>{t(`types.${tp}`, tp)}</option>
               ))}
             </select>
           </div>

@@ -6,6 +6,7 @@
 // no-op, так что этот файл безопасен и без настроенного мониторинга.
 import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
+import { Icon } from '@/components/ui/Icon'
 
 export default function GlobalError({
   error,
@@ -23,7 +24,7 @@ export default function GlobalError({
       <body style={{ margin: 0, fontFamily: 'system-ui, -apple-system, "Segoe UI", sans-serif', background: '#f5f7fa', color: '#1b2230' }}>
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ maxWidth: 440, textAlign: 'center', background: '#fff', border: '1px solid #e3e7ee', borderRadius: 14, padding: '36px 32px', boxShadow: 'var(--shadow-lg)' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <div style={{ fontSize: 40, marginBottom: 12 }}><Icon name="alert" style={{ color: 'var(--warn, #98620c)' }} /></div>
             <h1 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>אירעה שגיאה בלתי צפויה</h1>
             <p style={{ fontSize: 14, color: '#5d6577', margin: '0 0 22px', lineHeight: 1.6 }}>
               משהו השתבש. הצוות עודכן אוטומטית. אפשר לנסות שוב.

@@ -1,5 +1,6 @@
 'use client'
 
+import { Icon, type IconName } from '@/components/ui/Icon'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
@@ -19,7 +20,7 @@ interface Item {
   content?: string | null
 }
 
-const ICON: Record<Item['type'], string> = { status: '🔄', signature: '✍️', document: '📄', note: '📝' }
+const ICON: Record<Item['type'], IconName> = { status: 'refresh', signature: 'pencil', document: 'document', note: 'note' }
 const DOT: Record<Item['type'], string> = { status: 'var(--accent-strong)', signature: 'var(--success)', document: 'var(--warn)', note: 'var(--text-muted)' }
 
 /**
@@ -80,7 +81,7 @@ export default function JourneyTimeline({ journeyId }: { journeyId: string }) {
             return (
               <div key={i} style={{ display: 'flex', gap: 10, position: 'relative', paddingBottom: i === items.length - 1 ? 0 : 14 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-                  <span style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--surface-2)', border: `2px solid ${DOT[it.type]}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>{ICON[it.type]}</span>
+                  <span style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--surface-2)', border: `2px solid ${DOT[it.type]}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}><Icon name={ICON[it.type]} /></span>
                   {i !== items.length - 1 && <span style={{ flex: 1, width: 2, background: 'var(--surface-2)', marginTop: 2 }} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
