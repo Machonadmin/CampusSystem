@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { PersonSelect } from '@/components/ui/person-select'
 import { toastError } from '@/components/ui/toast'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Props {
   trackId: string
@@ -63,7 +64,7 @@ export default function TrackManagersModal({ trackId, trackName, onClose }: Prop
       )}
 
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : (
         <>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8, minHeight: 24 }}>

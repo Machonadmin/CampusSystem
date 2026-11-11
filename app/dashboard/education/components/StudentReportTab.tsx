@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useApiResource } from '@/lib/hooks/useApiResource'
 import { intlLocale } from '@/lib/i18n/format-date'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Типы (форма ответа GET /api/education/journeys/[id]/report) ────────────────
 
@@ -123,7 +124,7 @@ export default function StudentReportTab({ journeyId, accentColor = ACCENT }: Pr
   }
 
   if (loading) {
-    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+    return <SkeletonRows rows={4} />
   }
   if (error) {
     return <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>

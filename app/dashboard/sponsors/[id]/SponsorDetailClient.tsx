@@ -19,6 +19,7 @@ import { formatMoney } from '@/lib/finance/money'
 import { PersonLinkBanner } from '@/components/persons/PersonLinkBanner'
 import type { PersonLinkView, PersonLinkResult } from '@/lib/persons/record-link'
 import { FormField, FormGrid } from '@/components/ui/FormField'
+import { Badge } from '@/components/ui/Badge'
 
 interface Donation {
   id: string
@@ -565,15 +566,7 @@ function StatusBadge({ status, label }: { status: 'pledged' | 'received' | 'canc
     pledged:   { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
     cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   }
-  const c = palette[status] ?? palette.cancelled
-  return (
-    <span style={{
-      display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '2px 9px',
-      borderRadius: 999, background: c.bg, color: c.fg,
-    }}>
-      {label}
-    </span>
-  )
+  return <Badge dot label={label} colors={palette[status] ?? palette.cancelled} />
 }
 
 const th: React.CSSProperties = {

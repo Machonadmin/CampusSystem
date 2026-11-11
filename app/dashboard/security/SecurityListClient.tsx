@@ -341,7 +341,7 @@ export default function SecurityListClient({ canManage }: { canManage: boolean }
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <Badge label={t(`severity.${r.severity}`)} colors={vc} strong={prominent} />
-                  <Badge label={t(`status.${r.status}`)} colors={sc} />
+                  <Badge dot label={t(`status.${r.status}`)} colors={sc} />
                 </div>
               </div>
             )

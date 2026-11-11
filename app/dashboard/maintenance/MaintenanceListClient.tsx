@@ -339,7 +339,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <Badge label={t(`priority.${r.priority}`)} colors={pc} />
-                  <Badge label={t(`status.${r.status}`)} colors={sc} />
+                  <Badge dot label={t(`status.${r.status}`)} colors={sc} />
                 </div>
               </div>
             )
@@ -461,7 +461,7 @@ function MaintenanceTasksSection() {
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <Badge label={t(`priority.${task.priority}`)} colors={pc} />
-                  <Badge label={t(`tasks.state_${task.state}`)} colors={sc} />
+                  <Badge dot label={t(`tasks.state_${task.state}`)} colors={sc} />
                 </span>
               </button>
             )

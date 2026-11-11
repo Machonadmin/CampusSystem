@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -69,7 +70,7 @@ export default function ChavrutaTeachersClient() {
       <ModuleHeader module="finance" title={t('teachers_title')} subtitle={t('teachers_readonly_subtitle')} />
 
       {!loaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : forbidden ? (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--text-muted)' }}>{t('not_a_teacher')}</div>
       ) : featureOff ? (

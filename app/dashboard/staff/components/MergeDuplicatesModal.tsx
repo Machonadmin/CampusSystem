@@ -7,6 +7,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toastError } from '@/components/ui/toast'
 import { getModuleColor } from '@/lib/module-colors'
 import { Icon } from '@/components/ui/Icon'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * «מיזוג כפילויות» — находит записи-дубли одного человека и объединяет их:
@@ -233,7 +234,7 @@ function MergeDetail({ pair, onBack, onDone, onClose }: { pair: [ClusterPerson, 
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--text-muted)', fontSize: 13 }}>{t('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : preview ? (
         <>
           {/* field chooser */}

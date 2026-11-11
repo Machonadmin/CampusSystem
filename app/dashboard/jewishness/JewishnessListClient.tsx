@@ -11,6 +11,7 @@ import { useMe } from '@/lib/hooks/useMe'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
+import { Badge } from '@/components/ui/Badge'
 
 // Ровно три статуса (владелец, M16): pending «בבדיקה» · verified «אושר» · rejected «לא אושר».
 type Status = 'pending' | 'verified' | 'rejected'
@@ -200,13 +201,7 @@ export default function JewishnessListClient() {
 }
 
 function StatusBadge({ status, label }: { status: string; label: string }) {
-  const c = statusColors(status)
-  return (
-    <span style={{
-      fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999,
-      background: c.bg, color: c.fg, whiteSpace: 'nowrap',
-    }}>{label}</span>
-  )
+  return <Badge dot label={label} colors={statusColors(status)} />
 }
 
 function StudentRow({ student, primary, onOpen }: { student: ListStudent; primary: string; onOpen: () => void }) {

@@ -33,6 +33,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { PhoneLink } from '@/components/ui/PhoneLink'
 import { groupSeatsByPerson } from '@/lib/staff/group-employees'
+import { Badge } from '@/components/ui/Badge'
 
 interface Department {
   id: string
@@ -375,9 +376,7 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                       <td data-label={t('table.access')} style={{ padding: '10px 14px' }}>{accessCell(user)}</td>
                     )}
                     <td data-label={t('table.status')} style={{ padding: '10px 14px' }}>
-                      <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: sc.bg, color: sc.fg, fontWeight: 500, whiteSpace: 'nowrap' }}>
-                        {t(`status.${statusKey}`, statusKey)}
-                      </span>
+                      <Badge dot colors={sc} label={t(`status.${statusKey}`, statusKey)} />
                     </td>
                     <td data-label="" onClick={e => e.stopPropagation()} style={{ padding: '10px 14px' }}>
                       <RowActionsMenu

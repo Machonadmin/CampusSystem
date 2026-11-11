@@ -8,6 +8,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import type { StudentOverview } from '@/lib/students/overview'
 import { formatMoney } from '@/lib/finance/money'
 import StudentOpenItemsPanel from './StudentOpenItemsPanel'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Props {
   journeyId: string
@@ -63,7 +64,7 @@ export default function StudentOverviewTab({ journeyId }: Props) {
   )
 
   if (loading) {
-    return <div style={{ color: 'var(--text-faint)', fontSize: 13, padding: '8px 0' }}>{t('loading')}</div>
+    return <SkeletonRows rows={4} />
   }
   if (error) {
     return <div style={{ color: 'var(--danger)', fontSize: 13, padding: '8px 0' }}>{error}</div>
