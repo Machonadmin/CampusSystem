@@ -13,6 +13,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { GOAL_STATUSES, type GoalStatus } from '@/lib/management/validation'
+import { Badge } from '@/components/ui/Badge'
 
 // ── Типы ответа API ──────────────────────────────────────────────────────────
 
@@ -351,12 +352,7 @@ function MeetingModal({ meeting, onClose, onDone }: { meeting: Meeting | null; o
 
 function StatusBadge({ status }: { status: GoalStatus }) {
   const t = useTranslations('management')
-  const s = STATUS_STYLE[status]
-  return (
-    <span style={{ padding: '2px 9px', borderRadius: 12, fontSize: 11, fontWeight: 700, background: s.bg, color: s.fg, whiteSpace: 'nowrap' }}>
-      {t(`goal_status.${status}`)}
-    </span>
-  )
+  return <Badge dot label={t(`goal_status.${status}`)} colors={STATUS_STYLE[status]} />
 }
 
 function GoalsTab({ goals, meetings, initialOpen, onChanged }: {

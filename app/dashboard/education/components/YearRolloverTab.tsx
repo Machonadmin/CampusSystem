@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Settings {
   rollover_month: number
@@ -84,7 +85,7 @@ export default function YearRolloverTab() {
   const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
 
-  if (loading) return <div style={{ padding: 24, color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
+  if (loading) return <SkeletonRows rows={4} />
   if (error) return <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>
   if (!settings) return <div style={{ padding: 24, color: 'var(--text-faint)', fontSize: 13 }}>{t('rollover.not_ready')}</div>
 

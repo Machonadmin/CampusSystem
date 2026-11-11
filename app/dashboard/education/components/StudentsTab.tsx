@@ -13,6 +13,7 @@ import { localizedName } from '@/lib/i18n/localized-name'
 import { yearLevelLabel } from '@/lib/education/year-level'
 import { toast } from '@/components/ui/toast'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { Badge } from '@/components/ui/Badge'
 
 interface Department { id: string; name: string; name_he?: string | null; name_en?: string | null; is_educational_institution?: boolean }
 interface StudyGroup { id: string; name: string; name_he?: string | null; department_id: string }
@@ -505,12 +506,7 @@ export default function StudentsTab() {
                         <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.primary_department ? localizedDeptName(s.primary_department, lang) : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
                         <td style={{ ...tdStyle, color: 'var(--text-muted)' }} className="col-hide-sm">{s.main_group ? localizedName(s.main_group, lang) : <span style={{ color: 'var(--text-faint)' }}>—</span>}</td>
                         <td style={tdStyle}>
-                          <span style={{
-                            fontSize: 11, padding: '2px 8px', borderRadius: 99, fontWeight: 500, whiteSpace: 'nowrap',
-                            ...(STATUS_STYLE[s.education_status] ?? { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
-                          }}>
-                            {STATUS_LABEL[s.education_status] ?? s.education_status}
-                          </span>
+                          <Badge dot style={STATUS_STYLE[s.education_status]} label={STATUS_LABEL[s.education_status] ?? s.education_status} />
                         </td>
                         <td style={tdStyle} onClick={e => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

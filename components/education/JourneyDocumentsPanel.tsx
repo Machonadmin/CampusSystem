@@ -9,6 +9,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
 import { Icon } from '@/components/ui/Icon'
 import { FormField, FormGrid } from '@/components/ui/FormField'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * Journey-scoped панель документов для карточки лида/абитуриента/студента.
@@ -184,7 +185,7 @@ export default function JourneyDocumentsPanel({ journeyId, canManage }: Props) {
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
 
       {loading ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : (
         <>
           {/* Add document */}

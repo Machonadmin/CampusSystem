@@ -8,6 +8,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatDate } from '@/lib/i18n/format-date'
 import { Modal } from '@/components/ui/Modal'
 import { localISODate } from '@/lib/dates'
+import { Badge } from '@/components/ui/Badge'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -131,12 +132,7 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
       {/* Текущий статус */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t('current_label')}:</span>
-        <span style={{
-          fontSize: 12, padding: '3px 10px', borderRadius: 99, fontWeight: 600, whiteSpace: 'nowrap',
-          ...(STATUS_STYLE[status] ?? { background: 'var(--surface-2)', color: 'var(--text-muted)' }),
-        }}>
-          {tStatus(status, status)}
-        </span>
+        <Badge dot style={STATUS_STYLE[status]} label={tStatus(status, status)} />
       </div>
 
       {/* Кнопки переходов */}

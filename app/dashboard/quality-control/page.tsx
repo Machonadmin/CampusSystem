@@ -20,6 +20,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { Badge } from '@/components/ui/Badge'
 
 interface CheckRow {
   id: string
@@ -46,12 +47,8 @@ const STATUS_COLOR: Record<string, [string, string]> = {
 const NO_PERMS: FeaturePerms = { can_view: false, can_create: false, can_edit: false, can_delete: false }
 
 function StatusBadge({ status, t }: { status: string; t: (key: string, fallback?: string) => string }) {
-  const [bg, color] = STATUS_COLOR[status] ?? ['var(--surface-2)', 'var(--text-muted)']
-  return (
-    <span style={{ padding: '2px 10px', borderRadius: 20, backgroundColor: bg, color, fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
-      {t(`status.${status}`, status)}
-    </span>
-  )
+  const [bg, fg] = STATUS_COLOR[status] ?? ['var(--surface-2)', 'var(--text-muted)']
+  return <Badge dot label={t(`status.${status}`, status)} colors={{ bg, fg }} />
 }
 
 function RatingStars({ rating }: { rating: number | null }) {

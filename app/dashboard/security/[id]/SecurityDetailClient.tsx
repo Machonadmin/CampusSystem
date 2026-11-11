@@ -9,6 +9,8 @@ import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { allowedTransitions } from '@/lib/security/incidents'
 import { SEVERITIES } from '@/lib/security/validation'
+import { Badge } from '@/components/ui/Badge'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Incident {
   id: string
@@ -144,7 +146,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading || !incident ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : (
         <>
           {actionError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{actionError}</div>}
@@ -153,7 +155,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Badge label={t(`severity.${incident.severity}`)} colors={vc} />
-              <Badge label={t(`status.${incident.status}`)} colors={sc} />
+              <Badge dot label={t(`status.${incident.status}`)} colors={sc} />
               <Badge label={t(`category.${incident.category}`)} colors={{ bg: 'var(--surface-2)', fg: 'var(--text)' }} />
             </div>
 
@@ -262,14 +264,6 @@ function Field({ label, value }: { label: string; value: string }) {
       <div style={fieldLabelStyle}>{label}</div>
       <div style={{ fontSize: 13, color: 'var(--text)', marginTop: 3 }}>{value}</div>
     </div>
-  )
-}
-
-function Badge({ label, colors }: { label: string; colors: { bg: string; fg: string } }) {
-  return (
-    <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: colors.bg, color: colors.fg, whiteSpace: 'nowrap' }}>
-      {label}
-    </span>
   )
 }
 

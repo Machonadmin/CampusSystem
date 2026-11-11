@@ -9,6 +9,7 @@ import type { useTaskDetail, Comment } from './useTaskDetail'
 import StudentChip from './StudentChip'
 import RemindBeforeSelect from './RemindBeforeSelect'
 import { Icon } from '@/components/ui/Icon'
+import { Badge } from '@/components/ui/Badge'
 
 /**
  * Общее тело карточки задачи (заголовок → метаданные → наблюдатели → действия →
@@ -67,12 +68,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
             {task.title}
           </h2>
           <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{
-              padding: '3px 10px', fontSize: 11, fontWeight: 600,
-              background: statusColor.bg, color: statusColor.fg, borderRadius: 14,
-            }}>
-              {t(`status.${task.status}`, task.status)}
-            </span>
+            <Badge dot colors={statusColor} label={t(`status.${task.status}`, task.status)} />
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               {t(`priority.${task.priority}`, task.priority)} {t('card.priority_suffix')}
             </span>

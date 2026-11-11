@@ -11,6 +11,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { useSectionCrumb } from '../components/useSectionCrumb'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ export default function ChavrutaHubClient({ canManage, isTeacher }: { canManage:
       />
 
       {!loaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : forbidden ? (
         <div style={{ ...card, color: 'var(--text-muted)' }}>{t('forbidden_hub')}</div>
       ) : (

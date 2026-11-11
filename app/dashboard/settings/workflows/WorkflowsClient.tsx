@@ -10,6 +10,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import type { TemplateListRow, StageTemplate, Final, TaskTemplate, Transition, TemplateDetail, Role } from './workflow-shared'
 import { btnPrimary, btnGhost, btnDanger } from './workflow-shared'
 import { ProcessCreateModal, ProcessEditModal, StageModal, FinalModal, TaskModal, TransitionModal, mutate } from './workflow-modals'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * Визуальный редактор ШАБЛОНОВ ПРОЦЕССОВ (process templates) — основа
@@ -189,7 +190,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
             )}
           </div>
           {loadingList ? (
-            <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+            <SkeletonRows rows={4} />
           ) : templates.length === 0 ? (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('empty_processes')}</div>
           ) : templates.map(tpl => {
@@ -219,7 +220,7 @@ export default function WorkflowsClient({ canEdit }: { canEdit: boolean }) {
               {t('select_process_hint')}
             </div>
           ) : loadingDetail && !detail ? (
-            <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+            <SkeletonRows rows={4} />
           ) : detail ? (
             <div className="space-y-4">
 

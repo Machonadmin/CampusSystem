@@ -5,6 +5,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import { Modal } from '@/components/ui/Modal'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Semester {
   id: string
@@ -130,7 +131,7 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>{subjectName}</div>
 
-        {loading && <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>}
+        {loading && <SkeletonRows rows={4} />}
         {error && <div style={{ padding: 10, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 6, fontSize: 13 }}>{error}</div>}
 
         {!loading && !error && rows.length === 0 && (

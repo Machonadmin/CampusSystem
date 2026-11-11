@@ -15,6 +15,8 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { formatMoney } from '@/lib/finance/money'
 import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
+import { Badge } from '@/components/ui/Badge'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types (mirror the ledger API response) ──────────────────────────────────
 
@@ -321,7 +323,7 @@ export default function FinanceLedgerClient({
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading || !ledger ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : (
         <>
           {/* Totals */}
@@ -653,13 +655,5 @@ function StatusBadge({ kind, label }: { kind: 'active' | 'cancelled' | 'pending'
     pending:   { bg: 'var(--warn-tint)', fg: 'var(--warn)' },
     cancelled: { bg: 'var(--surface-2)', fg: 'var(--text-muted)' },
   }
-  const c = palette[kind] ?? palette.cancelled
-  return (
-    <span style={{
-      display: 'inline-block', fontSize: 11, fontWeight: 600, padding: '2px 9px',
-      borderRadius: 999, background: c.bg, color: c.fg,
-    }}>
-      {label}
-    </span>
-  )
+  return <Badge dot label={label} colors={palette[kind] ?? palette.cancelled} />
 }

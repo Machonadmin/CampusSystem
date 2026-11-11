@@ -16,6 +16,7 @@ import GradesTab from '@/app/dashboard/education/components/GradesTab'
 import ScheduleTab from '@/app/dashboard/education/components/ScheduleTab'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedName } from '@/lib/i18n/localized-name'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Teacher {
   person_id: string
@@ -116,7 +117,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
   if (loading) {
     return (
       <div className="p-6">
-        <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 48 }}>{t('common.loading')}</div>
+        <SkeletonRows rows={4} />
       </div>
     )
   }

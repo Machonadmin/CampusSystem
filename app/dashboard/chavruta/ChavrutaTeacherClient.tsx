@@ -9,6 +9,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -347,7 +348,7 @@ export default function ChavrutaTeacherClient({ initialDate }: { initialDate?: s
       <ModuleHeader module="chavruta" title={t('title')} subtitle={t('subtitle')} />
 
       {!studentsLoaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : forbidden ? (
         <div style={{
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
@@ -573,7 +574,7 @@ export default function ChavrutaTeacherClient({ initialDate }: { initialDate?: s
 
           {/* Sessions for the date */}
           {sessionsLoading ? (
-            <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+            <SkeletonRows rows={4} />
           ) : sessions.length === 0 ? (
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_sessions')}</div>
           ) : (

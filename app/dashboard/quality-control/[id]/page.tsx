@@ -11,6 +11,7 @@ import { formatDateLong } from '@/lib/i18n/format-date'
 import { hasFeatureAccess, type FeatureAccess } from '@/lib/permissions'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
 import { Icon } from '@/components/ui/Icon'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -361,7 +362,7 @@ export default function FillCheckPage() {
 
   // ── Render guards ──
   if (loading) {
-    return <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+    return <SkeletonRows rows={4} />
   }
   if (!check) {
     if (loadFailure === 'forbidden') return <ForbiddenState />

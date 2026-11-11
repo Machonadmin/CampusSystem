@@ -8,6 +8,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { Badge } from '@/components/ui/Badge'
 
 interface StudentMini {
   id: string
@@ -125,12 +126,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
                   )}
                 </div>
                 {s.status !== 'active' && STATUS_LABEL[s.status] && (
-                  <span style={{
-                    fontSize: 11, padding: '2px 7px', borderRadius: 99, fontWeight: 500,
-                    ...(STATUS_STYLE[s.status] ?? {}),
-                  }}>
-                    {STATUS_LABEL[s.status]}
-                  </span>
+                  <Badge dot style={STATUS_STYLE[s.status]} label={STATUS_LABEL[s.status]} />
                 )}
               </div>
               <button
