@@ -2,7 +2,6 @@
 
 import { Fragment, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -64,13 +63,13 @@ export default function TeachersHoursClient({ embedded = false, leading }: { emb
     <div className={embedded ? 'space-y-5' : 'p-6 space-y-5'}>
       {!embedded && (
         <>
-          <Breadcrumb items={[
+
+          <ModuleHeader
+        breadcrumb={[
             { label: tNav('home'), href: '/dashboard' },
             sectionCrumb,
             { label: t('title') },
-          ]} />
-
-          <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+          ]} module="education" title={t('title')} subtitle={t('subtitle')} />
         </>
       )}
 

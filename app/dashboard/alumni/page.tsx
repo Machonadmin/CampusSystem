@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -100,13 +99,13 @@ export default function AlumniPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('alumni') },
-      ]} />
 
       {/* Header */}
-      <ModuleHeader module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
+      <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('alumni') },
+      ]} module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
 
       {/* Поиск, счётчик под ним (общая шапка списков). */}
       <ListToolbar

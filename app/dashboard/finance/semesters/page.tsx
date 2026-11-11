@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -79,13 +78,13 @@ export default function SemestersPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('finance'), href: '/dashboard/finance' },
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="finance" title={t('title')} subtitle={t('subtitle')} />
+      ]} module="finance" title={t('title')} subtitle={t('subtitle')} />
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{err}</div>}
 

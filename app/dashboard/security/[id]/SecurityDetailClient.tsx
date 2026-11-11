@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -135,13 +134,13 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('security'), href: '/dashboard/security' },
         { label: incidentTitle || '—' },
-      ]} />
-
-      <ModuleHeader module="security" title={incident?.title || incidentTitle} actions={<BackButton fallback="/dashboard/security" />} />
+      ]} module="security" title={incident?.title || incidentTitle} actions={<BackButton fallback="/dashboard/security" />} />
 
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>

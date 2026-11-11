@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { canGoBackInApp, useSafeBack } from '@/lib/hooks/useSafeBack'
@@ -41,14 +40,14 @@ export default function LeadEditClient({ journeyId, personName }: Props) {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('card.section.lead'), href: sectionCrumb.href },
         { label: personName, href: viewHref },
         { label: tCommon('edit') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="education"
         title={personName}
         subtitle={t('card.labels.lead_editing')}

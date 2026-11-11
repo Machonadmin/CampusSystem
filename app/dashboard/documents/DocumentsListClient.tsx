@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -108,13 +107,13 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
 
       {/* Header */}
-      <ModuleHeader module="documents" title={t('title')} subtitle={t('list.subtitle')} />
+      <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
+      ]} module="documents" title={t('title')} subtitle={t('list.subtitle')} />
 
       {/* Expiring worklist */}
       {(expired.length > 0 || expiringSoon.length > 0) && (

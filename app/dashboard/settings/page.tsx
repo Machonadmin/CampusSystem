@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 
 // «משתמשים וגישה» и «רשימת תפקידים» переехали в объединённый хаб «צוות»
@@ -47,11 +46,11 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb items={[
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title') },
-      ]} />
-      <ModuleHeader module="settings" title={t('system_title')} />
+      ]} module="settings" title={t('system_title')} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {sections.map(s => {

@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { ListToolbar } from '@/components/ui/ListToolbar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -110,13 +109,13 @@ export default function AuditLogClient() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('settings'), href: '/dashboard/settings' },
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="settings" title={t('title')} subtitle={t('subtitle')} />
+      ]} module="settings" title={t('title')} subtitle={t('subtitle')} />
 
       {/* Только чтение + документированное ограничение по «кто» */}
       <div style={{ display: 'grid', gap: 6 }}>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -231,13 +230,13 @@ export default function ReportsClient() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
 
       {/* Заголовок модуля — зелёный акцент reports */}
-      <ModuleHeader module="reports" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
+      ]} module="reports" title={t('title')} subtitle={t('subtitle')} />
 
       {/* Период — влияет на денежные карточки (финансы, спонсоры) */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

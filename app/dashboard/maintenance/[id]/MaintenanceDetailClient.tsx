@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -130,13 +129,13 @@ export default function MaintenanceDetailClient({ ticketId, ticketTitle, canMana
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('maintenance'), href: '/dashboard/maintenance' },
         { label: ticketTitle || '—' },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="maintenance"
         title={ticket?.title || ticketTitle}
         subtitle={!ticket?.is_overdue ? undefined : (

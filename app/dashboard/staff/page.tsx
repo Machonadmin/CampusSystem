@@ -4,7 +4,6 @@ import EmptyState from '@/components/ui/EmptyState'
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { personDisplayName } from '@/lib/persons/name'
@@ -550,12 +549,12 @@ export default function StaffPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="staff" title={t('title')} />
+      ]} module="staff" title={t('title')} />
 
       <ModuleTabs
         tabs={[
