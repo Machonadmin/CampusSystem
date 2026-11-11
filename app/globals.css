@@ -887,3 +887,16 @@ p { text-wrap: pretty; }
 
 /* Сетка полей формы (FormGrid): на телефоне — одно поле в строке. */
 @media (max-width: 640px) { .form-grid { grid-template-columns: minmax(0, 1fr) !important; } }
+
+/* ============================================================================
+   Таблицы (дизайн-план, этап 6): мягкая подсветка строки под курсором — в
+   оттенке модуля страницы — и светлая полоса шапки. Только на компьютере:
+   на телефоне таблицы .cards-sm становятся карточками.
+   ============================================================================ */
+@media (min-width: 768px) and (hover: hover) {
+  main table tbody tr { transition: background-color .12s ease; }
+  main table tbody tr:hover > td { background: color-mix(in oklab, var(--action) 55%, transparent); }
+}
+@media (min-width: 768px) {
+  main table thead th { background: var(--surface-2); }
+}
