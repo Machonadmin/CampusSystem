@@ -19,6 +19,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { formatMoney } from '@/lib/finance/money'
 import type { PersonLinkView } from '@/lib/persons/record-link'
 import EmptyState from '@/components/ui/EmptyState'
+import { StatCard, StatGrid } from '@/components/ui/StatCard'
 
 interface Sponsor {
   id: string
@@ -206,13 +207,11 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
 
       {/* Stats bar */}
       {stats && (
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12,
-        }}>
-          <StatCard label={t('stats.total_received')} value={formatMoney(stats.total_received)} color="var(--success)" />
-          <StatCard label={t('stats.total_pledged')} value={formatMoney(stats.total_pledged)} color="var(--warn)" />
-          <StatCard label={t('stats.donors')} value={String(sponsors.length)} color="var(--text)" />
-        </div>
+        <StatGrid>
+          <StatCard icon="money" label={t('stats.total_received')} value={formatMoney(stats.total_received)} color="var(--success)" />
+          <StatCard icon="note" label={t('stats.total_pledged')} value={formatMoney(stats.total_pledged)} color="var(--warn)" />
+          <StatCard icon="heart" label={t('stats.donors')} value={String(sponsors.length)} />
+        </StatGrid>
       )}
 
       {/* Общая шапка списков: поиск и экспорт — одной строкой, фильтры — второй. */}
@@ -364,14 +363,6 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
   )
 }
 
-function StatCard({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 16px' }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-    </div>
-  )
-}
 
 function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (

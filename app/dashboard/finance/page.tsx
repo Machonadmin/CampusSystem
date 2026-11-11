@@ -1,5 +1,6 @@
 'use client'
 
+import { StatCard, StatGrid } from '@/components/ui/StatCard'
 import EmptyState from '@/components/ui/EmptyState'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -249,27 +250,32 @@ export default function FinancePage() {
         }
       />
 
-      {/* Сводка сбора: начислено / оплачено / остаток + доля собранного. */}
+      {/* Сводка сбора: начислено / оплачено / остаток — каждое число своей
+          карточкой в равной сетке (дизайн-план, этап 4), под ними — доля
+          собранного и полоса. */}
       {!loading && !error && totals.charged > 0 && (
-        <div className="anim-rise" style={{
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
-          padding: '14px 18px', boxShadow: 'var(--shadow)', display: 'grid', gap: 12,
-        }}>
-          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-            <Metric label={t('list.sum_charged')} value={formatMoney(totals.charged)} color="var(--text)" />
-            {hasDiscounts && <Metric label={t('list.sum_discounts')} value={`−${formatMoney(totals.discounts)}`} color="var(--violet)" />}
-            <Metric label={t('list.sum_collected')} value={formatMoney(totals.paid)} color="var(--success)" />
-            <Metric label={t('list.sum_outstanding')} value={formatMoney(outstanding)} color={outstanding > 0.005 ? 'var(--danger)' : 'var(--success)'} />
-            <div style={{ flex: 1 }} />
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', fontVariantNumeric: 'tabular-nums' }}>
+        <div className="anim-rise" style={{ display: 'grid', gap: 12 }}>
+          <StatGrid>
+            <StatCard icon="document" label={t('list.sum_charged')} value={formatMoney(totals.charged)} />
+            {hasDiscounts && <StatCard icon="tag" label={t('list.sum_discounts')} value={`−${formatMoney(totals.discounts)}`} color="var(--violet)" />}
+            <StatCard icon="checkCircle" label={t('list.sum_collected')} value={formatMoney(totals.paid)} color="var(--success)" />
+            <StatCard icon="clock" label={t('list.sum_outstanding')} value={formatMoney(outstanding)} color={outstanding > 0.005 ? 'var(--danger)' : 'var(--success)'} />
+          </StatGrid>
+          <div style={{
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+            padding: '12px 18px', boxShadow: 'var(--shadow)', display: 'flex', alignItems: 'center', gap: 14,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {t('list.sum_collected_pct').replace('{n}', String(collectedPct))}
             </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <MiniBar height={10} segments={[
+                { value: totals.paid, color: 'var(--success)', label: t('list.sum_collected') },
+                ...(hasDiscounts ? [{ value: totals.discounts, color: 'var(--violet)', label: t('list.sum_discounts') }] : []),
+                { value: outstanding, color: 'var(--danger)', label: t('list.sum_outstanding') },
+              ]} />
+            </div>
           </div>
-          <MiniBar height={10} segments={[
-            { value: totals.paid, color: 'var(--success)', label: t('list.sum_collected') },
-            ...(hasDiscounts ? [{ value: totals.discounts, color: 'var(--violet)', label: t('list.sum_discounts') }] : []),
-            { value: outstanding, color: 'var(--danger)', label: t('list.sum_outstanding') },
-          ]} />
         </div>
       )}
 
@@ -473,11 +479,3 @@ const inpModal: React.CSSProperties = {
   color: 'var(--text)', background: 'var(--surface)',
 }
 
-function Metric({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 700, color, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-    </div>
-  )
-}
