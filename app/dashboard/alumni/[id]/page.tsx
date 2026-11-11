@@ -9,6 +9,7 @@ import { hasAlumniPrivilege } from '@/lib/alumni/permissions'
 import type { LeadViewData } from '../../education/leads/[id]/LeadViewClient'
 import type { StatusHistoryEntry } from '@/components/education/StudentLifecyclePanel'
 import type { AlumniProfileData } from '@/components/alumni/AlumniProfilePanel'
+import type { AlumniFormValues } from '@/components/alumni/AlumniFormModal'
 import AlumniCardClient from './AlumniCardClient'
 
 interface Props {
@@ -37,7 +38,7 @@ export default async function AlumniViewPage(props: Props) {
   const { data: journey } = await sb
     .from('education_journeys')
     .select(`
-      id, person_id, education_status, primary_department_id,
+      id, person_id, education_status, is_deleted, primary_department_id,
       specialty_id, main_group_id, year_level, year_start, enrolled_at,
       referral_source, notes, opened_at, application_date,
       person:persons!applicant_profiles_person_id_fkey(id, full_name, first_name, last_name, middle_name, hebrew_name,
@@ -55,6 +56,7 @@ export default async function AlumniViewPage(props: Props) {
     id: string
     person_id: string
     education_status: string | null
+    is_deleted: boolean
     primary_department_id: string | null
     specialty_id: string | null
     main_group_id: string | null
@@ -88,7 +90,8 @@ export default async function AlumniViewPage(props: Props) {
   }
 
   // Карточка выпускника — только для выпускников. Иначе назад в список.
-  if (j.education_status !== 'graduated') {
+  // Удалённая (мягко) выпускница тоже не открывается.
+  if (j.education_status !== 'graduated' || j.is_deleted) {
     redirect('/dashboard/alumni')
   }
 
@@ -204,12 +207,33 @@ export default async function AlumniViewPage(props: Props) {
       }
     : null
 
+  // Значения для окна «עריכת פרטי בוגרת» (все поля строками, как в форме).
+  const s = (x: unknown) => (x == null ? '' : String(x))
+  const formValues: AlumniFormValues = {
+    last_name: s(p?.last_name),
+    first_name: s(p?.first_name),
+    middle_name: s(p?.middle_name),
+    hebrew_name: s(p?.hebrew_name),
+    birth_date: s(p?.birth_date),
+    phones: flattenPhones(p?.phones).join(', '),
+    email: s(p?.email),
+    country: s(p?.address?.country),
+    city: s(p?.address?.city),
+    graduation_year: s(alumniProfile?.graduation_year),
+    institution: s(alumniProfile?.institution),
+    direction: s(alumniProfile?.direction),
+    current_location: s(alumniProfile?.current_location),
+    current_occupation: s(alumniProfile?.current_occupation),
+    notes: s(alumniProfile?.notes),
+  }
+
   return (
     <AlumniCardClient
       data={data}
       history={historyEntries}
       profile={profile}
       canManage={canManage}
+      formValues={formValues}
     />
   )
 }

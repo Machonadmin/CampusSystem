@@ -8,6 +8,8 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import EmptyState from '@/components/ui/EmptyState'
+import PageActionButton from '@/components/ui/PageActionButton'
+import AlumniFormModal from '@/components/alumni/AlumniFormModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -45,6 +47,9 @@ export default function AlumniPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  // «+ בוגרת חדשה» — только с alumni.manage (сервер присылает can_manage).
+  const [canManage, setCanManage] = useState(false)
+  const [creating, setCreating] = useState(false)
   // Клик по строке сразу открывает карточку (owner: лишний слой раскрытия убран).
 
   const load = useCallback(async () => {
@@ -65,6 +70,7 @@ export default function AlumniPage() {
       }
       const body = await res.json()
       setItems(body.alumni ?? [])
+      setCanManage(body.can_manage === true)
     } catch {
       setError(t('list.load_error'))
     } finally {
@@ -105,7 +111,19 @@ export default function AlumniPage() {
         breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('alumni') },
-      ]} module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
+      ]} module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')}
+        actions={canManage ? (
+          <PageActionButton label={t('list.add')} icon={<span aria-hidden="true">+</span>} onClick={() => setCreating(true)} />
+        ) : undefined}
+      />
+
+      {creating && (
+        <AlumniFormModal
+          mode="create"
+          onClose={() => setCreating(false)}
+          onSaved={journeyId => { setCreating(false); router.push(`/dashboard/alumni/${journeyId}`) }}
+        />
+      )}
 
       {/* Поиск, счётчик под ним (общая шапка списков). */}
       <ListToolbar
@@ -128,6 +146,7 @@ export default function AlumniPage() {
                 <th style={th}>{t('list.col_name')}</th>
                 <th style={th}>{t('list.col_graduation_year')}</th>
                 <th style={th}>{t('list.col_institution')}</th>
+                <th style={th}>{t('list.col_direction')}</th>
                 <th style={th}>{t('list.col_occupation')}</th>
               </tr>
             </thead>
@@ -158,6 +177,7 @@ export default function AlumniPage() {
                     </td>
                     <td data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
                     <td data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
+                    <td data-label={t('list.col_direction')} style={td}>{a.direction || '—'}</td>
                     <td data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
                   </tr>
                 )

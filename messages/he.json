@@ -3737,7 +3737,8 @@
       "col_location": "מיקום",
       "col_email": "אימייל",
       "col_phone": "טלפון",
-      "open_card": "פתח כרטיס"
+      "open_card": "פתח כרטיס",
+      "add": "בוגרת חדשה"
     },
     "card": {
       "section": "בוגרת",
@@ -3753,7 +3754,27 @@
       "save": "שמירה",
       "saving": "שומר…",
       "cancel": "ביטול",
-      "save_error": "השמירה נכשלה"
+      "save_error": "השמירה נכשלה",
+      "delete": "מחיקה",
+      "delete_title": "מחיקת בוגרת",
+      "delete_confirm": "הבוגרת תוסר מרשימת הבוגרות. הפרטים שלה נשארים שמורים במערכת. למחוק?",
+      "delete_error": "המחיקה נכשלה"
+    },
+    "form": {
+      "new_title": "בוגרת חדשה",
+      "edit_title": "עריכת פרטי בוגרת",
+      "name_required": "יש למלא שם פרטי",
+      "section_personal": "פרטים אישיים",
+      "last_name": "שם משפחה",
+      "first_name": "שם פרטי",
+      "middle_name": "שם האב",
+      "hebrew_name": "שם עברי",
+      "birth_date": "תאריך לידה",
+      "email": "אימייל",
+      "phones": "טלפונים",
+      "phones_hint": "כמה מספרים מפרידים בפסיק",
+      "country": "מדינה",
+      "city": "עיר"
     }
   },
   "finance": {
@@ -5469,7 +5490,12 @@
     "goal_dates_order": "תאריך היעד לפני תאריך ההתחלה",
     "my_track_other_track": "התלמידה כבר משובצת במסלול אחר. רק טורו ואוניברסיטה יכולים להיות יחד",
     "my_track_two_tracks": "לתלמידה כבר יש שני מסלולים",
-    "specialization_exists": "מגמה עם המזהה הזה כבר קיימת במסלול"
+    "specialization_exists": "מגמה עם המזהה הזה כבר קיימת במסלול",
+    "alumni_name_required": "יש למלא שם פרטי",
+    "alumni_invalid_date": "תאריך הלידה לא תקין",
+    "alumni_invalid_year": "שנת הסיום לא תקינה",
+    "alumni_invalid_email": "כתובת האימייל לא תקינה",
+    "alumni_duplicate": "כבר קיימת במערכת אישה עם אותו שם ואותו תאריך לידה"
   },
   "workflow": {
     "error": "שגיאה"

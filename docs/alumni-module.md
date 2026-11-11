@@ -47,9 +47,19 @@
   `graduated`, join к `persons`, дополнение полями `alumni_profiles`).
   Право: `alumni.view`. Фильтр `?search=` (по ФИО/email/учреждению —
   app-side).
-- `PATCH /api/alumni/[id]` — обновление профиля выпускника; `[id]` —
-  `alumni_profiles.id`. Правятся только `current_location`,
-  `current_occupation`, `notes`. Право: `alumni.manage`.
+  Удалённые (`is_deleted`) не показываются. В ответе `can_manage`.
+- `POST /api/alumni` — ручное добавление выпускницы: persons + journey
+  (`graduated`) + `alumni_profiles` + строка истории статусов. Дубль по
+  фамилии+имени+дате рождения → 409 `alumni_duplicate`. Право: `alumni.manage`.
+- `PATCH /api/alumni/journeys/[journeyId]` — правка любых полей выпускницы:
+  личные (persons: ФИО, еврейское имя, дата рождения, телефоны, email,
+  страна/город) и выпуска (`alumni_profiles`, все поля, включая год/рамку/
+  программу). Меняется только присланное. Право: `alumni.manage`.
+- `DELETE /api/alumni/journeys/[journeyId]` — мягкое удаление дела
+  выпускницы (`is_deleted`, `deleted_at`, `deleted_by`); человек и история
+  остаются. Право: `alumni.manage`.
+- `PATCH /api/alumni/[id]` — старая правка трёх полей профиля по
+  `alumni_profiles.id`; экран её больше не вызывает.
 
 Права проверяются через `lib/alumni/permissions.ts` (тот же паттерн, что
 `lib/education/permissions.ts`, но `module='alumni'`, привилегии
@@ -58,12 +68,12 @@
 ## UI
 
 - `/dashboard/alumni` — список выпускников (таблица: ФИО, год выпуска,
-  учреждение, направление, занятость, местоположение; поиск; клик по
-  строке → карточка).
+  рамка, программа, занятость; поиск; клик по строке → карточка). С
+  `alumni.manage` — кнопка «בוגרת חדשה» (окно `AlumniFormModal`).
 - `/dashboard/alumni/[id]` (`[id]` = journey id) — карточка выпускника.
   Переиспользует `LeadViewClient` (данные персоны и история статусов —
-  **только просмотр**) и добавляет редактируемую панель профиля
-  `AlumniProfilePanel` (правка — под `alumni.manage`). Клиентская обёртка
+  **только просмотр**) и добавляет панель профиля `AlumniProfilePanel`:
+  с `alumni.manage` — «עריכה» (окно со всеми полями) и «מחיקה». Клиентская обёртка
   `AlumniCardClient` резолвит подписи модуля и прокидывает панель через
   новый необязательный проп `extraPanel` / `navContext` компонента
   `LeadViewClient` (поведение карточек «Образования» не изменилось).
