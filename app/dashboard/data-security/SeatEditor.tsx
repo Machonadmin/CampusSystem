@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
-import { getModuleColor } from '@/lib/module-colors'
 import type { UnitNode } from '@/lib/data-security/units'
 import { flattenUnits } from '@/lib/data-security/units'
 import type { PersonAccess } from '@/lib/data-security/load'
@@ -106,7 +105,7 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
         <SubmitButton
           loading={saving}
           onClick={save}
-          style={{ width: '100%', padding: '11px 0', borderRadius: 9, border: 0, background: getModuleColor('data_security'), color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+          style={{ width: '100%', padding: '11px 0', borderRadius: 9, border: 0, background: 'var(--action)', color: 'var(--action-contrast)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
         >{t('seat_save')}</SubmitButton>
       }
     >

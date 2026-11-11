@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -45,7 +44,6 @@ interface Props {
   onSaved: () => void
 }
 
-const accent = getModuleColor('education')
 const DEFAULT_PRICE = 210000
 
 function trackName(tr: Track, lang: string): string {
@@ -257,8 +255,8 @@ export default function SubjectModal({ mode, initial, tracks, defaults, onClose,
               loading={saving}
               loadingLabel={t('common.saving')}
               style={{
-                padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-                background: accent, border: 'none', borderRadius: 8,
+                padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+                background: 'var(--action)', border: 'none', borderRadius: 8,
                 opacity: saving ? 0.6 : 1,
               }}
             >

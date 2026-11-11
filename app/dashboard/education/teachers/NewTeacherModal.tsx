@@ -14,7 +14,7 @@ import type { NewTeacherDept } from './TeachersClient'
  * подразделение — список подразделений здесь лишь подсказка.
  */
 export default function NewTeacherModal({
-  depts, accent, onClose,
+  depts, onClose,
 }: { depts: NewTeacherDept[]; accent: string; onClose: () => void }) {
   const t = useTranslations('education.teachers_hub')
   const { lang } = useLang()
@@ -82,7 +82,7 @@ export default function NewTeacherModal({
           onClick={save}
           disabled={!canSave}
           style={{
-            padding: '8px 18px', fontSize: 13.5, fontWeight: 600, color: '#fff', background: accent,
+            padding: '8px 18px', fontSize: 13.5, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)',
             border: 'none', borderRadius: 8, cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : 0.55,
           }}
         >

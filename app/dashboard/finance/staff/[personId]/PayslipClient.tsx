@@ -96,7 +96,6 @@ function EntryForm({ initial, editing, onSubmit, onCancel, busy }: {
 }) {
   const t = useTranslations('finance.staff')
   const tCommon = useTranslations('common')
-  const primary = getModuleColor('finance', 'primary')
 
   const [entryType, setEntryType] = useState<EntryType>((initial?.entry_type as EntryType) ?? 'other')
   const [entryDate, setEntryDate] = useState(initial?.entry_date ?? todayISO())
@@ -168,7 +167,7 @@ function EntryForm({ initial, editing, onSubmit, onCancel, busy }: {
           {tCommon('cancel')}
         </button>
         <SubmitButton onClick={submit} loading={busy}
-          style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+          style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--action)', color: 'var(--action-contrast)', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
           {tCommon('save')}
         </SubmitButton>
       </div>
@@ -433,7 +432,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
           {canManage && (
             <div style={{ marginTop: 14, display: 'flex', gap: 10 }}>
               <SubmitButton onClick={saveRate} loading={savingRate}
-                style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: savingRate ? 'default' : 'pointer', opacity: savingRate ? 0.6 : 1 }}>
+                style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--action)', color: 'var(--action-contrast)', cursor: savingRate ? 'default' : 'pointer', opacity: savingRate ? 0.6 : 1 }}>
                 {t('save_rates')}
               </SubmitButton>
               <SubmitButton onClick={generateTeaching} loading={generating}
@@ -468,7 +467,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
                   </span>
                 ) : canApprove && (
                   <SubmitButton onClick={approve} loading={approving}
-                    style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: approving ? 'default' : 'pointer', opacity: approving ? 0.6 : 1 }}>
+                    style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--action)', color: 'var(--action-contrast)', cursor: approving ? 'default' : 'pointer', opacity: approving ? 0.6 : 1 }}>
                     {t('approve')}
                   </SubmitButton>
                 )}
@@ -514,7 +513,7 @@ export default function PayslipClient({ personId, fullName, hebrewName, canManag
               <div style={cardTitle}>{t('entries_title')}</div>
               {canManage && !adding && (
                 <button onClick={() => { setAdding(true); setEditingId(null) }}
-                  style={{ fontSize: 13, fontWeight: 600, padding: '7px 14px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: 'pointer' }}>
+                  style={{ fontSize: 13, fontWeight: 600, padding: '7px 14px', border: 'none', borderRadius: 8, background: 'var(--action)', color: 'var(--action-contrast)', cursor: 'pointer' }}>
                   + {t('add_entry')}
                 </button>
               )}

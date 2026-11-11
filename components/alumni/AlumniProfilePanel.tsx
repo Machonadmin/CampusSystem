@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { getModuleColor } from '@/lib/module-colors'
 
 export interface AlumniProfileData {
   id: string
@@ -166,7 +165,7 @@ export default function AlumniProfilePanel({ profile, canManage }: Props) {
               disabled={saving}
               style={{
                 padding: '7px 16px', fontSize: 13, fontWeight: 500,
-                background: getModuleColor('alumni', 'primary'), color: '#fff', border: 'none', borderRadius: 8,
+                background: 'var(--action)', color: 'var(--action-contrast)', border: 'none', borderRadius: 8,
                 cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1,
               }}
             >

@@ -1,12 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 
-const accent = getModuleColor('finance')
 
 interface Settings { default_year_tuition: number; default_semester_tuition: number; currency: string; default_discount_percent: number }
 interface Approval { id: string; requested_percent: number; status: string; note: string | null; journey: { person: { full_name: string | null; hebrew_name: string | null } | null } | null }
@@ -92,7 +90,7 @@ export default function FinanceAdminClient() {
               <input value={settings.currency} disabled={!canEditSettings} onChange={e => setSettings({ ...settings, currency: e.target.value })} style={{ ...inp, width: 80 }} /></label>
             <label style={{ display: 'grid', gap: 4 }}><span style={{ fontSize: 12, color: 'var(--text)' }}>{t('discount_pct')}</span>
               <input type="number" min={0} max={100} value={settings.default_discount_percent} disabled={!canEditSettings} onChange={e => setSettings({ ...settings, default_discount_percent: Number(e.target.value) })} style={{ ...inp, width: 90 }} /></label>
-            {canEditSettings && <button onClick={saveSettings} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>{t('save')}</button>}
+            {canEditSettings && <button onClick={saveSettings} disabled={busy} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '8px 18px', cursor: 'pointer' }}>{t('save')}</button>}
           </div>
         </section>
       )}

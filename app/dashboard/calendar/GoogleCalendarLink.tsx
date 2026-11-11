@@ -98,7 +98,7 @@ export function GoogleCalendarLink({ primary }: { primary: string }) {
               disabled={!url}
               style={{
                 fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 8,
-                border: 'none', cursor: url ? 'pointer' : 'default', background: primary, color: '#fff',
+                border: 'none', cursor: url ? 'pointer' : 'default', background: 'var(--action)', color: 'var(--action-contrast)',
                 opacity: url ? 1 : 0.5,
               }}
             >

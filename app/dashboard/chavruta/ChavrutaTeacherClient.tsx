@@ -617,7 +617,7 @@ export default function ChavrutaTeacherClient({ initialDate }: { initialDate?: s
                           disabled={savingEdit}
                           style={{
                             padding: '7px 16px', fontSize: 12, fontWeight: 600,
-                            background: accent, color: '#fff', border: 'none', borderRadius: 8,
+                            background: 'var(--action)', color: 'var(--action-contrast)', border: 'none', borderRadius: 8,
                             cursor: savingEdit ? 'not-allowed' : 'pointer',
                           }}
                         >{savingEdit ? t('saving') : t('save')}</button>

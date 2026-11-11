@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -29,7 +28,6 @@ interface Props {
   onSaved: () => void
 }
 
-const accent = getModuleColor('education')
 
 export default function StudyGroupModal({ mode, initial, departments, onClose, onSaved }: Props) {
   const t = useTranslations('education.study')
@@ -218,7 +216,7 @@ export default function StudyGroupModal({ mode, initial, departments, onClose, o
             </button>
             <SubmitButton
               type="submit" loading={saving} loadingLabel={t('common.saving')}
-              style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}
+              style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}
             >
               {mode === 'create' ? t('common.create') : t('common.save')}
             </SubmitButton>

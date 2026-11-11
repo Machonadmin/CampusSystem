@@ -314,7 +314,7 @@ interface LessonFormModalProps {
   onDone: () => void
 }
 
-function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: LessonFormModalProps) {
+function LessonFormModal({ groupId, lesson, onClose, onDone }: LessonFormModalProps) {
   const t = useTranslations('education.journal')
   const tCommon = useTranslations('common')
 
@@ -432,8 +432,8 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
           <SubmitButton
             onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
             style={{
-              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-              background: accentColor, border: 'none', borderRadius: 8,
+              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+              background: 'var(--action)', border: 'none', borderRadius: 8,
               opacity: saving ? 0.55 : 1,
             }}
           >

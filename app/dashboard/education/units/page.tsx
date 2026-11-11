@@ -240,7 +240,7 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
       bodyStyle={{ display: 'grid', gap: 12 }}
       footer={<>
         <SubmitButton onClick={submit} loading={saving} disabled={saving || (mode === 'create' ? !firstName.trim() : !personId.trim())}
-          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: accent, color: '#fff', opacity: saving ? 0.6 : 1 }}>
+          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: 'var(--action)', color: 'var(--action-contrast)', opacity: saving ? 0.6 : 1 }}>
           {t('units.create_btn')}
         </SubmitButton>
       </>}

@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -10,7 +9,6 @@ import { Modal } from '@/components/ui/Modal'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
 
 const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
-const accent = getModuleColor('education')
 
 interface DayType {
   code: string
@@ -133,7 +131,7 @@ export default function NoLessonDaysClient() {
   const scopeLabel = (s: string) => (s === 'all' ? t('scope_all') : s === KODESH_DEPT_ID ? t('scope_kodesh') : s)
 
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', outline: 'none' }
-  const btn: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }
+  const btn: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer' }
   const rowSel: React.CSSProperties = { padding: '4px 8px', fontSize: 12, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', outline: 'none' }
 
   if (forbidden) return <ForbiddenState />
@@ -329,7 +327,7 @@ function DayTypesModal({ onClose, onChanged, t }: { onClose: () => void; onChang
           {chk(kod, () => setKod(v => !v), t('blocks_kodesh'))}
           {chk(short, () => setShort(v => !v), t('is_shortened'))}
           <div style={{ flex: 1 }} />
-          <button onClick={add} disabled={busy} style={{ fontSize: 12.5, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{t('add_type')}</button>
+          <button onClick={add} disabled={busy} style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>{t('add_type')}</button>
         </div>
       </div>
 

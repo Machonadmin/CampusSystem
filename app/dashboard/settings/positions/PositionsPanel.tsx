@@ -413,8 +413,8 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
             loading={saving}
             loadingLabel={t('saving')}
             style={{
-              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-              background: accent, border: 'none', borderRadius: 8,
+              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+              background: 'var(--action)', border: 'none', borderRadius: 8,
               opacity: saving ? 0.7 : 1,
             }}
           >

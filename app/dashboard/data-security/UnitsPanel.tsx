@@ -315,7 +315,7 @@ export default function UnitsPanel({ units, staff, canManageUnits, t, onReload, 
             onClick={() => setEditing({ parent_id: null, name_he: '', name: '', name_en: '' })}
             style={{
               padding: '7px 14px', borderRadius: 9, border: 0,
-              background: getModuleColor('data_security'), color: '#fff',
+              background: 'var(--action)', color: 'var(--action-contrast)',
               fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
             }}
           >+ {t('units_new')}</button>

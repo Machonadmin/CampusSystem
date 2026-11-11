@@ -236,8 +236,8 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
               onClick={d.handleAddWatcher}
               disabled={!d.newWatcherId}
               style={{
-                padding: '8px 14px', fontSize: 12, color: '#fff',
-                background: accent, border: 'none', borderRadius: 6,
+                padding: '8px 14px', fontSize: 12, color: 'var(--action-contrast)',
+                background: 'var(--action)', border: 'none', borderRadius: 6,
                 cursor: d.newWatcherId ? 'pointer' : 'not-allowed', opacity: d.newWatcherId ? 1 : 0.5,
               }}
             >
@@ -483,8 +483,8 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
               onClick={d.handleAddComment}
               disabled={d.postingComment || !d.newCommentText.trim()}
               style={{
-                padding: '8px 16px', fontSize: 13, fontWeight: 500, color: '#fff',
-                background: accent, border: 'none', borderRadius: 6,
+                padding: '8px 16px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+                background: 'var(--action)', border: 'none', borderRadius: 6,
                 cursor: d.postingComment || !d.newCommentText.trim() ? 'not-allowed' : 'pointer',
                 opacity: d.postingComment || !d.newCommentText.trim() ? 0.5 : 1,
               }}

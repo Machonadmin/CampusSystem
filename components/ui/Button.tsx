@@ -20,8 +20,9 @@ export type ButtonSize = 'sm' | 'md'
  * на тёмную.
  *
  * Варианты:
- *   primary   — акцентная заливка, текст --accent-contrast (в тёмной теме он
- *               тёмный, а не белый: именно этого не умели старые кнопки);
+ *   primary   — заливка цветом действия --action, текст --action-contrast
+ *               (в тёмной теме он тёмный, а не белый: именно этого не умели
+ *               старые кнопки);
  *   secondary — поверхность + рамка (значение по умолчанию, бывший btnGhost);
  *   ghost     — прозрачная, без рамки (действия внутри строк и панелей);
  *   danger    — тонированная опасным цветом (удаление).
@@ -41,9 +42,10 @@ const SIZE: Record<ButtonSize, CSSProperties> = {
 
 const VARIANT: Record<ButtonVariant, CSSProperties> = {
   primary: {
-    background: 'var(--accent)',
-    color: 'var(--accent-contrast)',
-    border: '1px solid var(--accent)',
+    // Единый цвет действия (этап 2 дизайн-плана) — тот же, что у PageActionButton.
+    background: 'var(--action)',
+    color: 'var(--action-contrast)',
+    border: '1px solid var(--action)',
   },
   secondary: {
     background: 'var(--surface)',

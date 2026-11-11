@@ -175,7 +175,7 @@ export default function SubjectSemestersModal({ subjectId, subjectName, onClose 
               <button
                 onClick={() => save(row)}
                 disabled={savingId === row.id}
-                style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: savingId === row.id ? 'wait' : 'pointer', opacity: savingId === row.id ? 0.6 : 1 }}
+                style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, cursor: savingId === row.id ? 'wait' : 'pointer', opacity: savingId === row.id ? 0.6 : 1 }}
               >
                 {savingId === row.id ? t('common.saving') : t('common.save')}
               </button>

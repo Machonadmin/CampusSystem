@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateTime } from '@/lib/i18n/format-date'
-import { getModuleColor } from '@/lib/module-colors'
 import { toast } from '@/components/ui/toast'
 
 interface Evaluation { id: string; body: string; created_at: string; author: string | null }
@@ -17,7 +16,6 @@ export default function EvaluationsPanel({ journeyId }: { journeyId: string }) {
   const t = useTranslations('education.evaluations')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
-  const accent = getModuleColor('education')
 
   const [items, setItems] = useState<Evaluation[]>([])
   const [canWrite, setCanWrite] = useState(false)
@@ -59,7 +57,7 @@ export default function EvaluationsPanel({ journeyId }: { journeyId: string }) {
           <textarea aria-label={t('placeholder')} value={body} onChange={e => setBody(e.target.value)} rows={2} placeholder={t('placeholder')}
             style={{ flex: 1, padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none', resize: 'vertical' }} />
           <button onClick={add} disabled={saving || !body.trim()}
-            style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '9px 14px', cursor: body.trim() ? 'pointer' : 'default', opacity: body.trim() && !saving ? 1 : 0.6, whiteSpace: 'nowrap' }}>
+            style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', border: 'none', borderRadius: 8, padding: '9px 14px', cursor: body.trim() ? 'pointer' : 'default', opacity: body.trim() && !saving ? 1 : 0.6, whiteSpace: 'nowrap' }}>
             {t('add')}
           </button>
         </div>

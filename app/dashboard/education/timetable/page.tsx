@@ -281,7 +281,7 @@ export default function TimetablePage() {
         {canEdit && slots.length > 0 && (
           <button type="button" onClick={() => setFormSlot({ create: true })} style={{
             fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-            border: 'none', background: accent, color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+            border: 'none', background: 'var(--action)', color: 'var(--action-contrast)', cursor: 'pointer', whiteSpace: 'nowrap',
           }}>+ {t('add_lesson', 'הוספת שיעור שבועי')}</button>
         )}
       </div>
@@ -310,7 +310,7 @@ export default function TimetablePage() {
           {canEdit && (
             <button type="button" onClick={() => setFormSlot({ create: true })} style={{
               marginTop: 14, fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 8,
-              border: 'none', background: accent, color: '#fff', cursor: 'pointer',
+              border: 'none', background: 'var(--action)', color: 'var(--action-contrast)', cursor: 'pointer',
             }}>+ {t('add_lesson', 'הוספת שיעור שבועי')}</button>
           )}
         </div>

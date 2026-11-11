@@ -201,7 +201,7 @@ function MergeDetail({ pair, onBack, onDone, onClose }: { pair: [ClusterPerson, 
         <div style={{ fontSize: 40 }}>✅</div>
         <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginTop: 8 }}>{t('done')}</div>
         <div style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 6 }}>{t('done_body')}</div>
-        <button onClick={onClose} style={{ marginTop: 18, padding: '9px 22px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tCommon('close')}</button>
+        <button onClick={onClose} style={{ marginTop: 18, padding: '9px 22px', borderRadius: 8, border: 'none', background: 'var(--action)', color: 'var(--action-contrast)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer' }}>{tCommon('close')}</button>
       </div>
     )
   }
@@ -277,7 +277,7 @@ function MergeDetail({ pair, onBack, onDone, onClose }: { pair: [ClusterPerson, 
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'grid', gap: 10 }}>
             <div style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 600 }}>⚠ {t('confirm_warn').replace('{name}', nameOf(otherId))}</div>
             <SubmitButton onClick={doMerge} loading={busy} disabled={busy}
-              style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: accent, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
+              style={{ padding: '10px 20px', borderRadius: 8, border: 'none', background: 'var(--action)', color: 'var(--action-contrast)', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
               {t('confirm_btn').replace('{keep}', nameOf(survivorId))}
             </SubmitButton>
           </div>

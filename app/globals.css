@@ -27,6 +27,11 @@
   --accent-strong: #0f766e;
   --accent-contrast: #ffffff;
   --accent-tint: rgba(13, 148, 136, 0.10);
+  /* Цвет ДЕЙСТВИЯ: заливка основной кнопки во ВСЕХ модулях (дизайн-план,
+     этап 2). Цвет модуля — только опознавательный знак (полоса, иконка,
+     пункт меню), кнопки им больше не красим. Контраст текста ≥ 4.5:1. */
+  --action: #0f766e;
+  --action-contrast: #ffffff;
   --warn: #98620c;
   --warn-tint: rgba(196, 127, 16, 0.12);
   --danger: #cc333f;
@@ -57,6 +62,8 @@
     --accent-strong: #14b8a6;
     --accent-contrast: #06231f;
     --accent-tint: rgba(45, 212, 191, 0.10);
+    --action: #2dd4bf;
+    --action-contrast: #06231f;
     --warn: #f0b429;
     --warn-tint: rgba(240, 180, 41, 0.13);
     --danger: #e05260;
@@ -81,6 +88,7 @@
   --text: #1b2230; --text-muted: #5d6577; --text-faint: #666e80;
   --accent: #0d9488; --accent-strong: #0f766e; --accent-contrast: #ffffff;
   --accent-tint: rgba(13, 148, 136, 0.10);
+  --action: #0f766e; --action-contrast: #ffffff;
   --warn: #98620c; --warn-tint: rgba(196, 127, 16, 0.12);
   --danger: #cc333f; --danger-tint: rgba(207, 63, 74, 0.10);
   --success: #257c54; --success-tint: rgba(47, 158, 107, 0.12);
@@ -97,6 +105,7 @@
   --text: #e8ebf0; --text-muted: #8b93a3; --text-faint: #7a8397;
   --accent: #2dd4bf; --accent-strong: #14b8a6; --accent-contrast: #06231f;
   --accent-tint: rgba(45, 212, 191, 0.10);
+  --action: #2dd4bf; --action-contrast: #06231f;
   --warn: #f0b429; --warn-tint: rgba(240, 180, 41, 0.13);
   --danger: #e05260; --danger-tint: rgba(224, 82, 96, 0.13);
   --success: #3fbf87; --success-tint: rgba(63, 191, 135, 0.13);
