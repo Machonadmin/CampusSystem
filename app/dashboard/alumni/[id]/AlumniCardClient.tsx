@@ -37,7 +37,14 @@ export default function AlumniCardClient({ data, history, profile, canManage, fo
         colorKey: 'alumni',
         sectionLabel: t('card.section'),
       }}
-      extraPanel={<AlumniProfilePanel profile={profile} canManage={canManage} journeyId={data.journeyId} formValues={formValues} />}
+      extraPanel={<AlumniProfilePanel
+        profile={profile}
+        canManage={canManage}
+        journeyId={data.journeyId}
+        formValues={formValues}
+        yearStart={data.academic?.yearStart ?? null}
+        journeyNote={data.comment}
+      />}
     />
   )
 }

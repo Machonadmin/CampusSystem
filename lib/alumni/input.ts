@@ -21,6 +21,7 @@ export interface AlumniInput {
   country?: unknown
   city?: unknown
   graduation_year?: unknown
+  year_start?: unknown
   institution?: unknown
   direction?: unknown
   current_location?: unknown
@@ -52,8 +53,13 @@ export interface ProfilePatch {
   notes?: string | null
 }
 
+/** Поля дела (education_journeys): год поступления. */
+export interface JourneyPatch {
+  year_start?: number | null
+}
+
 export type ParseResult =
-  | { ok: true; person: PersonPatch; address: AddressPatch | null; profile: ProfilePatch }
+  | { ok: true; person: PersonPatch; address: AddressPatch | null; profile: ProfilePatch; journey: JourneyPatch }
   | { ok: false; error: 'name_required' | 'invalid_date' | 'invalid_year' | 'invalid_email' }
 
 function text(v: unknown): string | null {
@@ -85,6 +91,7 @@ export function parseAlumniInput(body: AlumniInput, mode: 'create' | 'update'): 
   const b = (body && typeof body === 'object') ? body : {}
   const person: PersonPatch = {}
   const profile: ProfilePatch = {}
+  const journey: JourneyPatch = {}
   let address: AddressPatch | null = null
 
   if (mode === 'create' || has(b, 'first_name')) {
@@ -119,20 +126,22 @@ export function parseAlumniInput(body: AlumniInput, mode: 'create' | 'update'): 
     if (has(b, 'city')) address.city = text(b.city)
   }
 
-  if (has(b, 'graduation_year')) {
-    const y = text(b.graduation_year)
-    if (y == null) profile.graduation_year = null
-    else {
-      const n = Number(y)
+  for (const k of ['graduation_year', 'year_start'] as const) {
+    if (!has(b, k)) continue
+    const y = text(b[k])
+    let n: number | null = null
+    if (y != null) {
+      n = Number(y)
       if (!Number.isInteger(n) || n < 1900 || n > 2100) return { ok: false, error: 'invalid_year' }
-      profile.graduation_year = n
     }
+    if (k === 'graduation_year') profile.graduation_year = n
+    else journey.year_start = n
   }
   for (const k of ['institution', 'direction', 'current_location', 'current_occupation', 'notes'] as const) {
     if (has(b, k)) profile[k] = text(b[k])
   }
 
-  return { ok: true, person, address, profile }
+  return { ok: true, person, address, profile, journey }
 }
 
 /** Слить правку адреса с текущим адресом (другие ключи — улица и т.п. — сохраняются). */

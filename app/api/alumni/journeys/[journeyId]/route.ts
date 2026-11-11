@@ -12,7 +12,8 @@ import { errorResponse } from '@/lib/api/handler'
  *
  * PATCH  — любые поля формы выпускницы: личные (persons: ФИО, еврейское имя,
  *          дата рождения, телефоны, email, страна/город) и поля выпуска
- *          (alumni_profiles: год, рамка, программа, сейчас, заметки).
+ *          (alumni_profiles: год, рамка, программа, сейчас, заметки) и год
+ *          поступления (education_journeys.year_start).
  *          Меняется только присланное. Профиля нет — создаётся.
  * DELETE — мягкое удаление дела выпускницы (is_deleted=true, кто/когда), как
  *          удаление лида. Человек и его история остаются в базе; из списка и
@@ -49,7 +50,7 @@ export async function PATCH(request: NextRequest, props: Ctx) {
     const body = await request.json().catch(() => ({}))
     const parsed = parseAlumniInput(body, 'update')
     if (!parsed.ok) return apiError(`alumni_${parsed.error}`, 400)
-    const { person, address, profile } = parsed
+    const { person, address, profile, journey } = parsed
 
     const sb = createServerClient({ actorPersonId: session.person_id })
     const j = await loadGraduate(sb, journeyId)
@@ -68,6 +69,15 @@ export async function PATCH(request: NextRequest, props: Ctx) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .update(personPatch as any)
         .eq('id', j.person_id)
+      if (error) throw error
+    }
+
+    if (Object.keys(journey).length > 0) {
+      const { error } = await sb
+        .from('education_journeys')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(journey as any)
+        .eq('id', j.id)
       if (error) throw error
     }
 

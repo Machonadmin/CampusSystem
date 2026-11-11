@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
       id: string
       person_id: string
       opened_at: string | null
+      year_start: number | null
       person: unknown
       primary_department: unknown
       specialty: unknown
@@ -61,8 +62,8 @@ export async function GET(request: NextRequest) {
       const { data, error } = await sb
         .from('education_journeys')
         .select(`
-          id, person_id, opened_at,
-          person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, photo_url),
+          id, person_id, opened_at, year_start,
+          person:persons!applicant_profiles_person_id_fkey(id, full_name, hebrew_name, email, phones, photo_url, address),
           primary_department:departments!education_journeys_primary_department_id_fkey(id, name),
           specialty:specialties!education_journeys_specialty_id_fkey(id, name)
         `)
@@ -122,6 +123,7 @@ export async function GET(request: NextRequest) {
         email?: string | null
         phones?: unknown
         photo_url?: string | null
+        address?: { city?: string | null; country?: string | null } | null
       } | null
       const pid = person?.id ?? j.person_id
       const profile = pid ? profileMap.get(pid) ?? null : null
@@ -135,6 +137,9 @@ export async function GET(request: NextRequest) {
         email: person?.email ?? null,
         phones: flattenPhones(person?.phones),
         photo_url: person?.photo_url ?? null,
+        city: person?.address?.city ?? null,
+        country: person?.address?.country ?? null,
+        year_start: j.year_start ?? null,
         alumni_profile_id: profile?.id ?? null,
         // Приоритет — сохранённый профиль; иначе разворачиваем из journey.
         graduation_year: profile?.graduation_year ?? null,
@@ -154,7 +159,9 @@ export async function GET(request: NextRequest) {
         (a.email ?? '').toLowerCase().includes(search) ||
         a.phones.join(' ').toLowerCase().includes(search) ||
         (a.institution ?? '').toLowerCase().includes(search) ||
-        (a.direction ?? '').toLowerCase().includes(search)
+        (a.direction ?? '').toLowerCase().includes(search) ||
+        (a.city ?? '').toLowerCase().includes(search) ||
+        (a.country ?? '').toLowerCase().includes(search)
       )
     }
 
@@ -201,7 +208,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const parsed = parseAlumniInput(body, 'create')
     if (!parsed.ok) return apiError(`alumni_${parsed.error}`, 400)
-    const { person, address, profile } = parsed
+    const { person, address, profile, journey: journeyPatch } = parsed
 
     const sb = createServerClient({ actorPersonId: session.person_id })
 
@@ -238,6 +245,7 @@ export async function POST(request: NextRequest) {
         person_id: newPerson.id,
         education_status: 'graduated',
         opened_at: today,
+        ...journeyPatch,
       } as any)
       .select('id')
       .single()

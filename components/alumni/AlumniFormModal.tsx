@@ -16,6 +16,7 @@ export interface AlumniFormValues {
   email: string
   country: string
   city: string
+  year_start: string
   graduation_year: string
   institution: string
   direction: string
@@ -27,7 +28,7 @@ export interface AlumniFormValues {
 export const EMPTY_ALUMNI_FORM: AlumniFormValues = {
   last_name: '', first_name: '', middle_name: '', hebrew_name: '', birth_date: '',
   phones: '', email: '', country: '', city: '',
-  graduation_year: '', institution: '', direction: '',
+  year_start: '', graduation_year: '', institution: '', direction: '',
   current_location: '', current_occupation: '', notes: '',
 }
 
@@ -132,6 +133,9 @@ export default function AlumniFormModal({ mode, journeyId, initial, onClose, onS
 
         <FormSection title={t('card.profile_title')}>
           <FormGrid>
+            <FormField label={t('card.year_start')}>
+              <input inputMode="numeric" style={inp} value={v.year_start} onChange={set('year_start')} />
+            </FormField>
             <FormField label={t('card.graduation_year')}>
               <input inputMode="numeric" style={inp} value={v.graduation_year} onChange={set('graduation_year')} />
             </FormField>

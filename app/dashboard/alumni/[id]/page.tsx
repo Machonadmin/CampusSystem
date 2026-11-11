@@ -219,6 +219,7 @@ export default async function AlumniViewPage(props: Props) {
     email: s(p?.email),
     country: s(p?.address?.country),
     city: s(p?.address?.city),
+    year_start: s(j.year_start),
     graduation_year: s(alumniProfile?.graduation_year),
     institution: s(alumniProfile?.institution),
     direction: s(alumniProfile?.direction),

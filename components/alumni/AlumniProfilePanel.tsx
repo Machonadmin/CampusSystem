@@ -24,6 +24,10 @@ interface Props {
   journeyId: string
   /** Текущие значения формы (личные данные + профиль) для окна правки. */
   formValues: AlumniFormValues
+  /** Год поступления (education_journeys.year_start). */
+  yearStart: number | null
+  /** Заметка в деле (education_journeys.notes) — у импортированных из Excel там всё из файла. */
+  journeyNote: string | null
 }
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
@@ -40,7 +44,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
  * С alumni.manage: «עריכה» (окно со ВСЕМИ полями — личными и выпуска) и
  * «מחיקה» (мягкое удаление дела выпускницы, с подтверждением).
  */
-export default function AlumniProfilePanel({ profile, canManage, journeyId, formValues }: Props) {
+export default function AlumniProfilePanel({ profile, canManage, journeyId, formValues, yearStart, journeyNote }: Props) {
   const t = useTranslations('alumni')
   const router = useRouter()
   const [editing, setEditing] = useState(false)
@@ -95,6 +99,7 @@ export default function AlumniProfilePanel({ profile, canManage, journeyId, form
         )}
       </div>
 
+      <Field label={t('card.year_start')} value={yearStart ?? '—'} />
       {profile ? (
         <>
           <Field label={t('card.graduation_year')} value={profile.graduation_year ?? '—'} />
@@ -108,6 +113,7 @@ export default function AlumniProfilePanel({ profile, canManage, journeyId, form
       ) : (
         <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('card.no_profile')}</div>
       )}
+      {journeyNote && <Field label={t('card.journey_note')} value={journeyNote} />}
 
       {error && <div role="alert" style={{ fontSize: 12, color: 'var(--danger)', marginTop: 8 }}>{error}</div>}
 

@@ -3738,7 +3738,8 @@
       "col_email": "Email",
       "col_phone": "Phone",
       "open_card": "Open card",
-      "add": "New graduate"
+      "add": "New graduate",
+      "col_year_start": "Entry year"
     },
     "card": {
       "section": "Graduate",
@@ -3758,7 +3759,9 @@
       "delete": "Delete",
       "delete_title": "Delete graduate",
       "delete_confirm": "The graduate will be removed from the alumni list. Her details stay in the system. Delete?",
-      "delete_error": "Delete failed"
+      "delete_error": "Delete failed",
+      "year_start": "Entry year",
+      "journey_note": "Note on file"
     },
     "form": {
       "new_title": "New graduate",

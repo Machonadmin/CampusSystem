@@ -22,12 +22,13 @@ describe('parseAlumniInput', () => {
       },
       address: { country: 'РФ', city: 'Пятигорск' },
       profile: { graduation_year: 2022, direction: 'Колледж' },
+      journey: {},
     })
   })
 
   it('update: только присланные поля', () => {
     const r = parseAlumniInput({ current_occupation: 'Учитель' }, 'update')
-    expect(r).toEqual({ ok: true, person: {}, address: null, profile: { current_occupation: 'Учитель' } })
+    expect(r).toEqual({ ok: true, person: {}, address: null, profile: { current_occupation: 'Учитель' }, journey: {} })
   })
 
   it('update: пустое имя запрещено, если прислано', () => {
@@ -39,6 +40,11 @@ describe('parseAlumniInput', () => {
     expect(parseAlumniInput({ first_name: 'A', birth_date: '2003-02-30' }, 'create')).toMatchObject({ ok: false, error: 'invalid_date' })
     expect(parseAlumniInput({ first_name: 'A', graduation_year: '20x2' }, 'create')).toMatchObject({ ok: false, error: 'invalid_year' })
     expect(parseAlumniInput({ first_name: 'A', email: 'нет' }, 'create')).toMatchObject({ ok: false, error: 'invalid_email' })
+  })
+
+  it('год поступления идёт в дело', () => {
+    expect(parseAlumniInput({ year_start: '2019' }, 'update')).toMatchObject({ ok: true, journey: { year_start: 2019 } })
+    expect(parseAlumniInput({ year_start: 'abc' }, 'update')).toMatchObject({ ok: false, error: 'invalid_year' })
   })
 
   it('пустой год = null', () => {
