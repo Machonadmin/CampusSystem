@@ -193,6 +193,9 @@ export default function RecruitmentTab() {
         {[
           { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
           { href: '/dashboard/education/recruitment-form', label: t('recruitment_form.title') },
+          // «קהילות» — откуда приходят кандидатки; перенесено сюда из
+          // «הגדרות» раздела «לימודים» (решение владельца 11.11.2026).
+          { href: '/dashboard/education/communities', label: t('communities.nav') },
         ].map(l => (
           <Link key={l.href} href={l.href}
             style={{

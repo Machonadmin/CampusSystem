@@ -46,6 +46,12 @@ const TOP_ITEMS = [
   { key: 'home' as const, href: '/dashboard', icon: I.home },
   { key: 'calendar' as const, href: '/dashboard/calendar', icon: I.calendar },
   { key: 'tasks' as const, href: '/dashboard/tasks', icon: I.tasks },
+]
+
+// Группа «ניהול שלי» (решение владельца 11.11.2026): личные рабочие экраны
+// под одним заголовком сразу после верхних пунктов. Состав и доступ прежние:
+// пункты не гейтятся модульным правом, своё отдаёт API.
+const MY_WORK_ITEMS = [
   { key: 'management' as const, href: '/dashboard/management', icon: I.management },
   // «המסלול שלי» — только у тех, кому /api/education/my-track вернул маршруты.
   { key: 'my_track' as const, href: '/dashboard/my-track', icon: I.my_track },
@@ -274,6 +280,8 @@ export default function Sidebar() {
     if (pathname === '/dashboard/education') return 'recruitment'
     if (pathname.startsWith('/dashboard/education/leads') || pathname.startsWith('/dashboard/education/recruitment')) return 'recruitment'
     if (pathname.startsWith('/dashboard/education/admission')) return 'committee'
+    // «קהילות» живёт в разделе «גיוס» (перенесено из настроек учёбы).
+    if (pathname.startsWith('/dashboard/education/communities')) return 'recruitment'
     if (pathname.startsWith('/dashboard/education/studies')) return 'study'
     if (pathname.startsWith('/dashboard/education/')) return 'study'
     return null
@@ -548,7 +556,7 @@ export default function Sidebar() {
 
       {/* ── Nav ── */}
       <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
-        {TOP_ITEMS.filter(item => item.key !== 'my_track' || hasMyTrack).map(item => {
+        {TOP_ITEMS.map(item => {
           // §10: «בית» (home) ведёт на дом иудаики, а не на общий /dashboard.
           const kodeshHome = isKodeshWorkspace && item.key === 'home'
           const href = kodeshHome ? '/dashboard/education/kodesh-home' : item.href
@@ -567,6 +575,34 @@ export default function Sidebar() {
             />
           )
         })}
+
+        {/* «ניהול שלי» — פאנל ניהול + המסלול שלי под общим заголовком. */}
+        <div>
+          {isOpen ? (
+            <div style={{ padding: '14px 16px 5px' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                {t.nav_groups.my_work}
+              </span>
+            </div>
+          ) : (
+            <div style={{ padding: '12px 6px 4px' }}>
+              <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
+            </div>
+          )}
+          {MY_WORK_ITEMS.filter(item => item.key !== 'my_track' || hasMyTrack).map(item => (
+            <SidebarNavLink
+              key={item.key}
+              href={item.href}
+              iconPath={item.icon}
+              label={t.nav[item.key]}
+              active={isActive(item.href)}
+              isOpen={isOpen}
+              isRTL={isRTL}
+              moduleKey={item.key}
+              soonLabel={t.soon}
+            />
+          ))}
+        </div>
 
         {/* §10: сфокусированный сайдбар кафедры иудаики (перекладка ссылок на уже
             существующие экраны; каждый пункт скрыт при отсутствии права). */}

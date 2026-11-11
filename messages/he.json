@@ -1021,7 +1021,11 @@
         "launch_track_catalog": "מסלולי חול",
         "launch_student_alerts": "התראות על תלמידות",
         "launch_kodesh_home": "מרחב יהדות",
-        "launch_finance_admin": "כספים והנחות"
+        "launch_finance_admin": "כספים והנחות",
+        "launch_group_assign": "שיבוץ",
+        "launch_group_track": "מעקב וטיפול",
+        "launch_group_review": "בדיקה ודוחות",
+        "launch_year_rollover": "מעבר שנה"
       },
       "tabs": {
         "subjects": "מקצועות",
@@ -1032,7 +1036,7 @@
         "semester_groups": "סמסטרים",
         "buildings": "בניינים",
         "settings": "הגדרות",
-        "actions": "לוח בקרה"
+        "actions": "פעולות"
       },
       "common": {
         "all_departments": "כל המחלקות",

@@ -1021,7 +1021,11 @@
         "launch_track_catalog": "Secular tracks",
         "launch_student_alerts": "Student alerts",
         "launch_kodesh_home": "Judaic studies area",
-        "launch_finance_admin": "Finance & discounts"
+        "launch_finance_admin": "Finance & discounts",
+        "launch_group_assign": "Assignment",
+        "launch_group_track": "Follow-up",
+        "launch_group_review": "Review & reports",
+        "launch_year_rollover": "Year rollover"
       },
       "tabs": {
         "subjects": "Subjects",
@@ -1032,7 +1036,7 @@
         "semester_groups": "Semesters",
         "buildings": "Buildings",
         "settings": "Settings",
-        "actions": "Dashboard"
+        "actions": "Actions"
       },
       "common": {
         "all_departments": "All Departments",

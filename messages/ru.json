@@ -1021,7 +1021,11 @@
         "launch_track_catalog": "Светские маршруты",
         "launch_student_alerts": "Оповещения о студентках",
         "launch_kodesh_home": "Пространство иудаики",
-        "launch_finance_admin": "Финансы и скидки"
+        "launch_finance_admin": "Финансы и скидки",
+        "launch_group_assign": "Распределение",
+        "launch_group_track": "Контроль и обработка",
+        "launch_group_review": "Проверка и отчёты",
+        "launch_year_rollover": "Переход на новый год"
       },
       "tabs": {
         "subjects": "Предметы",
@@ -1032,7 +1036,7 @@
         "semester_groups": "Семестры",
         "buildings": "Здания",
         "settings": "Настройки",
-        "actions": "Панель управления"
+        "actions": "Действия"
       },
       "common": {
         "all_departments": "Все подразделения",
