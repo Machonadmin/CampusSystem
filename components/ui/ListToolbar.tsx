@@ -58,7 +58,7 @@ export function ListToolbar({ search, actions, filters, count }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 120px', minWidth: 0, maxWidth: 420 }}>{search}</div>
+        <div style={{ flex: '1 1 120px', minWidth: 0 }}>{search}</div>
         {actions && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginInlineStart: 'auto' }}>
             {actions}

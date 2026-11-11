@@ -17,6 +17,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { PersonLinkBanner } from '@/components/persons/PersonLinkBanner'
 import type { PersonLinkView } from '@/lib/persons/record-link'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Contact {
   id: string
@@ -393,7 +394,7 @@ export default function ContactsClient({ canManage }: { canManage: boolean }) {
         ) : loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+          <EmptyState module="contacts" text={t('list.empty')} style={{ padding: '28px 16px' }} />
         ) : (
           <div className="anim-rise" style={{ overflowX: 'auto' }}>
             <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>

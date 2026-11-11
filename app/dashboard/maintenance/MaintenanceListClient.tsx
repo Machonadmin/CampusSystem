@@ -15,6 +15,7 @@ import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
 import { Icon } from '@/components/ui/Icon'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Ticket {
   id: string
@@ -214,8 +215,8 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
           {canManage && (
             <button onClick={() => setShowForm(v => !v)} style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
-              color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid var(--action-border)', background: 'var(--action)',
+              color: 'var(--action-contrast)', cursor: 'pointer', whiteSpace: 'nowrap',
             }}>
               + {t('list.new_ticket')}
             </button>
@@ -303,7 +304,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       ) : loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : items.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+        <EmptyState module="maintenance" text={t('list.empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {items.map(r => {

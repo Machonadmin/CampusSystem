@@ -18,6 +18,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { formatMoney } from '@/lib/finance/money'
 import type { PersonLinkView } from '@/lib/persons/record-link'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Sponsor {
   id: string
@@ -305,7 +306,7 @@ export default function SponsorsClient({ canManage }: { canManage: boolean }) {
         ) : loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+          <EmptyState module="sponsors" text={t('list.empty')} style={{ padding: '28px 16px' }} />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>

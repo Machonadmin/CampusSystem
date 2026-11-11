@@ -10,6 +10,7 @@ import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Student {
   journey_id: string
@@ -165,7 +166,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
         ) : loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+          <EmptyState module="documents" text={t('list.empty')} style={{ padding: '28px 16px' }} />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
