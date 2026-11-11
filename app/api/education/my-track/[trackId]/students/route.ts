@@ -3,11 +3,12 @@ import { z } from 'zod'
 import { apiError } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import { errorResponse, fetchAllPages, parseBody } from '@/lib/api/handler'
-import { isMissingTable } from '@/lib/supabase/errors'
+import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 import {
   db, loadStudentTracks, loadTrackCatalog, myManagedTrackIds, type AnySB, type TrackFull,
 } from '@/lib/education/track-managers'
 import { planAddToTrack, planRemoveFromTrack } from '@/lib/education/track-picking'
+import { loadSpecializations, specializationBelongsTo } from '@/lib/education/track-specializations'
 
 /**
  * «המסלול שלי» — ответственный маршрута сам выбирает своих студенток.
@@ -17,6 +18,8 @@ import { planAddToTrack, planRemoveFromTrack } from '@/lib/education/track-picki
  *          отмечает. לימודי קודש здесь не участвуют.
  * POST   { journey_id } → добавить в маршрут по правилам lib/education/track-picking
  *          (главный, или дополнительный в паре טורו ↔ אוניברסיטה; чужую не забрать).
+ * PATCH  { journey_id, specialization_id|null } → выбрать מגמה студентки внутри
+ *          этого маршрута (напр. אוניברסיטה → כלכלה / פרסום).
  * DELETE ?journey_id= → снять с ЭТОГО маршрута (если снят главный — оставшийся
  *          дополнительный становится главным).
  *
@@ -64,6 +67,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ trac
       .range(from, to))
 
     const tracksBy = await loadStudentTracks(sb, journeys.map(j => j.id))
+    const specs = await loadSpecializations(sb, { includeInactive: true })
     const students = journeys
       .map(j => ({
         journey_id: j.id,
@@ -76,6 +80,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ trac
     return NextResponse.json({
       track: { id: track.id, code: track.code, name_he: track.name_he, name_ru: track.name_ru, name_en: track.name_en },
       catalog: g.catalog.map(t => ({ id: t.id, code: t.code, category: t.category ?? null, name_he: t.name_he, name_ru: t.name_ru, name_en: t.name_en })),
+      specializations: specs.map(sp => ({ id: sp.id, track_id: sp.track_id, name_he: sp.name_he, name_ru: sp.name_ru, name_en: sp.name_en, is_active: sp.is_active })),
       students,
     })
   } catch (err: unknown) {
@@ -117,6 +122,31 @@ export async function POST(request: NextRequest, props: { params: Promise<{ trac
       throw error
     }
     return NextResponse.json({ ok: true, role: plan.role })
+  } catch (err: unknown) {
+    return errorResponse(err as { status?: number; message?: string })
+  }
+}
+
+const specSchema = z.object({ journey_id: z.string().uuid(), specialization_id: z.string().uuid().nullable() })
+
+export async function PATCH(request: NextRequest, props: { params: Promise<{ trackId: string }> }) {
+  const { trackId } = await props.params
+  try {
+    const body = await parseBody(request, specSchema)
+    const g = await guard(trackId)
+    if ('error' in g) return g.error
+    const { sb, session } = g
+    if (!(await specializationBelongsTo(sb, body.specialization_id, trackId))) return apiError('invalid_reference', 400)
+    const { data, error } = await sb.from('journey_study_tracks')
+      .update({ specialization_id: body.specialization_id, updated_by: session.person_id, updated_at: new Date().toISOString() })
+      .eq('journey_id', body.journey_id).eq('track_id', trackId)
+      .select('journey_id')
+    if (error) {
+      if (isMissingTable(error) || isMissingColumn(error)) return apiError('feature_not_migrated', 503)
+      throw error
+    }
+    if (!data || data.length === 0) return apiError('record_not_found', 404)
+    return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     return errorResponse(err as { status?: number; message?: string })
   }

@@ -19,6 +19,7 @@ interface Track {
   name_ru: string
   name_en: string
   years_count?: number
+  specializations?: Array<{ id: string; name_he: string; name_ru: string; name_en: string; is_active: boolean }>
 }
 
 interface Subject {
@@ -31,6 +32,7 @@ interface Subject {
   is_active: boolean
   study_track_id: string | null
   year_level: number | null
+  specialization_id?: string | null
   track: Track | null
   created_at: string
   updated_at: string
@@ -190,7 +192,13 @@ export default function SubjectsTab() {
                     onMouseLeave={e => { (e.currentTarget as HTMLTableRowElement).style.background = '' }}
                   >
                     <td style={tdStyle} data-label={t('subjects.table_name')}>{localizedName(s, lang)}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('subjects.track_label')}>{trackName(s.track, lang)}</td>
+                    <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('subjects.track_label')}>
+                      {trackName(s.track, lang)}
+                      {(() => {
+                        const sp = tracks.find(tr => tr.id === s.study_track_id)?.specializations?.find(x => x.id === s.specialization_id)
+                        return sp ? ` — ${(lang === 'he' ? sp.name_he : lang === 'en' ? sp.name_en : sp.name_ru) || sp.name_he}` : ''
+                      })()}
+                    </td>
                     <td style={{ ...tdStyle, color: 'var(--text-muted)' }} data-label={t('subjects.year_label')}>{s.year_level ? t(`subjects.year_${s.year_level}`) : '—'}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }} data-label={t('subjects.table_sort_order')}>{s.sort_order}</td>
                     <td style={tdStyle} data-label={t('subjects.table_status')}>

@@ -17,6 +17,8 @@ export interface TrackRow {
   years_count: number
   sort_order: number
   is_active: boolean
+  /** מגמות внутри маршрута (приходят из GET /api/education/study-tracks). */
+  specializations?: Array<{ id: string; code: string; name_he: string; name_ru: string; name_en: string; is_active: boolean }>
 }
 
 interface Props {

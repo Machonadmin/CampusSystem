@@ -1101,7 +1101,9 @@
         "name_ru_label": "Name (Russian)",
         "name_en_label": "Name (English)",
         "add_to_semesters": "Add to semesters",
-        "sem_shared_hint": "Shared semester for all subjects of this track and year — price and status are edited in the semester window"
+        "sem_shared_hint": "Shared semester for all subjects of this track and year — price and status are edited in the semester window",
+        "specialization_label": "Specialization",
+        "specialization_all": "All specializations (shared)"
       },
       "specialties": {
         "add_button": "Specialty",
@@ -1463,7 +1465,9 @@
       "additional_label": "Additional secular tracks",
       "remove_additional": "Remove",
       "add_additional_choose": "Choose a secular track",
-      "add": "Add"
+      "add": "Add",
+      "specialization_label": "Specialization",
+      "specialization_none": "No specialization"
     },
     "study_plan": {
       "title": "Study plan",
@@ -2210,7 +2214,17 @@
       "managers_hint": "A track manager picks the track's students on the \"My track\" screen.",
       "managers_add": "Add manager",
       "managers_empty": "No managers yet",
-      "managers_not_migrated": "Apply the track managers migration first"
+      "managers_not_migrated": "Apply the track managers migration first",
+      "spec_button": "Specializations",
+      "spec_title": "Specializations of «{name}»",
+      "spec_hint": "A specialization is a focus inside the track, e.g. Economics or PR in University.",
+      "spec_empty": "No specializations",
+      "spec_name_label": "Specialization name",
+      "spec_add": "Add",
+      "spec_activate": "Activate",
+      "spec_deactivate": "Deactivate",
+      "spec_name_required": "Enter a specialization name",
+      "spec_list_prefix": "Specializations"
     },
     "no_lesson_days": {
       "title": "No-lesson days",
@@ -5454,7 +5468,8 @@
     "goal_progress_invalid": "Progress must be a whole number from 0 to 100",
     "goal_dates_order": "Target date is before the start date",
     "my_track_other_track": "The student is already in another track. Only Touro and University can be combined",
-    "my_track_two_tracks": "The student already has two tracks"
+    "my_track_two_tracks": "The student already has two tracks",
+    "specialization_exists": "A specialization with this code already exists in the track"
   },
   "workflow": {
     "error": "Error"
@@ -6105,6 +6120,8 @@
     "load_error": "Failed to load",
     "action_failed": "Action failed",
     "no_tracks": "You are not a manager of any track. Ask whoever manages the tracks catalog to add you.",
-    "pair_hint": "Touro and University can be combined: one main, one additional. Other tracks do not combine."
+    "pair_hint": "Touro and University can be combined: one main, one additional. Other tracks do not combine.",
+    "spec_label": "Specialization",
+    "spec_choose": "Choose specialization"
   }
 }

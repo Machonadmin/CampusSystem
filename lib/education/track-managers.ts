@@ -64,7 +64,11 @@ export async function loadStudentTracks(sb: AnySB, journeyIds: string[]): Promis
   for (let i = 0; i < journeyIds.length; i += 300) {
     const chunk = journeyIds.slice(i, i + 300)
     let { data, error } = await sb.from('journey_study_tracks')
-      .select('journey_id, track_id, role, completed_at').in('journey_id', chunk)
+      .select('journey_id, track_id, role, completed_at, specialization_id').in('journey_id', chunk)
+    if (error && isMissingColumn(error)) {
+      ;({ data, error } = await sb.from('journey_study_tracks')
+        .select('journey_id, track_id, role, completed_at').in('journey_id', chunk))
+    }
     if (error && isMissingColumn(error)) {
       const fb = await sb.from('journey_study_tracks').select('journey_id, track_id').in('journey_id', chunk)
       data = (fb.data ?? []).map((r: Record<string, unknown>) => ({ ...r, role: 'primary', completed_at: null }))
@@ -74,11 +78,11 @@ export async function loadStudentTracks(sb: AnySB, journeyIds: string[]): Promis
       if (isMissingTable(error)) return out
       throw error
     }
-    for (const r of (data ?? []) as Array<{ journey_id: string; track_id: string | null; role: string | null; completed_at: string | null }>) {
+    for (const r of (data ?? []) as Array<{ journey_id: string; track_id: string | null; role: string | null; completed_at: string | null; specialization_id?: string | null }>) {
       if (!r.track_id || r.completed_at) continue
       const role: TrackRole = r.role === 'additional' ? 'additional' : 'primary'
       const list = out.get(r.journey_id) ?? []
-      list.push({ track_id: r.track_id, role })
+      list.push({ track_id: r.track_id, role, specialization_id: r.specialization_id ?? null })
       out.set(r.journey_id, list)
     }
   }

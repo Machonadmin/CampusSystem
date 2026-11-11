@@ -15,6 +15,7 @@ interface Track {
   name_ru: string
   name_en: string
   years_count?: number
+  specializations?: Array<{ id: string; name_he: string; name_ru: string; name_en: string; is_active: boolean }>
 }
 
 interface SubjectInitial {
@@ -27,6 +28,7 @@ interface SubjectInitial {
   is_active: boolean
   study_track_id: string | null
   year_level: number | null
+  specialization_id?: string | null
 }
 
 /** Предзаполнение при создании (например, из контекста маршрута/года). Пока не используется. */
@@ -67,12 +69,16 @@ export default function SubjectModal({ mode, initial, tracks, defaults, onClose,
   const createDefaults = mode === 'create' ? defaults : undefined
   const [trackId, setTrackId] = useState(initial?.study_track_id ?? createDefaults?.study_track_id ?? '')
   const [yearLevel, setYearLevel] = useState(String(initial?.year_level ?? createDefaults?.year_level ?? 1))
+  const [specId, setSpecId] = useState(initial?.specialization_id ?? '')
   const [price, setPrice] = useState(String(DEFAULT_PRICE))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // שנים אפשריות תלויות במסלול הנבחר (years_count). ברירת מחדל 4 — в YearLevelSelect.
   const selectedTrack = tracks.find(tr => tr.id === trackId)
+  const trackSpecs = (selectedTrack?.specializations ?? []).filter(sp => sp.is_active || sp.id === specId)
+  const specLabel = (sp: { name_he: string; name_ru: string; name_en: string }) =>
+    (lang === 'he' ? sp.name_he : lang === 'en' ? sp.name_en : sp.name_ru) || sp.name_he
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -95,6 +101,8 @@ export default function SubjectModal({ mode, initial, tracks, defaults, onClose,
         study_track_id: trackId,
         year_level: Number(yearLevel) || 1,
       }
+      // מגמה — только когда у маршрута они есть или была выбрана (до миграции ключа нет).
+      if (trackSpecs.length > 0 || initial?.specialization_id) payload.specialization_id = specId || null
       if (mode === 'create') payload.tuition_amount = Number(price) >= 0 ? Number(price) : DEFAULT_PRICE
       if (mode === 'edit') payload.is_active = isActive
       if (force) payload.force = true
@@ -177,6 +185,7 @@ export default function SubjectModal({ mode, initial, tracks, defaults, onClose,
                 onChange={e => {
                   const id = e.target.value
                   setTrackId(id)
+                  setSpecId('')
                   const tr = tracks.find(x => x.id === id)
                   const max = Math.max(1, tr?.years_count ?? 4)
                   if (Number(yearLevel) > max) setYearLevel('1')
@@ -200,6 +209,16 @@ export default function SubjectModal({ mode, initial, tracks, defaults, onClose,
               />
             </div>
           </div>
+
+          {trackSpecs.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <label style={lbl}>{t('subjects.specialization_label')}</label>
+              <select aria-label={t('subjects.specialization_label')} value={specId} onChange={e => setSpecId(e.target.value)} style={inp}>
+                <option value="">{t('subjects.specialization_all')}</option>
+                {trackSpecs.map(sp => <option key={sp.id} value={sp.id}>{specLabel(sp)}</option>)}
+              </select>
+            </div>
+          )}
 
           {mode === 'create' && (
             <div style={{ marginBottom: 12 }}>

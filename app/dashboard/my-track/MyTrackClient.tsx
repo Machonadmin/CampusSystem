@@ -11,6 +11,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { planAddToTrack, type StudentTrackRow, type TrackLite } from '@/lib/education/track-picking'
 
 interface TrackName { id: string; code: string; category?: string | null; name_he: string; name_ru: string; name_en: string }
+interface Spec { id: string; track_id: string; name_he: string; name_ru: string; name_en: string; is_active: boolean }
 interface Student {
   journey_id: string
   name: string
@@ -25,6 +26,7 @@ export default function MyTrackClient() {
   const [tracks, setTracks] = useState<TrackName[] | null>(null)
   const [trackId, setTrackId] = useState<string>('')
   const [catalog, setCatalog] = useState<TrackName[]>([])
+  const [specs, setSpecs] = useState<Spec[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
@@ -57,6 +59,7 @@ export default function MyTrackClient() {
       const b = await r.json()
       setStudents(b.students ?? [])
       setCatalog(b.catalog ?? [])
+      setSpecs(b.specializations ?? [])
     } catch {
       toastError(t('load_error'))
     } finally { setLoading(false) }
@@ -65,6 +68,25 @@ export default function MyTrackClient() {
 
   const catalogMap = useMemo(() => new Map<string, TrackLite & TrackName>(catalog.map(c => [c.id, c])), [catalog])
   const target = catalogMap.get(trackId)
+  const specName = useCallback((id: string | null | undefined) => {
+    const sp = specs.find(x => x.id === id)
+    return sp ? ((lang === 'he' ? sp.name_he : lang === 'ru' ? sp.name_ru : sp.name_en) || sp.name_he) : null
+  }, [specs, lang])
+  const mySpecs = useMemo(() => specs.filter(sp => sp.track_id === trackId && sp.is_active), [specs, trackId])
+
+  const setSpec = async (s: Student, specializationId: string) => {
+    setBusy(s.journey_id)
+    try {
+      const r = await fetch(`/api/education/my-track/${trackId}/students`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ journey_id: s.journey_id, specialization_id: specializationId || null }),
+      })
+      if (!r.ok) { const b = await r.json().catch(() => ({})); toastError(b.error ?? t('action_failed')); return }
+      setStudents(prev => prev.map(x => x.journey_id !== s.journey_id ? x : {
+        ...x, tracks: x.tracks.map(r2 => r2.track_id === trackId ? { ...r2, specialization_id: specializationId || null } : r2),
+      }))
+    } finally { setBusy(null) }
+  }
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -153,7 +175,7 @@ export default function MyTrackClient() {
                     <th style={th}>{t('col_name')}</th>
                     <th style={th}>{t('col_department')}</th>
                     <th style={th}>{t('col_tracks')}</th>
-                    <th style={{ ...th, width: 140 }}>{t('col_action')}</th>
+                    <th style={{ ...th, width: 220 }}>{t('col_action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -173,13 +195,29 @@ export default function MyTrackClient() {
                                 background: r.track_id === trackId ? 'var(--accent-tint, var(--surface-2))' : 'var(--surface-2)',
                                 fontWeight: r.track_id === trackId ? 600 : 400,
                               }}>
-                                {nameOf(catalogMap.get(r.track_id))} · {t(r.role === 'primary' ? 'role_primary' : 'role_additional')}
+                                {nameOf(catalogMap.get(r.track_id))}
+                                {specName(r.specialization_id) && ` — ${specName(r.specialization_id)}`}
+                                {' · '}{t(r.role === 'primary' ? 'role_primary' : 'role_additional')}
                               </span>
                             ))}
                         </td>
                         <td style={td} data-label="">
                           {inMine ? (
-                            <Button size="sm" onClick={() => remove(s)} disabled={busy === s.journey_id}>{t('remove')}</Button>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                              {mySpecs.length > 0 && (
+                                <select
+                                  aria-label={t('spec_label')}
+                                  value={s.tracks.find(r => r.track_id === trackId)?.specialization_id ?? ''}
+                                  onChange={e => setSpec(s, e.target.value)}
+                                  disabled={busy === s.journey_id}
+                                  style={{ ...input, padding: '4px 8px', fontSize: 12 }}
+                                >
+                                  <option value="">{t('spec_choose')}</option>
+                                  {mySpecs.map(sp => <option key={sp.id} value={sp.id}>{specName(sp.id)}</option>)}
+                                </select>
+                              )}
+                              <Button size="sm" onClick={() => remove(s)} disabled={busy === s.journey_id}>{t('remove')}</Button>
+                            </div>
                           ) : plan?.kind === 'add' ? (
                             <Button size="sm" variant="primary" onClick={() => add(s)} disabled={busy === s.journey_id}>{t('add')}</Button>
                           ) : (

@@ -23,6 +23,8 @@ export interface TrackLite {
 export interface StudentTrackRow {
   track_id: string
   role: TrackRole
+  /** מגמה внутри маршрута (напр. אוניברסיטה → כלכלה); null — не выбрана. */
+  specialization_id?: string | null
 }
 
 export function isTouroTrack(t: TrackLite): boolean {

@@ -10,6 +10,7 @@ import {
   requireTracksCatalogPrivilege,
 } from '@/lib/education/permissions'
 import { parseBody, jsonError } from '@/lib/api/handler'
+import { attachSpecializations, loadSpecializations } from '@/lib/education/track-specializations'
 
 /**
  * GET /api/education/study-tracks — справочник маршрутов (מסלולי לימוד).
@@ -47,7 +48,8 @@ export async function GET(request: NextRequest) {
         }
         throw error
       }
-      return NextResponse.json({ tracks: data ?? [] })
+      const specs = await loadSpecializations(sb, { includeInactive: true })
+      return NextResponse.json({ tracks: attachSpecializations((data ?? []) as unknown as Array<{ id: string }>, specs) })
     }
 
     const allowed =
@@ -77,7 +79,8 @@ export async function GET(request: NextRequest) {
       }
       throw error
     }
-    return NextResponse.json({ tracks: data ?? [] })
+    const specs = await loadSpecializations(sb)
+    return NextResponse.json({ tracks: attachSpecializations((data ?? []) as unknown as Array<{ id: string }>, specs) })
   } catch (err: unknown) {
     return jsonError(err)
   }

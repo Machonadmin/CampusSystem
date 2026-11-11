@@ -4,8 +4,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 
-interface Track { id: string; code: string; name_he: string; name_ru: string; name_en: string; sort_order: number; years_count?: number }
-interface TrackRow { track_id: string; role?: string; notes?: string | null; year_level?: number; completed_at?: string | null }
+interface Spec { id: string; name_he: string; name_ru: string; name_en: string; is_active: boolean }
+interface Track { id: string; code: string; name_he: string; name_ru: string; name_en: string; sort_order: number; years_count?: number; specializations?: Spec[] }
+interface TrackRow { track_id: string; role?: string; notes?: string | null; year_level?: number; completed_at?: string | null; specialization_id?: string | null }
+
+function specName(tr: Track | undefined, id: string | null | undefined, lang: string): string {
+  const sp = tr?.specializations?.find(x => x.id === id)
+  if (!sp) return ''
+  return (lang === 'he' ? sp.name_he : lang === 'en' ? sp.name_en : sp.name_ru) || sp.name_he
+}
 
 function trackName(tr: Track | undefined, lang: string): string {
   if (!tr) return ''
@@ -29,6 +36,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
   const [trackId, setTrackId] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
   const [yearLevel, setYearLevel] = useState(1)
+  const [specId, setSpecId] = useState<string>('')
   const [completedAt, setCompletedAt] = useState<string | null>(null)
   const [reactivate, setReactivate] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -50,6 +58,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
         setTrackId(b.track?.track_id ?? null)
         setNotes(b.track?.notes ?? '')
         setYearLevel(b.track?.year_level ?? 1)
+        setSpecId(b.track?.specialization_id ?? '')
         setCompletedAt(b.track?.completed_at ?? null)
       }
     } catch { /* тихо */ }
@@ -64,7 +73,11 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
       const res = await fetch(`/api/education/journeys/${journeyId}/track`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ track_id: trackId, role: 'primary', notes: notes.trim() || null, year_level: yearLevel, reactivate }),
+        body: JSON.stringify({
+          track_id: trackId, role: 'primary', notes: notes.trim() || null, year_level: yearLevel, reactivate,
+          // מגמה — только если у маршрута они есть (иначе ключ не шлём).
+          ...((tracks.find(x => x.id === trackId)?.specializations ?? []).length > 0 ? { specialization_id: specId || null } : {}),
+        }),
       })
       if (!res.ok) { const d = await res.json().catch(() => ({})) as { error?: string }; setError(d.error ?? t('study_track.save_error')); return }
       setEditing(false)
@@ -128,7 +141,10 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
         <div style={{ display: 'grid', gap: 6 }}>
           <div style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ color: 'var(--text-faint)' }}>{t('study_track.second_half')}: </span>
-            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{current ? trackName(current, lang) : t('study_track.unassigned')}</span>
+            <span style={{ color: 'var(--text)', fontWeight: 600 }}>
+              {current ? trackName(current, lang) : t('study_track.unassigned')}
+              {current && specName(current, specId, lang) && ` — ${specName(current, specId, lang)}`}
+            </span>
             {current && (
               <span style={{ color: 'var(--text-muted)' }}>· {yearName(yearLevel)}</span>
             )}
@@ -146,6 +162,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
                 return (
                   <span key={r.track_id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--accent-strong)', background: 'var(--accent-tint)', borderRadius: 999, padding: '2px 10px' }}>
                     {trackName(tr, lang) || r.track_id}
+                    {specName(tr, r.specialization_id, lang) && ` — ${specName(tr, r.specialization_id, lang)}`}
                     {canEdit && (
                       <button onClick={() => removeTrack(r.track_id)} disabled={saving} aria-label={t('study_track.remove_additional')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
                     )}
@@ -169,6 +186,7 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
               onChange={e => {
                 const id = e.target.value || null
                 setTrackId(id)
+                setSpecId('')
                 const tr = tracks.find(x => x.id === id)
                 const max = Math.min(4, Math.max(1, tr?.years_count ?? 4))
                 if (yearLevel > max) setYearLevel(1)
@@ -189,6 +207,21 @@ export default function StudyTrackPanel({ journeyId, canEdit }: { journeyId: str
               >
                 {Array.from({ length: maxYears }, (_, i) => i + 1).map(n => (
                   <option key={n} value={n}>{yearName(n)}</option>
+                ))}
+              </select>
+            </label>
+          )}
+          {trackId && (current?.specializations ?? []).some(sp => sp.is_active || sp.id === specId) && (
+            <label style={{ display: 'grid', gap: 4 }}>
+              <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 500 }}>{t('study_track.specialization_label')}</span>
+              <select
+                value={specId}
+                onChange={e => setSpecId(e.target.value)}
+                style={{ fontSize: 13, padding: '8px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)' }}
+              >
+                <option value="">{t('study_track.specialization_none')}</option>
+                {(current?.specializations ?? []).filter(sp => sp.is_active || sp.id === specId).map(sp => (
+                  <option key={sp.id} value={sp.id}>{specName(current, sp.id, lang)}</option>
                 ))}
               </select>
             </label>
