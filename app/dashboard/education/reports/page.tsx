@@ -12,6 +12,7 @@ import { useSectionCrumb } from '../components/useSectionCrumb'
 import { downloadCsv } from '@/lib/csv'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import GradebookModal from './GradebookModal'
+import { StatCard, StatGrid } from '@/components/ui/StatCard'
 
 interface Unit { id: string; name: string }
 interface AttBlock { present: number; late: number; absent: number; marked: number; total_lessons?: number; percent: number | null }
@@ -142,13 +143,13 @@ export default function ReportsPage() {
       ) : (
         <>
           {/* Сводные карточки */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-            <StatCard label={t('stat_attendance')} value={pctText(s!.attendance.percent)} color={pctColor(s!.attendance.percent)}
+          <StatGrid min={150}>
+            <StatCard icon="checkCircle" label={t('stat_attendance')} value={pctText(s!.attendance.percent)} color={pctColor(s!.attendance.percent)}
               footer={s!.attendance.marked > 0 ? <AttBreakdown att={s!.attendance} labels={attLabels} variant="summary" /> : undefined} />
-            <StatCard label={t('stat_grade_avg')} value={pctText(s!.grades.average)} color={pctColor(s!.grades.average)} />
-            <StatCard label={t('stat_students')} value={String(s!.student_count)} />
-            <StatCard label={t('stat_groups')} value={String(s!.group_count)} />
-          </div>
+            <StatCard icon="chart" label={t('stat_grade_avg')} value={pctText(s!.grades.average)} color={pctColor(s!.grades.average)} />
+            <StatCard icon="student" label={t('stat_students')} value={String(s!.student_count)} />
+            <StatCard icon="meeting" label={t('stat_groups')} value={String(s!.group_count)} />
+          </StatGrid>
 
           {/* Табы + экспорт */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -242,15 +243,6 @@ function exportSummary(report: Report, tab: 'groups' | 'students', t: (k: string
   }
 }
 
-function StatCard({ label, value, color, footer }: { label: string; value: string; color?: string; footer?: ReactNode }) {
-  return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
-      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 800, color: color ?? 'var(--text)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>{value}</div>
-      {footer && <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>{footer}</div>}
-    </div>
-  )
-}
 
 /**
  * Разбивка посещаемости присутствовал/опоздал/отсутствовал, цвета консоли.

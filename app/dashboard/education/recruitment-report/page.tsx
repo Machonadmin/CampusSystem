@@ -7,6 +7,7 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import { StatCard, StatGrid } from '@/components/ui/StatCard'
 
 // ─── Типы ответа API ────────────────────────────────────────────────────────
 interface Report {
@@ -107,12 +108,12 @@ function Dashboard({ report, t }: { report: Report; t: T }) {
   return (
     <>
       {/* Верхний ряд — плитки KPI */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-        <StatCard label={t('total_leads')} value={String(report.total_leads)} />
-        <StatCard label={t('applicants')} value={String(conv.applicants)} />
-        <StatCard label={t('students')} value={String(conv.students)} />
-        <StatCard label={t('conversion_rate')} value={`${convRate}%`} color="var(--accent)" />
-      </div>
+      <StatGrid min={150}>
+        <StatCard icon="meeting" label={t('total_leads')} value={String(report.total_leads)} />
+        <StatCard icon="note" label={t('applicants')} value={String(conv.applicants)} />
+        <StatCard icon="student" label={t('students')} value={String(conv.students)} />
+        <StatCard icon="trendUp" label={t('conversion_rate')} value={`${convRate}%`} color="var(--accent)" />
+      </StatGrid>
 
       {/* Разбивки — карточки с горизонтальными барами */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
@@ -135,14 +136,6 @@ function Dashboard({ report, t }: { report: Report; t: T }) {
   )
 }
 
-function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
-  return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)' }}>
-      <div style={{ fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 800, color: color ?? 'var(--text)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>{value}</div>
-    </div>
-  )
-}
 
 /**
  * Карточка разбивки: заголовок + список «метка · значение · пропорциональный бар».
