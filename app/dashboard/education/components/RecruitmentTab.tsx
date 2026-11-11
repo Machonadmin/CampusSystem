@@ -537,13 +537,6 @@ export default function RecruitmentTab() {
             >
               {t('leads.delete_confirm.confirm')}
             </button>
-            <button
-              onClick={() => setDeleteTarget(null)}
-              disabled={deleteLoading}
-              style={{ padding: '8px 18px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}
-            >
-              {t('leads.delete_confirm.cancel')}
-            </button>
           </>}
         >
             <p style={{ fontSize: 14, color: 'var(--text)', margin: 0, lineHeight: 1.5 }}>

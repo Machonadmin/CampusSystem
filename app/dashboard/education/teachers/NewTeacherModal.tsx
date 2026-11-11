@@ -88,13 +88,6 @@ export default function NewTeacherModal({
         >
           {busy ? t('new_teacher_saving') : t('new_teacher_save')}
         </button>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{ padding: '8px 16px', fontSize: 13.5, fontWeight: 500, color: 'var(--text-muted)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}
-        >
-          {t('new_teacher_cancel')}
-        </button>
       </>}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

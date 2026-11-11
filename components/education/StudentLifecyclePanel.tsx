@@ -219,16 +219,6 @@ export default function StudentLifecyclePanel({ journeyId, currentStatus, canMan
             >
               {t('submit')}
             </button>
-            <button
-              onClick={() => setModalTarget(null)}
-              disabled={submitting}
-              style={{
-                padding: '8px 14px', fontSize: 13, color: 'var(--text)',
-                background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer',
-              }}
-            >
-              {t('cancel')}
-            </button>
           </>}
         >
           <div

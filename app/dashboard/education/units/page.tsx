@@ -243,7 +243,6 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
           style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: accent, color: '#fff', opacity: saving ? 0.6 : 1 }}>
           {t('units.create_btn')}
         </SubmitButton>
-        <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('units.cancel')}</button>
       </>}
     >
 

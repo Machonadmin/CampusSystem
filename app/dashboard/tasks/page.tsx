@@ -444,7 +444,6 @@ export default function TasksPage() {
           bodyStyle={{ overflowY: 'visible' }}
           footer={<>
             <button onClick={bulkAssign} disabled={bulkBusy || !assignPerson} style={{ ...inp, cursor: bulkBusy || !assignPerson ? 'default' : 'pointer', fontWeight: 600, background: accent, color: '#fff', borderColor: accent, opacity: bulkBusy || !assignPerson ? 0.6 : 1 }}>{tCommon('save')}</button>
-            <button onClick={() => { setAssignOpen(false); setAssignPerson(null) }} disabled={bulkBusy} style={{ ...inp, cursor: 'pointer', fontWeight: 600 }}>{tCommon('cancel')}</button>
           </>}
         >
             <PersonSelect value={assignPerson} onChange={id => setAssignPerson(id)} label={t('bulk.assign_to')} accentColor={accent} />

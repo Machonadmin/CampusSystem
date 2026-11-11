@@ -134,7 +134,6 @@ export default function AddToCalendar({
             <button onClick={save} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: saving ? 'var(--text-faint)' : 'var(--accent-strong)', color: '#fff', cursor: saving ? 'default' : 'pointer' }}>
               {saving ? t('saving') : t('save')}
             </button>
-            <button onClick={() => setOpen(false)} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('cancel')}</button>
           </>}
         >
 

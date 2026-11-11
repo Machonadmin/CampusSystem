@@ -311,9 +311,6 @@ export default function AcceptanceOverviewTab() {
             <button onClick={submitSign} disabled={signing || !selectedFinal || !sig} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: signing || !selectedFinal || !sig ? 'var(--text-faint)' : 'var(--accent)', color: '#fff', cursor: signing || !selectedFinal || !sig ? 'default' : 'pointer' }}>
               {tCommon('confirm')}
             </button>
-            <button onClick={() => setModal(null)} disabled={signing} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>
-              {tCommon('cancel')}
-            </button>
           </>}
         >
 
