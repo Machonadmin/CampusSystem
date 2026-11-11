@@ -74,7 +74,7 @@ function toForm(c: Community): FormState {
 export default function CommunitiesPage() {
   const t = useTranslations('education.communities')
   const tNav = useTranslations('navigation')
-  const sectionCrumb = useSectionCrumb('studies', '/dashboard/education/studies?sec=settings')
+  const sectionCrumb = useSectionCrumb('recruitment')
   const tCommon = useTranslations('common')
 
   const [communities, setCommunities] = useState<Community[]>([])

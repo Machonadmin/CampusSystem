@@ -51,6 +51,7 @@ const ru = {
     feedback: 'Мои замечания',
   },
   nav_groups: {
+    my_work: 'Моя работа',
     studies: 'Учёба',
     wellbeing: 'Благополучие учащихся',
     admin_finance: 'Администрация и финансы',
@@ -208,6 +209,7 @@ const he: typeof ru = {
     feedback: 'ההערות שלי',
   },
   nav_groups: {
+    my_work: 'ניהול שלי',
     studies: 'לימודים',
     wellbeing: 'רווחת התלמידה',
     admin_finance: 'מנהלה וכספים',
@@ -365,6 +367,7 @@ const en: typeof ru = {
     feedback: 'My reports',
   },
   nav_groups: {
+    my_work: 'My work',
     studies: 'Studies',
     wellbeing: 'Student Wellbeing',
     admin_finance: 'Administration & Finance',
