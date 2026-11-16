@@ -53,6 +53,9 @@ export default function AlumniPage() {
   // «+ בוגרת חדשה» — только с alumni.manage (сервер присылает can_manage).
   const [canManage, setCanManage] = useState(false)
   const [creating, setCreating] = useState(false)
+  // Телефон: карточка показывает имя, телефон и почту; остальное — по стрелке
+  // (предложение владельца 2026-11-11). Ключ — journey_id раскрытых карточек.
+  const [openRows, setOpenRows] = useState<Record<string, boolean>>({})
   // Клик по строке сразу открывает карточку (owner: лишний слой раскрытия убран).
 
   const load = useCallback(async () => {
@@ -160,6 +163,9 @@ export default function AlumniPage() {
             </thead>
             <tbody>
               {filtered.map(a => {
+                const isOpen = openRows[a.journey_id] === true
+                // На телефоне (≤640px) второстепенные поля свёрнуты, пока карточка закрыта.
+                const more = isOpen ? undefined : 'col-hide-sm'
                 return (
                   <tr
                     key={a.journey_id}
@@ -183,13 +189,33 @@ export default function AlumniPage() {
                         <span style={{ fontWeight: 500 }}>{a.full_name || '—'}</span>
                       </div>
                     </td>
-                    <td data-label={t('list.col_year_start')} style={td}>{a.year_start ?? '—'}</td>
-                    <td data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
-                    <td data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
-                    <td data-label={t('list.col_direction')} style={td}>{a.direction || '—'}</td>
-                    <td data-label={t('list.col_location')} style={td}>{[a.city, a.country].filter(Boolean).join(', ') || '—'}</td>
-                    <td data-label={t('list.col_phone')} style={td}><span dir="ltr">{a.phones[0] ?? '—'}</span></td>
-                    <td data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
+                    <td className={more} data-label={t('list.col_year_start')} style={td}>{a.year_start ?? '—'}</td>
+                    <td className={more} data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
+                    <td className={more} data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
+                    <td className={more} data-label={t('list.col_direction')} style={td}>{a.direction || '—'}</td>
+                    <td className={more} data-label={t('list.col_location')} style={td}>{[a.city, a.country].filter(Boolean).join(', ') || '—'}</td>
+                    {/* Телефон и почта на закрытой карточке — только если они есть. */}
+                    <td className={a.phones[0] ? undefined : more} data-label={t('list.col_phone')} style={td}><span dir="ltr">{a.phones[0] ?? '—'}</span></td>
+                    <td className={more} data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
+                    {/* Только телефон: почта (на десктопе колонки нет, как и было) и стрелка. */}
+                    {(a.email || isOpen) && (
+                      <td className="sm-only" data-label={t('list.col_email')} style={td}><span dir="ltr" style={{ overflowWrap: 'anywhere' }}>{a.email || '—'}</span></td>
+                    )}
+                    <td className="sm-only" data-label="" style={td}>
+                      <button
+                        type="button"
+                        data-alumni-toggle
+                        aria-expanded={isOpen}
+                        onClick={e => { e.stopPropagation(); setOpenRows(prev => ({ ...prev, [a.journey_id]: !isOpen })) }}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600,
+                          color: 'var(--accent-strong)', background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                        }}
+                      >
+                        <span aria-hidden="true" style={{ fontSize: 10 }}>{isOpen ? '▲' : '▼'}</span>
+                        {isOpen ? t('list.less_details') : t('list.more_details')}
+                      </button>
+                    </td>
                   </tr>
                 )
               })}

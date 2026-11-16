@@ -3743,7 +3743,9 @@
       "col_phone": "Телефон",
       "open_card": "Открыть карточку",
       "add": "Новая выпускница",
-      "col_year_start": "Год поступления"
+      "col_year_start": "Год поступления",
+      "more_details": "Подробнее",
+      "less_details": "Свернуть"
     },
     "card": {
       "section": "Выпускник",

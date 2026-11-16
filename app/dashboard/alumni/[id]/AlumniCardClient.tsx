@@ -22,7 +22,6 @@ interface Props {
  */
 export default function AlumniCardClient({ data, history, profile, canManage, formValues }: Props) {
   const tNav = useTranslations('navigation')
-  const t = useTranslations('alumni')
 
   return (
     <LeadViewClient
@@ -35,7 +34,8 @@ export default function AlumniCardClient({ data, history, profile, canManage, fo
         moduleLabel: tNav('alumni'),
         moduleHref: '/dashboard/alumni',
         colorKey: 'alumni',
-        sectionLabel: t('card.section'),
+        // Без sectionLabel: средняя крошка «בוגרת» вела туда же, куда «בוגרות»,
+        // и выглядела как повтор (заметка владельца 2026-11-11).
       }}
       extraPanel={<AlumniProfilePanel
         profile={profile}
