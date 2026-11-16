@@ -131,6 +131,17 @@ export const MODULES = [
   },
 
   {
+    code: 'meetings', navKey: 'meetings', href: '/dashboard/meetings',
+    routeGuard: false, pageGates: false, pagePrivilege: null,
+    gateExceptionReason:
+      'פגישות: как календарь — requireCalendarUser() пускает любого сотрудника, а ' +
+      '/api/meetings/** отдаёт только своё: свой календарь, календарь, который он ведёт ' +
+      '(calendar_delegates), встречи, содержание которых ему открыли, и переданное ему.',
+    inAccessibleModules: false, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: false,
+  },
+
+  {
     code: 'my_track', navKey: 'my_track', href: '/dashboard/my-track',
     routeGuard: false, pageGates: false, pagePrivilege: null,
     gateExceptionReason:

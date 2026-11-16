@@ -13,6 +13,7 @@ import StudentChavrutaPanel from '@/components/education/StudentChavrutaPanel'
 import StudentShabbatPanel from '@/components/education/StudentShabbatPanel'
 import StudentTeachingSurveyPanel from '@/components/education/StudentTeachingSurveyPanel'
 import MeetingsPanel from '@/components/education/MeetingsPanel'
+import MeetingRequestPanel from '@/components/education/MeetingRequestPanel'
 import ForcePasswordChangeGate from '@/components/auth/ForcePasswordChangeGate'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 
@@ -81,6 +82,7 @@ export default function PortalClient({ journeyId, name }: { journeyId: string; n
         <StudentChavrutaPanel journeyId={journeyId} />
         <StudentShabbatPanel journeyId={journeyId} />
         <StudentTeachingSurveyPanel />
+        <MeetingRequestPanel />
         <MeetingsPanel journeyId={journeyId} canEdit={false} />
       </div>
     </div>

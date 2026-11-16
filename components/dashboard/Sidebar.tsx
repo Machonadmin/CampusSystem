@@ -53,6 +53,9 @@ const TOP_ITEMS = [
 // пункты не гейтятся модульным правом, своё отдаёт API.
 const MY_WORK_ITEMS = [
   { key: 'management' as const, href: '/dashboard/management', icon: I.management },
+  // «פגישות» — יומן המנהל, בקשות לפגישה, מה הועבר אליי. Для всех сотрудников:
+  // что кому видно, решает /api/meetings/**.
+  { key: 'meetings' as const, href: '/dashboard/meetings', icon: I.meetings },
   // «המסלול שלי» — только у тех, кому /api/education/my-track вернул маршруты.
   { key: 'my_track' as const, href: '/dashboard/my-track', icon: I.my_track },
 ]
@@ -120,7 +123,7 @@ function SidebarNavLink({
 }) {
   // 'home', 'calendar' и 'management' (פאנל ניהול) — личные страницы: всегда
   // доступны, свои данные отдаёт API.
-  const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar' || moduleKey === 'management' || moduleKey === 'my_track'
+  const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar' || moduleKey === 'management' || moduleKey === 'meetings' || moduleKey === 'my_track'
   const implemented = isPersonalPage || isModuleImplemented(moduleKey)
   return (
     <div className="relative">
