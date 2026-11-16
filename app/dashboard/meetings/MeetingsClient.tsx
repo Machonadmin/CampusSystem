@@ -631,7 +631,7 @@ function SharedTab() {
 
 function SettingsTab({ ctx }: { ctx: Context }) {
   const t = useTranslations('meetings_mgr')
-  const [rows, setRows] = useState<Array<{ owner_id: string; owner_name: string; delegate_id: string; delegate_name: string }> | null>(null)
+  const [rows, setRows] = useState<Array<{ owner_id: string; owner_name: string; delegate_id: string; delegate_name: string; auto: boolean }> | null>(null)
   const [owner, setOwner] = useState<string | null>(ctx.me.id)
   const [delegate, setDelegate] = useState<string | null>(null)
 
@@ -666,7 +666,8 @@ function SettingsTab({ ctx }: { ctx: Context }) {
             {rows.map(r => (
               <div key={`${r.owner_id}-${r.delegate_id}`} style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 13.5 }}>
                 <span style={{ flex: 1 }}><b>{r.delegate_name}</b> {t('manages_calendar_of')} <b>{r.owner_id === ctx.me.id ? t('me') : r.owner_name}</b></span>
-                {(r.owner_id === ctx.me.id || r.delegate_id === ctx.me.id || ctx.is_superadmin) && (
+                {r.auto && <Badge tone="info" label={t('auto_by_position')} />}
+                {!r.auto && (r.owner_id === ctx.me.id || r.delegate_id === ctx.me.id || ctx.is_superadmin) && (
                   <Button size="sm" variant="ghost" onClick={() => remove(r.owner_id, r.delegate_id)}>{t('remove')}</Button>
                 )}
               </div>

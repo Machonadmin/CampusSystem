@@ -135,7 +135,7 @@ describe('ввод', () => {
   })
 })
 
-import { canUseMeetingPeople, meetingPeopleFilter } from './people'
+import { canUseMeetingPeople, meetingPeopleFilter, deriveDelegations } from './people'
 
 describe('выбор людей', () => {
   it('поиск людей — только superadmin, владелец с секретарём или секретарь', () => {
@@ -147,5 +147,34 @@ describe('выбор людей', () => {
 
   it('выбрать можно сотрудника с учётной записью или студентку', () => {
     expect([...meetingPeopleFilter(['a'], ['b', 'a'])].sort()).toEqual(['a', 'b'])
+  })
+})
+
+describe('מזכירת המנהל по должности', () => {
+  it('секретарь подразделения ведёт календарь его руководителя', () => {
+    const r = deriveDelegations(
+      [{ person_id: 'sec', department_id: 'touro' }],
+      [{ person_id: 'dean', department_id: 'touro' }, { person_id: 'other', department_id: 'campus' }],
+      [],
+    )
+    expect(r).toEqual([{ owner_id: 'dean', delegate_id: 'sec' }])
+  })
+
+  it('служебная read-only учётная запись и сама секретарь — не руководители', () => {
+    const r = deriveDelegations(
+      [{ person_id: 'sec', department_id: 'd' }],
+      [{ person_id: 'bot', department_id: 'd' }, { person_id: 'sec', department_id: 'd' }],
+      ['bot'],
+    )
+    expect(r).toEqual([])
+  })
+
+  it('две секретарши у одного руководителя — обе ведут календарь, без дублей', () => {
+    const r = deriveDelegations(
+      [{ person_id: 'a', department_id: 'd' }, { person_id: 'b', department_id: 'd' }, { person_id: 'a', department_id: 'd' }],
+      [{ person_id: 'boss', department_id: 'd' }],
+      [],
+    )
+    expect(r).toHaveLength(2)
   })
 })

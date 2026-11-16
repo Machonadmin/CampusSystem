@@ -3,14 +3,14 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { errorResponse } from '@/lib/api/handler'
-import { db, personNames } from '@/lib/meetings/access'
+import { db, personNames, allDelegations } from '@/lib/meetings/access'
 import { isUuid } from '@/lib/meetings/rules'
 import { createNotifications } from '@/lib/notifications/create'
 import type { SessionPayload } from '@/lib/auth/jwt'
 
 /**
  * Кто ведёт чей календарь (מזכירת המנהל).
- *   GET    — свои назначения; superadmin видит все.
+ *   GET    — свои назначения (ручные и по должности «מזכירת המנהל»); superadmin видит все.
  *   POST   { delegate_id, owner_id? } — владелец добавляет секретаря к СВОЕМУ
  *          календарю; superadmin может указать любого владельца.
  *   DELETE ?delegate_id&owner_id — снять.
@@ -26,16 +26,17 @@ export async function GET() {
   try {
     const session = await requireCalendarUser()
     const sb = createServerClient()
-    let q = db(sb).from('calendar_delegates').select('owner_id, delegate_id, created_at').order('created_at')
-    if (!session.roles.includes('superadmin')) q = q.or(`owner_id.eq.${session.person_id},delegate_id.eq.${session.person_id}`)
-    const { data, error } = await q
-    if (error) throw error
-    const rows = (data ?? []) as Array<{ owner_id: string; delegate_id: string }>
+    const all = await allDelegations(sb)
+    const rows = session.roles.includes('superadmin')
+      ? all
+      : all.filter(r => r.owner_id === session.person_id || r.delegate_id === session.person_id)
     const names = await personNames(sb, rows.flatMap(r => [r.owner_id, r.delegate_id]))
     return NextResponse.json({
       delegations: rows.map(r => ({
         owner_id: r.owner_id, owner_name: names.get(r.owner_id) ?? '',
         delegate_id: r.delegate_id, delegate_name: names.get(r.delegate_id) ?? '',
+        // auto — назначено по должности «מזכירת המנהל»; снимается сменой должности, не здесь.
+        auto: r.auto,
       })),
     })
   } catch (err) {

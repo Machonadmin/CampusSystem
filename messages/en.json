@@ -6262,7 +6262,7 @@
     "shared_by": "Shared by",
     "meeting_of": "from the meeting on",
     "delegates_title": "Who manages the calendar",
-    "delegates_hint": "The director's secretary sees only the time, participants and subject of each meeting. She sees the content only if it is opened to her in the meeting itself. She can book meetings, handle requests, prepare material and follow up on tasks.",
+    "delegates_hint": "The director's secretary sees only the time, participants and subject of each meeting. She sees the content only if it is opened to her in the meeting itself. She can book meetings, handle requests, prepare material and follow up on tasks. Anyone placed in the job \"מזכירת המנהל\" in a unit automatically manages the calendar of that unit's head. You can also add someone manually here.",
     "no_delegates": "No secretary assigned yet",
     "manages_calendar_of": "manages the calendar of",
     "me": "me",
@@ -6329,6 +6329,7 @@
     "share_read": "read",
     "share_unread": "not read yet",
     "portal_title": "Request a meeting",
-    "meeting_set_for": "The meeting is set for"
+    "meeting_set_for": "The meeting is set for",
+    "auto_by_position": "Automatic, by job title"
   }
 }
