@@ -443,8 +443,11 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
         </>}
       />
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
+      {/* Tabs. Одна строка с прокруткой вбок: при переносе на телефоне подписи
+          ломались на две строки, а последняя вкладка уезжала во второй ряд
+          (заметка владельца 2026-11-11, карточка בוגרת). */}
+      <div style={{ borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', gap: 2, overflowX: 'auto', scrollbarWidth: 'none' }}>
         {TABS.map(tabItem => {
           const active = tab === tabItem.key
           return (
@@ -452,12 +455,13 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
               key={tabItem.key}
               onClick={() => setTab(tabItem.key)}
               style={{
+                flex: 'none', whiteSpace: 'nowrap',
                 padding: '8px 14px', fontSize: 13,
                 fontWeight: active ? 600 : 400,
                 color: active ? 'var(--accent)' : 'var(--text-faint)',
                 background: 'none', border: 'none', cursor: 'pointer',
                 borderBottom: active ? '2px solid var(--accent)' : '2px solid transparent',
-                marginBottom: -1, transition: 'color 0.15s, background 0.15s',
+                transition: 'color 0.15s, background 0.15s',
               }}
               onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-2)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
@@ -466,6 +470,7 @@ export default function LeadViewClient({ data, showEditButton, canManage, canCon
             </button>
           )
         })}
+      </div>
       </div>
 
       {/* Body: tab content (left) + processes (right), 1:1 */}

@@ -3743,7 +3743,9 @@
       "col_phone": "טלפון",
       "open_card": "פתח כרטיס",
       "add": "בוגרת חדשה",
-      "col_year_start": "שנת כניסה"
+      "col_year_start": "שנת כניסה",
+      "more_details": "פרטים נוספים",
+      "less_details": "פחות פרטים"
     },
     "card": {
       "section": "בוגרת",
