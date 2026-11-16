@@ -18,6 +18,7 @@ import {
   PEOPLE_SOURCE, card, label, input, muted, sectionTitle, tabBtn, send, isoDate, isoTime,
   todayLocal, addDays, PeoplePicker, type PersonRef,
 } from './meetings-ui'
+import ContactsTab from './ContactsTab'
 
 // ── Типы ответа API ──────────────────────────────────────────────────────────
 
@@ -28,6 +29,7 @@ interface Context {
   my_delegates: PersonRef[]
   request_targets: PersonRef[]
   is_superadmin: boolean
+  contacts: boolean
 }
 
 interface MeetingItem {
@@ -65,7 +67,7 @@ interface RequestItem {
   created_at: string
 }
 
-type Tab = 'calendar' | 'requests' | 'tasks' | 'my_requests' | 'shared' | 'settings'
+type Tab = 'calendar' | 'contacts' | 'requests' | 'tasks' | 'my_requests' | 'shared' | 'settings'
 
 const STATUS_TONE: Record<string, BadgeTone> = {
   scheduled: 'info', completed: 'success', cancelled: 'neutral', no_show: 'warn',
@@ -91,7 +93,9 @@ export default function MeetingsClient() {
   const tabs = useMemo<Tab[]>(() => {
     if (!ctx) return []
     const out: Tab[] = []
-    if (manages) out.push('calendar', 'requests', 'tasks')
+    if (manages) out.push('calendar')
+    if (ctx.contacts) out.push('contacts')
+    if (manages) out.push('requests', 'tasks')
     if (ctx.request_targets.length > 0) out.push('my_requests')
     out.push('shared')
     if (manages || ctx.is_superadmin) out.push('settings')
@@ -118,6 +122,7 @@ export default function MeetingsClient() {
             ))}
           </div>
           {tab === 'calendar' && <CalendarTab ctx={ctx} />}
+          {tab === 'contacts' && <ContactsTab />}
           {tab === 'requests' && <RequestsTab ctx={ctx} />}
           {tab === 'tasks' && <TasksTab ctx={ctx} />}
           {tab === 'my_requests' && <MyRequestsTab ctx={ctx} />}
@@ -162,7 +167,13 @@ function CalendarTab({ ctx }: { ctx: Context }) {
   const [day, setDay] = useState(todayLocal())
   const [meetings, setMeetings] = useState<MeetingItem[] | null>(null)
   const [dayInfo, setDayInfo] = useState<DayInfo | null>(null)
-  const [booking, setBooking] = useState<{ start: string; end: string } | null>(null)
+  const params = useSearchParams()
+  // Из ספר אנשי קשר: «קבע פגישה» с этим человеком (?with=<id>&wname=<имя>).
+  const withId = params.get('with')
+  const withName = params.get('wname') ?? ''
+  const [booking, setBooking] = useState<{ start: string; end: string; people?: PersonRef[] } | null>(
+    withId ? { start: '09:00', end: '09:30', people: [{ id: withId, name: withName }] } : null,
+  )
 
   const load = useCallback(async () => {
     setMeetings(null)
@@ -260,14 +271,14 @@ function MeetingRow({ m }: { m: MeetingItem }) {
 }
 
 function BookModal({ ownerId, day, initial, onClose, onDone }: {
-  ownerId: string; day: string; initial: { start: string; end: string }; onClose: () => void; onDone: () => void
+  ownerId: string; day: string; initial: { start: string; end: string; people?: PersonRef[] }; onClose: () => void; onDone: () => void
 }) {
   const t = useTranslations('meetings_mgr')
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(day)
   const [start, setStart] = useState(initial.start)
   const [end, setEnd] = useState(initial.end)
-  const [people, setPeople] = useState<PersonRef[]>([])
+  const [people, setPeople] = useState<PersonRef[]>(initial.people ?? [])
   const [prep, setPrep] = useState('')
   const [busy, setBusy] = useState(false)
 

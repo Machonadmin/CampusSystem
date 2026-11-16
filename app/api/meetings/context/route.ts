@@ -3,6 +3,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { errorResponse } from '@/lib/api/handler'
 import { db, managedOwnerIds, delegateIdsOf, requestTargetIds, personNames } from '@/lib/meetings/access'
+import { groupsFor } from '@/lib/meetings/contacts'
+import { addressBookAccess } from '@/lib/meetings/contacts-server'
 
 /**
  * GET /api/meetings/context — с чем человек работает на экране «פגישות»:
@@ -10,6 +12,7 @@ import { db, managedOwnerIds, delegateIdsOf, requestTargetIds, personNames } fro
  *   my_delegates    — кто ведёт МОЙ календарь;
  *   request_targets — кому можно отправить заявку на встречу;
  *   is_superadmin   — может назначать секретарей любому;
+ *   contacts        — открыт ли ספר אנשי קשר (המנהל, מזכירת המנהל, или с ним поделились);
  *   migrated        — применена ли миграция 20261116150000 (иначе экран объясняет).
  */
 export async function GET() {
@@ -23,6 +26,7 @@ export async function GET() {
     const managed = migrated ? await managedOwnerIds(sb, session.person_id) : []
     const mine = migrated ? await delegateIdsOf(sb, session.person_id) : []
     const targets = migrated ? (await requestTargetIds(sb)).filter(id => id !== session.person_id) : []
+    const book = migrated ? await addressBookAccess(sb, session) : null
     const names = await personNames(sb, [session.person_id, ...managed, ...mine, ...targets])
 
     return NextResponse.json({
@@ -35,6 +39,7 @@ export async function GET() {
       my_delegates: mine.map(id => ({ id, name: names.get(id) ?? '' })),
       request_targets: targets.map(id => ({ id, name: names.get(id) ?? '' })),
       is_superadmin: session.roles.includes('superadmin'),
+      contacts: book ? groupsFor(book.role, book.sharedWithMe).length > 0 : false,
     })
   } catch (err) {
     return errorResponse(err as { status?: number; message?: string })
