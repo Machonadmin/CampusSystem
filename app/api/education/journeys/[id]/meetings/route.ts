@@ -6,6 +6,7 @@ import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { errorResponse } from '@/lib/api/handler'
+import { requestTargetIds } from '@/lib/meetings/access'
 
 /**
  * Встречи студентки (§5): преподаватель назначает встречу после урока →
@@ -46,14 +47,21 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
     if (g.err) return g.err
     const { data, error } = await g.sb!
       .from('appointments')
-      .select('id, title, reason, starts_at, ends_at, status, provider:persons!appointments_provider_id_fkey(full_name, hebrew_name)')
+      .select('id, provider_id, title, reason, starts_at, ends_at, status, provider:persons!appointments_provider_id_fkey(full_name, hebrew_name)')
       .eq('journey_id', params.id)
       .order('starts_at', { ascending: false })
     if (error) {
       if (isMissingTable(error)) return NextResponse.json({ meetings: [] })
       throw error
     }
-    return NextResponse.json({ meetings: data ?? [] })
+    // פגישות המנהל: פירוט встречи владельца календаря с секретарём видит только
+    // он сам (и студентка — она участница). Остальным сотрудникам — тема и время.
+    const managed = g.session!.principal === 'student' ? [] : await requestTargetIds(g.sb!)
+    const rows = ((data ?? []) as Array<{ provider_id: string; reason: string | null }>).map(({ provider_id, ...r }) => ({
+      ...r,
+      reason: managed.includes(provider_id) && provider_id !== g.session!.person_id ? null : r.reason,
+    }))
+    return NextResponse.json({ meetings: rows })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string }
     return errorResponse(e)
