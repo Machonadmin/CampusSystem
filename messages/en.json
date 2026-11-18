@@ -49,7 +49,8 @@
     "open_now_type_alert": "Alert",
     "open_now_type_absence": "Absence",
     "open_now_type_task": "Task",
-    "open_now_open": "Open"
+    "open_now_open": "Open",
+    "open_now_type_meeting": "Meeting"
   },
   "common": {
     "actions": "Actions",
@@ -4901,7 +4902,10 @@
       "department": "Department",
       "roles": "Roles",
       "gender": "Gender",
-      "birth_date": "Date of birth"
+      "birth_date": "Date of birth",
+      "year_level": "Study year",
+      "group": "Group",
+      "city": "City"
     },
     "gender": {
       "male": "Male",

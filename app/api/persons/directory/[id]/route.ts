@@ -6,13 +6,16 @@ import { requirePersonsPrivilege, hasPersonsPrivilege } from '@/lib/persons/perm
 import { redactSensitivePerson } from '@/lib/persons/redact'
 import { mapDbError } from '@/lib/persons/http'
 import { errorResponse } from '@/lib/api/handler'
+import { hasEducationPrivilege } from '@/lib/education/permissions'
 
 /**
  * GET /api/persons/directory/[id]
  *
  * ЧИТАЮЩИЙ базовый профиль одного человека для справочника «Люди»: имена,
- * контакты, фото, его роли, действующие должности + подразделение и — если он
- * студент — статус обучения и journey_id (для ссылки на карточку студента).
+ * контакты, фото, город, его роли, действующие должности + подразделение и —
+ * если он студент — статус обучения, journey_id (для ссылки на карточку
+ * студента), год обучения и основная группа. Пол на карточке больше не
+ * показываем (заметка владельца 18.11.2026), поэтому он и не отдаётся.
  *
  * Отдельный путь (…/directory/…), чтобы НЕ конфликтовать с существующим
  * GET /api/persons/[id], который отдаёт паспортный профиль другим модулям.
@@ -33,7 +36,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     // 1) Базовый профиль человека. .single() → PGRST116 (404), если нет строки.
     const { data: person, error: personErr } = await sb
       .from('persons')
-      .select('id, full_name, hebrew_name, email, phones, photo_url, gender, birth_date')
+      .select('id, full_name, hebrew_name, email, phones, photo_url, birth_date, address')
       .eq('id', params.id)
       .single()
     if (personErr) throw personErr
@@ -73,10 +76,12 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       }
     }
 
-    // 4) Учебный статус (если студент) — для ссылки на карточку студента.
+    // 4) Учебный статус (если студент) — для ссылки на карточку студента,
+    //    плюс год обучения и основная группа (их показываем на карточке вместо
+    //    пола — заметка владельца 18.11.2026: «важнее, в каком она году и группе»).
     const { data: journey } = await sb
       .from('education_journeys')
-      .select('id, education_status')
+      .select('id, education_status, year_level, main_group:study_groups(name, name_he)')
       .eq('person_id', params.id)
       .eq('education_status', 'student')
       .order('opened_at', { ascending: false })
@@ -88,6 +93,20 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     const canSeeSensitive = await hasPersonsPrivilege(session, 'view_sensitive')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const p = redactSensitivePerson(person as Record<string, unknown>, canSeeSensitive) as any
+
+    // Город — часть адреса (чувствительное поле): после редакции его нет у
+    // тех, кому адрес не положен. Год и группа — учебные данные: только с
+    // правом смотреть карточки студентов (education.view_students).
+    const addr = p.address as { city?: unknown } | null
+    const city = addr && typeof addr.city === 'string' && addr.city.trim() ? addr.city.trim() : null
+    const canSeeStudy = journey ? await hasEducationPrivilege(session, 'view_students') : false
+    const j = journey as unknown as {
+      id: string; education_status: string; year_level: number | null
+      main_group: { name: string | null; name_he: string | null } | null
+    } | null
+    const groupName = j?.main_group
+      ? ((lang === 'he' ? (j.main_group.name_he || j.main_group.name) : (j.main_group.name || j.main_group.name_he)) ?? null)
+      : null
     return NextResponse.json({
       id: p.id,
       full_name: p.full_name ?? '',
@@ -95,14 +114,16 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       email: p.email ?? null,
       phones: flattenPhones(p.phones),
       photo_url: p.photo_url ?? null,
-      gender: p.gender ?? null,
       birth_date: p.birth_date ?? null,
+      city,
       roles,
       positions,
       department,
       is_student: !!journey,
       journey_id: journey?.id ?? null,
       education_status: journey?.education_status ?? null,
+      year_level: canSeeStudy ? (j?.year_level ?? null) : null,
+      group_name: canSeeStudy ? groupName : null,
     })
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }

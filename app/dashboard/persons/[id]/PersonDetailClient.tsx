@@ -13,6 +13,8 @@ import { PhoneLink } from '@/components/ui/PhoneLink'
 import { Badge } from '@/components/ui/Badge'
 import { usePersonPhotos } from '@/lib/hooks/usePersonPhotos'
 import { PhotoLightbox } from '@/components/persons/PhotoLightbox'
+import StudentOpenItemsPanel from '@/app/dashboard/education/components/StudentOpenItemsPanel'
+import { yearLevelTitle } from '@/lib/education/year-level'
 
 /**
  * Чипы в шапке карточки. Шапка (<ModuleHeader/>) больше НЕ цветной баннер с
@@ -29,14 +31,16 @@ interface PersonDetail {
   email: string | null
   phones: string[]
   photo_url: string | null
-  gender: string | null
   birth_date: string | null
+  city: string | null
   roles: { code: string; name: string }[]
   positions: string[]
   department: string | null
   is_student: boolean
   journey_id: string | null
   education_status: string | null
+  year_level: number | null
+  group_name: string | null
 }
 
 export default function PersonDetailClient({
@@ -123,8 +127,12 @@ export default function PersonDetailClient({
             actions={<BackButton fallback="/dashboard/persons" />}
           />
 
-          {/* Info card */}
+          {/* Info card. Пола здесь больше нет (заметка владельца 18.11.2026):
+              для תלמידה сначала год, группа и город, для сотрудника — контакты. */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+            <Info label={t('fields.year_level')} value={data.year_level != null ? yearLevelTitle(data.year_level, lang) : null} />
+            <Info label={t('fields.group')} value={data.group_name} />
+            <Info label={t('fields.city')} value={data.city} />
             <Info label={t('fields.email')} value={data.email} />
             {phoneList(data.phones).length > 0 && (
               <div>
@@ -139,9 +147,15 @@ export default function PersonDetailClient({
               label={t('fields.roles')}
               value={data.roles.length ? data.roles.map(r => r.name).join(', ') : null}
             />
-            <Info label={t('fields.gender')} value={data.gender ? t(`gender.${data.gender}`) : null} />
             <Info label={t('fields.birth_date')} value={data.birth_date ? formatDate(data.birth_date, lang) : null} />
           </div>
+
+          {/* «פתוח עכשיו»: мои задачи и встречи с ней, оповещения, отсутствия —
+              та же панель, что вверху карточки תלמידה (что смотрящему не
+              положено, сервер просто не отдаёт). */}
+          {data.is_student && data.journey_id && canViewStudentCards && (
+            <StudentOpenItemsPanel journeyId={data.journey_id} />
+          )}
 
           {/* Student card link */}
           {data.is_student && data.journey_id && canViewStudentCards && (

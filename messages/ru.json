@@ -49,7 +49,8 @@
     "open_now_type_alert": "Оповещение",
     "open_now_type_absence": "Отсутствие",
     "open_now_type_task": "Задача",
-    "open_now_open": "Открыть"
+    "open_now_open": "Открыть",
+    "open_now_type_meeting": "Встреча"
   },
   "common": {
     "actions": "Действия",
@@ -4901,7 +4902,10 @@
       "department": "Подразделение",
       "roles": "Роли",
       "gender": "Пол",
-      "birth_date": "Дата рождения"
+      "birth_date": "Дата рождения",
+      "year_level": "Год обучения",
+      "group": "Группа",
+      "city": "Город"
     },
     "gender": {
       "male": "Мужской",

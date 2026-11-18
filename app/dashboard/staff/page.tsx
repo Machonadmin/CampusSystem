@@ -140,12 +140,6 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
   // кликом по строке (запрос владельца: «ניהול עובדים» вместо скрытого меню).
   const [cardTarget, setCardTarget] = useState<Employee | null>(null)
 
-  function genderLabel(g: string | null): string | null {
-    if (g === 'male') return t('gender.male')
-    if (g === 'female') return t('gender.female')
-    return null
-  }
-
   useEffect(() => {
     const handle = setTimeout(async () => {
       setLoading(true)
@@ -330,13 +324,9 @@ function EmployeesTab({ onAdd, depts, refreshSignal }: { onAdd: (employee?: Empl
                           : <div style={{ width: 30, height: 30, borderRadius: '50%', background: getModuleColor('staff', 'light'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, color: getModuleColor('staff'), flexShrink: 0 }}>{initials(emp.full_name)}</div>
                         }
                         <div>
+                          {/* Пол рядом с именем убран (заметка владельца 18.11.2026). */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{personDisplayName(emp)}</span>
-                            {genderLabel(emp.gender) && (
-                              <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'var(--surface-2)', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                                {genderLabel(emp.gender)}
-                              </span>
-                            )}
                           </div>
                         </div>
                       </div>

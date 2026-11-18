@@ -13,6 +13,7 @@ import {
   CLOSED_TASK_STATUSES_FILTER,
   type OpenAbsenceItem,
   type OpenAlertItem,
+  type OpenMeetingItem,
   type OpenTaskItem,
   type StudentOpenItems,
 } from '@/lib/students/open-items'
@@ -164,10 +165,59 @@ async function loadTasks(sb: Sb, session: SessionPayload, journeyId: string): Pr
   return out
 }
 
+// ─── Предстоящие встречи смотрящего с этой תלמידה ───────────────────────────
+// Только встречи, где смотрящий сам ведущий (provider_id) или участник, а
+// תלמידה — тема встречи (journey_id) или тоже участница. Чужие встречи не
+// показываются вовсе, поэтому отдельного права не нужно: свою встречу он и так
+// видит в календаре. Отменённые и прошедшие — не попадают.
+async function loadMeetings(
+  sb: Sb, session: SessionPayload, journeyId: string, personId: string,
+): Promise<OpenMeetingItem[]> {
+  const me = session.person_id
+  if (!me) return []
+  try {
+    const nowIso = new Date().toISOString()
+    // Встречи, где она участница.
+    const { data: herRows, error: hErr } = await sb
+      .from('appointment_attendees')
+      .select('appointment_id')
+      .eq('person_id', personId)
+    if (hErr) throw hErr
+    const herIds = new Set(((herRows ?? []) as Array<{ appointment_id: string }>).map(r => r.appointment_id))
+
+    // Встречи, где я участник.
+    const { data: myRows, error: mErr } = await sb
+      .from('appointment_attendees')
+      .select('appointment_id')
+      .eq('person_id', me)
+    if (mErr) throw mErr
+    const myIds = new Set(((myRows ?? []) as Array<{ appointment_id: string }>).map(r => r.appointment_id))
+
+    // Кандидаты: о ней (journey_id) или с ней (участница). Дальше — только мои.
+    const orParts = [`journey_id.eq.${journeyId}`]
+    if (herIds.size > 0) orParts.push(`id.in.(${[...herIds].join(',')})`)
+    const { data, error } = await sb
+      .from('appointments')
+      .select('id, title, starts_at, provider_id')
+      .or(orParts.join(','))
+      .eq('status', 'scheduled')
+      .gte('starts_at', nowIso)
+      .order('starts_at', { ascending: true })
+      .limit(50)
+    if (error) throw error
+    return ((data ?? []) as Array<{ id: string; title: string | null; starts_at: string; provider_id: string }>)
+      .filter(a => a.provider_id === me || myIds.has(a.id))
+      .map(a => ({ id: a.id, title: a.title, starts_at: a.starts_at }))
+  } catch (e) {
+    if (isMissingTable(e)) return []
+    throw e
+  }
+}
+
 /**
  * GET /api/students/[id]/open-items   ([id] = education_journeys.id)
  *
- * «פתוח עכשיו» на карточке תלמידה: { alerts, absence_cases, tasks }. Только
+ * «פתוח עכשיו» на карточке תלמידה: { alerts, absence_cases, tasks, meetings }. Только
  * чтение. Каждый раздел гейтится своим правом (см. загрузчики выше); раздел без
  * права — пустой список, не ошибка.
  */
@@ -189,13 +239,14 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     if (!journey) return apiError('student_not_found', 404)
     const j = journey as { id: string; person_id: string }
 
-    const [alerts, absence_cases, tasks] = await Promise.all([
+    const [alerts, absence_cases, tasks, meetings] = await Promise.all([
       loadAlerts(sb, session, j.person_id),
       loadAbsences(sb, session, j.id),
       loadTasks(sb, session, j.id),
+      loadMeetings(sb, session, j.id, j.person_id),
     ])
 
-    const result: StudentOpenItems = { person_id: j.person_id, alerts, absence_cases, tasks }
+    const result: StudentOpenItems = { person_id: j.person_id, alerts, absence_cases, tasks, meetings }
     return NextResponse.json(result)
   } catch (err: unknown) {
     const e = err as { status?: number; message?: string; code?: string }
