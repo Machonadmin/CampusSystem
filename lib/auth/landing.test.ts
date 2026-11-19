@@ -1,17 +1,18 @@
 import { describe, it, expect } from 'vitest'
 import { landingRouteForRoles, hasBroaderAdminRole, safeInternalPath } from './landing'
 
-// По умолчанию каждый входит на общий главный экран /dashboard; управляющая
-// кафедрой иудаики (kodeshWorkspace) — на дом иудаики; более широкий админ
-// всегда остаётся на /dashboard.
+// Каждый входит на общий главный экран /dashboard. Особого «дома» у главы
+// кафедры иудаики больше нет (решение владельца 19.11.2026): «מרחב יהדות» —
+// обычный модуль меню.
 describe('landingRouteForRoles', () => {
-  it('без ctx: любая роль → /dashboard', () => {
+  it('любая роль → /dashboard', () => {
     expect(landingRouteForRoles(['superadmin'])).toBe('/dashboard')
     expect(landingRouteForRoles(['teacher'])).toBe('/dashboard')
     expect(landingRouteForRoles(['recruiter'])).toBe('/dashboard')
     expect(landingRouteForRoles(['studies_manager'])).toBe('/dashboard')
     expect(landingRouteForRoles(['jewishness_officer'])).toBe('/dashboard')
     expect(landingRouteForRoles(['teacher', 'superadmin'])).toBe('/dashboard')
+    expect(landingRouteForRoles(['campus_admin'])).toBe('/dashboard')
   })
 
   it('неизвестная роль / пусто / null → /dashboard', () => {
@@ -19,32 +20,6 @@ describe('landingRouteForRoles', () => {
     expect(landingRouteForRoles([])).toBe('/dashboard')
     expect(landingRouteForRoles(null)).toBe('/dashboard')
     expect(landingRouteForRoles(undefined)).toBe('/dashboard')
-  })
-
-  it('управляющая кафедрой иудаики → дом иудаики', () => {
-    expect(landingRouteForRoles([], { kodeshWorkspace: true }))
-      .toBe('/dashboard/education/kodesh-home')
-    expect(landingRouteForRoles(['jewishness_officer'], { kodeshWorkspace: true }))
-      .toBe('/dashboard/education/kodesh-home')
-  })
-
-  it('более широкий админ остаётся на /dashboard даже с флагом kodesh', () => {
-    expect(landingRouteForRoles(['superadmin'], { kodeshWorkspace: true })).toBe('/dashboard')
-    expect(landingRouteForRoles(['superadmin', 'kodesh_head'], { kodeshWorkspace: true })).toBe('/dashboard')
-  })
-
-  // Аудит §25 Q4: 'campus_admin' больше НЕ считается «широким админом» — такой
-  // код роли ни одна миграция не сеет (002 делает TRUNCATE roles), и ни одна
-  // привилегия к нему не привязана. Если superadmin создаст его вручную
-  // (код роли — свободный текст), он теперь ведёт себя как обычная роль.
-  it("'campus_admin' не даёт особого поведения посадки (§25 Q4)", () => {
-    expect(landingRouteForRoles(['campus_admin'])).toBe('/dashboard')
-    expect(landingRouteForRoles(['campus_admin'], { kodeshWorkspace: true }))
-      .toBe('/dashboard/education/kodesh-home')
-  })
-
-  it('обычный пользователь без флага → /dashboard', () => {
-    expect(landingRouteForRoles(['teacher'], { kodeshWorkspace: false })).toBe('/dashboard')
   })
 })
 

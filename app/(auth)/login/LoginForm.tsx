@@ -39,7 +39,7 @@ export default function LoginForm() {
         return
       }
 
-      router.push(explicitFrom || landingRouteForRoles(data.roles, { kodeshWorkspace: data.kodesh_home === true }))
+      router.push(explicitFrom || landingRouteForRoles(data.roles))
       router.refresh()
     } catch {
       setError(t('error_connection'))

@@ -3,7 +3,7 @@ import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
 import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope, hasEducationPrivilege, canManageTracksCatalog } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
-import { canManageKodesh } from '@/lib/education/kodesh-access'
+import { canEnterKodeshSpace } from '@/lib/kodesh-space/access'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { headsOnlyKodesh } from '@/lib/education/kodesh-workspace'
@@ -30,7 +30,7 @@ import { errorResponse } from '@/lib/api/handler'
  *                  «מרכז חברותא»: staff-comp ЛИБО manage_students)
  * Экраны модуля иудаики и прочие пункты (решение владельца: прятать карточку,
  * если экран всё равно покажет «אין לך הרשאה») — зеркало проверки главного GET:
- *   kodesh_home     → canManageKodesh (GET /api/education/kodesh/home)
+ *   kodesh_home     → canEnterKodeshSpace (модуль «מרחב יהדות», GET /api/education/kodesh/home)
  *   kodesh_rav      → GET teacher-approvals ИЛИ GET teacher-quotas (экран =
  *                     ForbiddenState только если закрыты оба)
  *   track_catalog   → manage_tracks со scope='all' (каталог институтский) (GET study-tracks?includeInactive=1)
@@ -80,7 +80,7 @@ export async function GET() {
       viewStudentsMgr, manageStudents, manageSubjects,
       manageStudyGroups, kodesh, chavruta, classGroupsScope, viewStudentsAny,
       viewStudentsScope, manageStudentsScope,
-      manageKodesh, manageClassTeachers, approveKodeshTeacher, setTeacherQuota,
+      enterKodeshSpace, manageClassTeachers, approveKodeshTeacher, setTeacherQuota,
       manageTracks, manageClassGroupsMgr, manageAlerts,
       finView, finViewBalance, finManageBudget, finApproveDiscount, manageEnrollmentsMgr,
       createKodeshCourse, chavrutaHub,
@@ -96,7 +96,7 @@ export async function GET() {
       safe(getEducationPrivilegeScope(session, 'view_students'), null),
       safe(getEducationPrivilegeScope(session, 'manage_students'), null),
       // ↓ зеркала проверок главного GET экранов (см. шапку файла)
-      safe(canManageKodesh(session), false),
+      safe(canEnterKodeshSpace(session), false),
       safe(canManageEducationInAny(session, 'manage_class_teachers'), false),
       safe(canDoEducationInAny(session, 'approve_kodesh_teacher'), false),
       safe(canDoEducationInAny(session, 'set_teacher_quota'), false),
@@ -160,7 +160,7 @@ export async function GET() {
       students_view_all,
       students_manage_all,
       restrict_to_kodesh: restrictToKodesh,
-      kodesh_home: manageKodesh,
+      kodesh_home: enterKodeshSpace,
       kodesh_rav: (manageClassTeachers || approveKodeshTeacher)
         || (manageClassTeachers || setTeacherQuota),
       track_catalog: manageTracks,
