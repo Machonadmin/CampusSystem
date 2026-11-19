@@ -435,7 +435,7 @@ const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
     { key: 'launch_kodesh_rav', fb: 'אישורי הרב', icon: LIC.check, href: '/dashboard/education/kodesh-rav', acc: 'kodesh_rav' },
     // Объединённая «מורים» (часы + посещаемость).
     { key: 'launch_teachers', fb: 'מורות', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
-    { key: 'launch_kodesh_home', fb: 'מרחב יהדות', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
+    { key: 'launch_kodesh_home', fb: 'מרחב יהדות', icon: LIC.chart, href: '/dashboard/kodesh-space', acc: 'kodesh_home' },
   ] },
   { key: 'launch_group_review', fb: 'בדיקה ודוחות', items: [
     { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys', acc: 'teaching_surveys' },

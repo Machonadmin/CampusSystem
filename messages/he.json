@@ -49,7 +49,8 @@
     "open_now_type_alert": "התראה",
     "open_now_type_absence": "היעדרות",
     "open_now_type_task": "משימה",
-    "open_now_open": "פתח"
+    "open_now_open": "פתח",
+    "open_now_type_meeting": "פגישה"
   },
   "common": {
     "actions": "פעולות",
@@ -4901,7 +4902,10 @@
       "department": "מחלקה",
       "roles": "תפקידים",
       "gender": "מגדר",
-      "birth_date": "תאריך לידה"
+      "birth_date": "תאריך לידה",
+      "year_level": "שנת לימוד",
+      "group": "קבוצה",
+      "city": "עיר"
     },
     "gender": {
       "male": "זכר",

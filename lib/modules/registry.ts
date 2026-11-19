@@ -225,6 +225,18 @@ export const MODULES = [
     inSidebar: false, isPrivilegeModule: true,
   },
   {
+    // «מרחב יהדות» — решение владельца 19.11.2026: не отдельный «дом» для
+    // управляющей кафедрой иудаики, а обычный модуль меню со своим правом
+    // kodesh_space.access, которое владелец выдаёт на экране «אבטחת מידע».
+    code: 'kodesh_space', navKey: 'kodesh_space', href: '/dashboard/kodesh-space',
+    routeGuard: false, pageGates: true, pagePrivilege: null,
+    gateExceptionReason:
+      'Страница и её API (/api/education/kodesh/home) сами проверяют ' +
+      'canEnterKodeshSpace = superadmin ∪ kodesh_space.access — то же право, что и видимость.',
+    inAccessibleModules: true, hasColour: false, implemented: true,
+    inSidebar: true, isPrivilegeModule: true,
+  },
+  {
     code: 'chavruta', navKey: 'chavruta', href: '/dashboard/chavruta',
     routeGuard: false, pageGates: false, pagePrivilege: null,
     gateExceptionReason:

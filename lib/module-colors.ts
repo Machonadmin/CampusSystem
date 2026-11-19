@@ -48,7 +48,8 @@ type Shade = 'primary' | 'light' | 'medium'
  * «Документов». Синоним, а не отдельный токен — чтобы раздел и его карточка не
  * могли разъехаться при следующей правке палитры.
  */
-const MODULE_ALIASES: Record<string, string> = { studies: 'education' }
+// kodesh_space («מרחב יהדות») — часть учёбы, цвет тот же, что у education.
+const MODULE_ALIASES: Record<string, string> = { studies: 'education', kodesh_space: 'education' }
 
 /** Имя CSS-переменной модуля; для неизвестного кода — нейтральный fallback. */
 function tokenBase(moduleCode: string): string {

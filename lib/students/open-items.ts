@@ -2,9 +2,10 @@
  * «פתוח עכשיו» на карточке תלמידה — общие типы и чистые помощники для
  * GET /api/students/[id]/open-items и панели в StudentOverviewTab.
  *
- * Три источника: открытые оповещения (student_alerts), незакрытые случаи
- * отсутствия (absence_cases) и открытые задачи с меткой этой תלמידה
- * (tasks.metadata.journey_id). Данных врача/психолога здесь НЕТ намеренно.
+ * Источники: открытые оповещения (student_alerts), незакрытые случаи
+ * отсутствия (absence_cases), открытые задачи с меткой этой תלמידה
+ * (tasks.metadata.journey_id) и предстоящие встречи смотрящего с ней
+ * (appointments). Данных врача/психолога здесь НЕТ намеренно.
  * Раздел, на который у смотрящего нет права, приходит пустым списком (не
  * ошибкой) — панель рисуется всегда.
  */
@@ -45,12 +46,21 @@ export interface OpenTaskItem {
   assignee_name: string | null
 }
 
+/** Предстоящая встреча, где смотрящий — ведущий или участник, а תלמידה — тема или участница. */
+export interface OpenMeetingItem {
+  id: string
+  title: string | null
+  starts_at: string
+}
+
 export interface StudentOpenItems {
   /** persons.id תלמידה — для ссылки на экран оповещений (?student=). */
   person_id?: string
   alerts: OpenAlertItem[]
   absence_cases: OpenAbsenceItem[]
   tasks: OpenTaskItem[]
+  /** Только встречи самого смотрящего с ней (он ведущий или участник). */
+  meetings?: OpenMeetingItem[]
 }
 
 export const EMPTY_OPEN_ITEMS: StudentOpenItems = { alerts: [], absence_cases: [], tasks: [] }
@@ -59,6 +69,7 @@ export const EMPTY_OPEN_ITEMS: StudentOpenItems = { alerts: [], absence_cases: [
 export function countOpenItems(d: StudentOpenItems | null | undefined): number {
   if (!d) return 0
   return (d.alerts?.length ?? 0) + (d.absence_cases?.length ?? 0) + (d.tasks?.length ?? 0)
+    + (d.meetings?.length ?? 0)
 }
 
 /** Задача открыта для панели «פתוח עכשיו» (не выполнена / не отменена / не отклонена). */

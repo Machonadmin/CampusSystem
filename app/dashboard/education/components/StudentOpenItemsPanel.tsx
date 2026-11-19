@@ -8,17 +8,19 @@ import { countOpenItems, type StudentOpenItems } from '@/lib/students/open-items
 
 /**
  * «פתוח עכשיו» — верх карточки תלמידה: всё незакрытое по ней в одном месте
- * (оповещения, случаи отсутствия, задачи с меткой этой תלמידה). Каждая строка
+ * (оповещения, случаи отсутствия, задачи с меткой этой תלמידה и предстоящие
+ * встречи самого смотрящего с ней). Каждая строка
  * ведёт на свой экран. Что смотрящему не положено — сервер просто не отдаёт
  * (пустой раздел), поэтому здесь ничего дополнительно не прячется.
  */
 
-type Kind = 'alert' | 'absence' | 'task'
+type Kind = 'alert' | 'absence' | 'task' | 'meeting'
 
 const KIND_STYLE: Record<Kind, { bg: string; fg: string }> = {
   alert:   { bg: 'var(--danger-tint)', fg: 'var(--danger)' },
   absence: { bg: 'var(--warn-tint)',   fg: 'var(--warn)' },
   task:    { bg: 'var(--info-tint)',   fg: 'var(--info)' },
+  meeting: { bg: 'var(--surface-2)',   fg: 'var(--accent-strong)' },
 }
 
 interface Item { key: string; kind: Kind; title: string; meta: string; href: string }
@@ -85,6 +87,19 @@ export default function StudentOpenItemsPanel({ journeyId }: { journeyId: string
         href: `/dashboard/tasks/${tk.id}`,
       })
     }
+    for (const m of data.meetings ?? []) {
+      const d = new Date(m.starts_at)
+      const time = d.toLocaleTimeString(lang === 'he' ? 'he-IL' : lang === 'ru' ? 'ru-RU' : 'en-GB', { hour: '2-digit', minute: '2-digit' })
+      items.push({
+        key: `m:${m.id}`,
+        kind: 'meeting',
+        title: m.title || t('open_now_type_meeting'),
+        // Дата по местному времени (не UTC-срез строки): вечерняя встреча
+        // иначе показалась бы следующим днём.
+        meta: `${formatDate(localYmd(d), lang)} · ${time}`,
+        href: `/dashboard/meetings/${m.id}`,
+      })
+    }
   }
 
   const total = countOpenItems(data)
@@ -92,6 +107,7 @@ export default function StudentOpenItemsPanel({ journeyId }: { journeyId: string
     alert: t('open_now_type_alert'),
     absence: t('open_now_type_absence'),
     task: t('open_now_type_task'),
+    meeting: t('open_now_type_meeting'),
   }
 
   return (
@@ -145,4 +161,9 @@ export default function StudentOpenItemsPanel({ journeyId }: { journeyId: string
       )}
     </div>
   )
+}
+
+function localYmd(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }

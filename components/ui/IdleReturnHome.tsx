@@ -14,9 +14,9 @@ import { HIDDEN_AT_KEY, parseHiddenAt, shouldReturnHome } from '@/lib/nav/idle-r
  * Обычный переход по ссылке (например, из пуш-уведомления) НЕ перехватываем —
  * человек открыл конкретную страницу.
  *
- * «Главный экран» — тот же, что после входа: landingRouteForRoles (для
- * управляющей кафедрой иудаики — дом иудаики). Признак рабочего пространства
- * спрашиваем у /api/education/workspace-nav; при любой ошибке — общий /dashboard.
+ * «Главный экран» — тот же, что после входа: landingRouteForRoles, то есть
+ * общий /dashboard для всех (с 19.11.2026 «מרחב יהדות» — обычный модуль меню,
+ * а не отдельный «дом»).
  */
 
 function readHiddenAt(): number | null {
@@ -29,17 +29,6 @@ function writeHiddenAt(at: number): void {
 
 function clearHiddenAt(): void {
   try { window.sessionStorage.removeItem(HIDDEN_AT_KEY) } catch { /* хранилище недоступно */ }
-}
-
-async function fetchKodeshWorkspace(): Promise<boolean> {
-  try {
-    const res = await fetch('/api/education/workspace-nav')
-    if (!res.ok) return false
-    const data = await res.json() as { kodesh_workspace?: unknown }
-    return data.kodesh_workspace === true
-  } catch {
-    return false
-  }
 }
 
 function isTouchDevice(): boolean {
@@ -68,10 +57,8 @@ export default function IdleReturnHome({ roles }: { roles: string[] }) {
   }, [pathname])
 
   useEffect(() => {
-    let checking = false
-
-    const check = async (hiddenAt: number | null) => {
-      if (hiddenAt === null || checking) return
+    const check = (hiddenAt: number | null) => {
+      if (hiddenAt === null) return
       const from = pathRef.current
       const go = shouldReturnHome({
         awayMs: Date.now() - hiddenAt,
@@ -81,11 +68,7 @@ export default function IdleReturnHome({ roles }: { roles: string[] }) {
         editedOnScreen: edited.current,
       })
       if (!go) return
-      checking = true
-      const home = landingRouteForRoles(rolesRef.current, { kodeshWorkspace: await fetchKodeshWorkspace() })
-      checking = false
-      // Пока ждали ответ, человек мог уже перейти или начать вводить.
-      if (pathRef.current !== from || edited.current) return
+      const home = landingRouteForRoles(rolesRef.current)
       if (from !== home) router.push(home)
     }
 
@@ -96,14 +79,14 @@ export default function IdleReturnHome({ roles }: { roles: string[] }) {
       }
       const hiddenAt = readHiddenAt()
       clearHiddenAt()
-      void check(hiddenAt)
+      check(hiddenAt)
     }
 
     const onPageShow = (e: PageTransitionEvent) => {
       if (!e.persisted) return
       const hiddenAt = readHiddenAt()
       clearHiddenAt()
-      void check(hiddenAt)
+      check(hiddenAt)
     }
 
     const onEdit = (e: Event) => {
@@ -121,7 +104,7 @@ export default function IdleReturnHome({ roles }: { roles: string[] }) {
     } else {
       const hiddenAt = readHiddenAt()
       clearHiddenAt()
-      if (wasRestoredFromBackground()) void check(hiddenAt)
+      if (wasRestoredFromBackground()) check(hiddenAt)
     }
 
     document.addEventListener('visibilitychange', onVisibility)
