@@ -90,6 +90,19 @@ interface Props {
   canApprove: boolean
 }
 
+/** Семестр для «שכר לימוד לפי סמסטר» (GET …/tuition-options). */
+interface TuitionOption {
+  id: string
+  name: string | null
+  name_he: string | null
+  year_label: string | null
+  term_number: number | null
+  status: 'open' | 'closed'
+  tuition_amount: number
+  study_track: { name_he: string | null; name_ru: string | null; name_en: string | null } | null
+  charged: boolean
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function initials(name: string) {
@@ -115,7 +128,12 @@ export default function FinanceLedgerClient({
   const [showCharge, setShowCharge] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
 
-  // charge form
+  // charge form: «שכר לימוד לפי סמסטר» (сумма из семестра, вручную не вводится)
+  // или «חיוב אחר» (свободная сумма — общежитие, сборы и т.п.).
+  const [cKind, setCKind] = useState<'tuition' | 'other'>('tuition')
+  const [tuitionOptions, setTuitionOptions] = useState<TuitionOption[] | null>(null)
+  const [cYear, setCYear] = useState('')
+  const [cSemesterId, setCSemesterId] = useState('')
   const [cAmount, setCAmount] = useState('')
   const [cDesc, setCDesc] = useState('')
   const [cPeriod, setCPeriod] = useState('')
@@ -216,7 +234,41 @@ export default function FinanceLedgerClient({
     }
   }, [load, t])
 
+  const loadTuitionOptions = useCallback(async () => {
+    setTuitionOptions(null)
+    let list: TuitionOption[] = []
+    try {
+      const res = await fetch(`/api/finance/journeys/${journeyId}/tuition-options`)
+      if (res.ok) list = ((await res.json()).semesters ?? []) as TuitionOption[]
+    } catch { /* список не загрузился — остаётся «חיוב אחר» */ }
+    setTuitionOptions(list)
+    setCKind(list.length > 0 ? 'tuition' : 'other')
+    const years = Array.from(new Set(list.map(s => s.year_label ?? '')))
+    setCYear(years.length === 1 ? years[0] : '')
+    setCSemesterId('')
+  }, [journeyId])
+
+  function semesterTitle(s: TuitionOption): string {
+    const title = (lang === 'he' ? s.name_he?.trim() : null) || s.name?.trim() || s.name_he?.trim()
+      || t('semesters.term_n').replace('{n}', String(s.term_number ?? ''))
+    const tr = s.study_track
+    const track = !tr ? '' : lang === 'ru' ? (tr.name_ru?.trim() || tr.name_he || tr.name_en || '')
+      : lang === 'en' ? (tr.name_en?.trim() || tr.name_he || tr.name_ru || '')
+      : (tr.name_he?.trim() || tr.name_ru || tr.name_en || '')
+    const marks = [s.charged ? t('form.semester_charged') : null, s.status === 'closed' ? t('semesters.status_closed') : null].filter(Boolean)
+    return [title, track].filter(Boolean).join(' · ') + (marks.length ? ` (${marks.join(', ')})` : '')
+  }
+
   function submitCharge() {
+    if (cKind === 'tuition') {
+      if (!cSemesterId) { setActionError(t('form.required')); return }
+      mutate(
+        `/api/finance/journeys/${journeyId}/charges`, 'POST',
+        { class_group_id: cSemesterId, due_date: cDue || null },
+        () => { setCSemesterId(''); setCDue(''); setShowCharge(false) },
+      )
+      return
+    }
     if (!cAmount.trim() || !cDesc.trim()) { setActionError(t('form.required')); return }
     mutate(
       `/api/finance/journeys/${journeyId}/charges`, 'POST',
@@ -368,20 +420,77 @@ export default function FinanceLedgerClient({
                   }
                   return !v
                 })
+                if (!showCharge) void loadTuitionOptions()
                 setShowPayment(false)
               },
               color: primary,
             } : undefined}
           >
-            {showCharge && canCreateInvoice && (
-              <FormRow>
-                <input aria-label={t('form.amount')} type="number" step="0.01" min="0" value={cAmount} onChange={e => setCAmount(e.target.value)} placeholder={t('form.amount')} style={inp(120)} />
-                <input aria-label={t('form.description')} value={cDesc} onChange={e => setCDesc(e.target.value)} placeholder={t('form.description')} style={inp(220)} />
-                <input aria-label={t('form.period')} value={cPeriod} onChange={e => setCPeriod(e.target.value)} placeholder={t('form.period')} style={inp(140)} />
-                <input type="date" value={cDue} onChange={e => setCDue(e.target.value)} style={inp(150)} />
-                <SubmitButton onClick={submitCharge} loading={busy} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
-              </FormRow>
-            )}
+            {showCharge && canCreateInvoice && (() => {
+              const options = tuitionOptions ?? []
+              const years = Array.from(new Set(options.map(s => s.year_label ?? '')))
+              const inYear = options.filter(s => (s.year_label ?? '') === cYear)
+              const picked = options.find(s => s.id === cSemesterId) ?? null
+              const kindBtn = (kind: 'tuition' | 'other', label: string) => (
+                <button
+                  type="button"
+                  aria-pressed={cKind === kind}
+                  onClick={() => setCKind(kind)}
+                  disabled={kind === 'tuition' && options.length === 0}
+                  style={{
+                    fontSize: 12.5, fontWeight: 600, padding: '6px 12px', borderRadius: 8, fontFamily: 'inherit',
+                    border: `1px solid ${cKind === kind ? primary : 'var(--border-strong)'}`,
+                    background: cKind === kind ? 'var(--surface)' : 'transparent',
+                    color: cKind === kind ? primary : 'var(--text-muted)',
+                    cursor: kind === 'tuition' && options.length === 0 ? 'default' : 'pointer',
+                    opacity: kind === 'tuition' && options.length === 0 ? 0.5 : 1,
+                  }}
+                >{label}</button>
+              )
+              return (
+                <FormRow>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
+                    {kindBtn('tuition', t('form.kind_tuition'))}
+                    {kindBtn('other', t('form.kind_other'))}
+                    {tuitionOptions !== null && options.length === 0 && (
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{t('form.no_tuition_semesters')}</span>
+                    )}
+                  </div>
+                  {tuitionOptions === null ? (
+                    <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{tCommon('loading')}</span>
+                  ) : cKind === 'tuition' ? (
+                    <>
+                      <select aria-label={t('form.year')} value={cYear} onChange={e => { setCYear(e.target.value); setCSemesterId('') }} style={inp(150)}>
+                        <option value="" disabled>{t('form.year')}</option>
+                        {years.map(y => <option key={y || '-'} value={y}>{y || '—'}</option>)}
+                      </select>
+                      <select aria-label={t('form.semester')} value={cSemesterId} onChange={e => setCSemesterId(e.target.value)} disabled={!cYear && years.length > 1} style={inp(240)}>
+                        <option value="" disabled>{t('form.semester')}</option>
+                        {inYear.map(s => <option key={s.id} value={s.id} disabled={s.charged}>{semesterTitle(s)}</option>)}
+                      </select>
+                      <span
+                        aria-label={t('form.amount')}
+                        title={t('form.tuition_amount_auto')}
+                        style={{ ...inp(140), background: 'var(--surface)', color: picked ? 'var(--text)' : 'var(--text-faint)', fontVariantNumeric: 'tabular-nums', boxSizing: 'border-box' }}
+                      >
+                        {picked ? formatMoney(picked.tuition_amount) : t('form.amount')}
+                      </span>
+                      <input type="date" aria-label={t('ledger.charge_due')} value={cDue} onChange={e => setCDue(e.target.value)} style={inp(150)} />
+                      <SubmitButton onClick={submitCharge} loading={busy} disabled={busy || !picked} style={{ ...btn('var(--action)'), opacity: (busy || !picked) ? 0.55 : 1 }}>{tCommon('save')}</SubmitButton>
+                      <div style={{ width: '100%', fontSize: 12, color: 'var(--text-muted)' }}>{t('form.tuition_amount_auto')}</div>
+                    </>
+                  ) : (
+                    <>
+                      <input aria-label={t('form.amount')} type="number" step="0.01" min="0" value={cAmount} onChange={e => setCAmount(e.target.value)} placeholder={t('form.amount')} style={inp(120)} />
+                      <input aria-label={t('form.description')} value={cDesc} onChange={e => setCDesc(e.target.value)} placeholder={t('form.description')} style={inp(220)} />
+                      <input aria-label={t('form.period')} value={cPeriod} onChange={e => setCPeriod(e.target.value)} placeholder={t('form.period')} style={inp(140)} />
+                      <input type="date" value={cDue} onChange={e => setCDue(e.target.value)} style={inp(150)} />
+                      <SubmitButton onClick={submitCharge} loading={busy} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
+                    </>
+                  )}
+                </FormRow>
+              )
+            })()}
             {ledger.charges.length === 0 ? (
               <Empty text={t('ledger.no_charges')} />
             ) : (

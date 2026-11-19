@@ -1216,6 +1216,7 @@
         "remove_student_confirm": "להסיר את התלמידה מקבוצת כיתה זו?",
         "remove_student_failed": "ההסרה נכשלה",
         "enroll_modal_title": "רישום תלמידות",
+        "enroll_level_only": "מוצגות רק התלמידות של {name}",
         "search_by_name_placeholder": "חיפוש לפי שם…",
         "already_in_group": "בקבוצה",
         "enroll_button": "רישום {count} נבחרים",
@@ -3930,7 +3931,14 @@
       "period": "תקופה, למשל סמסטר א׳ 2026",
       "method": "אמצעי תשלום",
       "reference": "אסמכתא או מספר",
-      "required": "יש למלא את שדות החובה"
+      "required": "יש למלא את שדות החובה",
+      "kind_tuition": "שכר לימוד לפי סמסטר",
+      "kind_other": "חיוב אחר",
+      "year": "שנת לימודים",
+      "semester": "סמסטר",
+      "semester_charged": "כבר חויב",
+      "tuition_amount_auto": "הסכום נקבע לפי שכר הלימוד של הסמסטר ב\"כספים › סמסטרים ושכר לימוד\". הנחה נותנים אחר כך על החיוב, עם חתימה.",
+      "no_tuition_semesters": "לאף סמסטר עדיין לא נקבע שכר לימוד. קובעים אותו ב\"כספים › סמסטרים ושכר לימוד\"."
     },
     "status": {
       "active": "פעיל",
@@ -5513,7 +5521,10 @@
     "meetings_blocked_day": "היום הזה חסום ביומן",
     "meetings_lesson_overlap": "ביומן יש שיעור בשעה {time}",
     "meetings_delegate_invalid": "צריך לבחור עובד/ת עם חשבון פעיל",
-    "contacts_import_too_many": "אפשר לייבא עד 2000 אנשי קשר בפעם אחת"
+    "contacts_import_too_many": "אפשר לייבא עד 2000 אנשי קשר בפעם אחת",
+    "semester_not_found": "הסמסטר לא נמצא",
+    "semester_tuition_not_set": "לסמסטר הזה לא נקבע שכר לימוד",
+    "semester_already_charged": "לתלמידה כבר יש חיוב פעיל על הסמסטר הזה"
   },
   "workflow": {
     "error": "שגיאה"

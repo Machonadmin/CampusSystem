@@ -1216,6 +1216,7 @@
         "remove_student_confirm": "Remove the student from this class group?",
         "remove_student_failed": "Failed to remove",
         "enroll_modal_title": "Enroll Students",
+        "enroll_level_only": "Only students of {name} are shown",
         "search_by_name_placeholder": "Search by name…",
         "already_in_group": "in group",
         "enroll_button": "Enroll Selected ({count})",
@@ -3930,7 +3931,14 @@
       "period": "Period (e.g. 2026 term 1)",
       "method": "Payment method",
       "reference": "Reference / no.",
-      "required": "Fill in the required fields"
+      "required": "Fill in the required fields",
+      "kind_tuition": "Semester tuition",
+      "kind_other": "Other charge",
+      "year": "Academic year",
+      "semester": "Semester",
+      "semester_charged": "already charged",
+      "tuition_amount_auto": "The amount comes from the semester tuition set in Finance › Semesters & tuition. Discounts are given afterwards on the charge, with a signature.",
+      "no_tuition_semesters": "No semester has tuition set yet. Set it in Finance › Semesters & tuition."
     },
     "status": {
       "active": "Active",
@@ -5513,7 +5521,10 @@
     "meetings_blocked_day": "This day is blocked in the calendar",
     "meetings_lesson_overlap": "There is a lesson in the calendar at {time}",
     "meetings_delegate_invalid": "Choose a staff member with an active account",
-    "contacts_import_too_many": "Up to 2000 contacts per import"
+    "contacts_import_too_many": "Up to 2000 contacts per import",
+    "semester_not_found": "Semester not found",
+    "semester_tuition_not_set": "Tuition is not set for this semester",
+    "semester_already_charged": "This student already has an active charge for this semester"
   },
   "workflow": {
     "error": "Error"
