@@ -30,6 +30,17 @@ export interface SemesterTuitionGroup {
 }
 
 /**
+ * Подпись счёта за обучение: имя семестра, иначе «год · номер», иначе «סמסטר».
+ * Одна и та же для авто-начисления при зачислении и для ручного «הוספת חיוב»
+ * с выбором семестра (POST /api/finance/journeys/[id]/charges).
+ */
+export function tuitionChargeLabel(group: Pick<SemesterTuitionGroup, 'name' | 'year_label' | 'term_number'>): string {
+  return group.name?.trim()
+    || [group.year_label, group.term_number].filter(v => v != null && `${v}`.trim() !== '').join(' · ')
+    || 'סמסטר'
+}
+
+/**
  * Гарантирует счёт tuition для каждой из journeyIds, зачисленных в group.
  * Считаем, что journeyIds уже зачислены (есть строка class_enrollments) и это
  * студентки. Ничего не делаем, если у группы нет положительной tuition_amount.
@@ -43,9 +54,7 @@ export async function ensureSemesterTuitionCharges(
   const amount = Number(group.tuition_amount)
   if (!journeyIds.length || !group.tuition_amount || !(amount > 0)) return { created: 0 }
 
-  const label = group.name?.trim()
-    || [group.year_label, group.term_number].filter(v => v != null && `${v}`.trim() !== '').join(' · ')
-    || 'סמסטר'
+  const label = tuitionChargeLabel(group)
 
   // Уже начисленные (tuition_charge_id заполнен) — пропускаем. Если колонки нет
   // (42703) — считаем, что связей нет, но и хранить связь не сможем (warn ниже).
@@ -67,7 +76,44 @@ export async function ensureSemesterTuitionCharges(
     }
   }
 
-  const todo = journeyIds.filter(id => !already.has(id))
+  // Счёт за этот семестр мог быть выставлен вручную в «Финансах» ещё до
+  // зачисления (הוספת חיוב → выбор семестра). Второй не создаём — только
+  // привязываем существующий активный счёт к зачислению.
+  const manual = new Map<string, string>()
+  {
+    const pending = journeyIds.filter(id => !already.has(id))
+    if (pending.length) {
+      const { data, error } = await sb
+        .from('finance_charges')
+        .select('id, journey_id')
+        .eq('class_group_id', group.id)
+        .eq('category', 'tuition')
+        .eq('status', 'active')
+        .in('journey_id', pending)
+      if (error) {
+        if (!isMissingRelation(error)) throw error
+      } else {
+        for (const r of (data ?? []) as Array<{ id: string; journey_id: string }>) {
+          if (!manual.has(r.journey_id)) manual.set(r.journey_id, r.id)
+        }
+      }
+    }
+  }
+  if (!linkColumnMissing) {
+    for (const [journeyId, chargeId] of manual) {
+      const { error: linkErr } = await sb
+        .from('class_enrollments')
+        .update({ tuition_charge_id: chargeId })
+        .eq('class_group_id', group.id)
+        .eq('journey_id', journeyId)
+      if (linkErr) {
+        if (isMissingRelation(linkErr)) { linkColumnMissing = true; break }
+        throw linkErr
+      }
+    }
+  }
+
+  const todo = journeyIds.filter(id => !already.has(id) && !manual.has(id))
   if (!todo.length) return { created: 0 }
 
   let created = 0
