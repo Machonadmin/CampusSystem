@@ -58,6 +58,8 @@ const MY_WORK_ITEMS = [
   { key: 'meetings' as const, href: '/dashboard/meetings', icon: I.meetings },
   // «המסלול שלי» — только у тех, кому /api/education/my-track вернул маршруты.
   { key: 'my_track' as const, href: '/dashboard/my-track', icon: I.my_track },
+  // «מרחב המנהל» — только המנהל (superadmin) и его секретарь: /api/director/access.
+  { key: 'director_space' as const, href: '/dashboard/director-space', icon: I.director_space },
 ]
 
 const MODULES = [
@@ -123,7 +125,7 @@ function SidebarNavLink({
 }) {
   // 'home', 'calendar' и 'management' (פאנל ניהול) — личные страницы: всегда
   // доступны, свои данные отдаёт API.
-  const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar' || moduleKey === 'management' || moduleKey === 'meetings' || moduleKey === 'my_track'
+  const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar' || moduleKey === 'management' || moduleKey === 'meetings' || moduleKey === 'my_track' || moduleKey === 'director_space'
   const implemented = isPersonalPage || isModuleImplemented(moduleKey)
   return (
     <div className="relative">
@@ -217,6 +219,7 @@ export default function Sidebar() {
   // (по клику разворачиваются). Меньше видимых пунктов — легче глазу.
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
   const [hasMyTrack, setHasMyTrack] = useState(false)
+  const [hasDirectorSpace, setHasDirectorSpace] = useState(false)
 
   // /api/auth/me — через общий кэш useMe (один запрос на всё приложение,
   // а не отдельный в меню и на главной).
@@ -244,6 +247,16 @@ export default function Sidebar() {
     fetch('/api/education/my-track')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (alive) setHasMyTrack(Array.isArray(d?.tracks) && d.tracks.length > 0) })
+      .catch(() => { /* пункт просто не показываем */ })
+    return () => { alive = false }
+  }, [])
+
+  // «מרחב המנהל»: пункт виден только המנהל и его секретарю.
+  useEffect(() => {
+    let alive = true
+    fetch('/api/director/access')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (alive) setHasDirectorSpace(d?.role === 'director' || d?.role === 'secretary') })
       .catch(() => { /* пункт просто не показываем */ })
     return () => { alive = false }
   }, [])
@@ -592,7 +605,7 @@ export default function Sidebar() {
               <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
             </div>
           )}
-          {MY_WORK_ITEMS.filter(item => item.key !== 'my_track' || hasMyTrack).map(item => (
+          {MY_WORK_ITEMS.filter(item => (item.key !== 'my_track' || hasMyTrack) && (item.key !== 'director_space' || hasDirectorSpace)).map(item => (
             <SidebarNavLink
               key={item.key}
               href={item.href}
