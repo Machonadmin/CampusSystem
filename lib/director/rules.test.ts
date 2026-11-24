@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { directorSpaceRole, inboxActions, inboxHref, jewishnessStep, INBOX_CATEGORIES } from './rules'
+import {
+  directorSpaceRole, inboxActions, inboxHref, isActiveGrant, isSecretaryGrantCategory, jewishnessStep,
+  INBOX_CATEGORIES, SECRETARY_GRANTS,
+} from './rules'
 
 describe('directorSpaceRole', () => {
   it('superadmin — המנהל', () => {
@@ -76,5 +79,33 @@ describe('inboxActions — те же маршруты, что у исходны�
     for (const c of ['teacher_course', 'jewishness_initial', 'jewishness_final'] as const) {
       expect(inboxActions({ category: c, id: 'x' })).toEqual({ approve: null, reject: null })
     }
+  })
+})
+
+
+describe('SECRETARY_GRANTS — только узкие права (решение «הרשאות צרות»)', () => {
+  it('категория → узкое право', () => {
+    expect(SECRETARY_GRANTS).toEqual({
+      schedule_slot: { module: 'studies', privilege_code: 'approve_schedule_slots' },
+      discount: { module: 'finance', privilege_code: 'approve_discount' },
+      payment: { module: 'finance', privilege_code: 'confirm_payment' },
+      teacher_attendance: { module: 'studies', privilege_code: 'approve_teacher_attendance' },
+    })
+  })
+  it('широкие права переключатель не выдаёт никогда', () => {
+    const codes = Object.values(SECRETARY_GRANTS).map(g => g.privilege_code)
+    expect(codes).not.toContain('approve_payment')
+    expect(codes).not.toContain('manage_students')
+  })
+  it('isSecretaryGrantCategory', () => {
+    expect(isSecretaryGrantCategory('payment')).toBe(true)
+    expect(isSecretaryGrantCategory('meeting_request')).toBe(false)
+    expect(isSecretaryGrantCategory('toString')).toBe(false)
+  })
+  it('isActiveGrant: запрет и истёкший срок — не выдано', () => {
+    const now = '2026-11-24T12:00:00Z'
+    expect(isActiveGrant({ is_granted: true, expires_at: null }, now)).toBe(true)
+    expect(isActiveGrant({ is_granted: false, expires_at: null }, now)).toBe(false)
+    expect(isActiveGrant({ is_granted: true, expires_at: '2026-11-01T00:00:00Z' }, now)).toBe(false)
   })
 })

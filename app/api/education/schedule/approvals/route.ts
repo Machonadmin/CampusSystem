@@ -2,19 +2,21 @@ import { NextResponse } from 'next/server'
 import { requireAuth, jsonError } from '@/lib/api/handler'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { canDecideScheduleSlots } from '@/lib/education/schedule-approval-access'
 import { isMissingColumn } from '@/lib/supabase/errors'
 
 /**
  * GET /api/education/schedule/approvals
  * Список слотов, ожидающих утверждения (кодеш-время, запрошенное менеджером
- * לימודי חול). Право: ТОЛЬКО מנהל כללי (роль superadmin).
+ * לימודי חול). Право: מנהל כללי (роль superadmin) или узкое studies.approve_schedule_slots
+ * (его открывает המנהל секретарю в «מרחב המנהל»).
  * Деплой-безопасно: пока миграция не применена (нет колонки approval_status,
  * ошибка 42703) — возвращаем пустой список.
  */
 export async function GET() {
   try {
     const session = await requireAuth()
-    if (!session.roles.includes('superadmin')) return apiError('forbidden', 403)
+    if (!(await canDecideScheduleSlots(session))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

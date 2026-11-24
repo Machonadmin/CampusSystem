@@ -131,3 +131,33 @@ export function inboxActions(it: InboxActionRef): { approve: InboxAction | null;
       return { approve: null, reject: null }
   }
 }
+
+// ─── Шаг 3: המנהל открывает секретарю утверждение по категориям ──────────────
+//
+// Решение владельца 24.11.2026 («הרשאות צרות»): переключатель выдаёт УЗКОЕ
+// право, которое открывает только само утверждение — тот же person_privileges,
+// что на экране «אבטחת מידע» (там его видно и там же можно снять):
+//   schedule_slot      → studies.approve_schedule_slots   (новое)
+//   discount           → finance.approve_discount         (уже узкое)
+//   payment            → finance.confirm_payment          (было не подключено; теперь — только подтверждение платежа)
+//   teacher_attendance → studies.approve_teacher_attendance (новое)
+// meeting_request секретарь ведёт и так; teacher_course и יהדות — без кнопок в ленте.
+
+export const SECRETARY_GRANTS = {
+  schedule_slot: { module: 'studies', privilege_code: 'approve_schedule_slots' },
+  discount: { module: 'finance', privilege_code: 'approve_discount' },
+  payment: { module: 'finance', privilege_code: 'confirm_payment' },
+  teacher_attendance: { module: 'studies', privilege_code: 'approve_teacher_attendance' },
+} as const satisfies Partial<Record<InboxCategory, { module: string; privilege_code: string }>>
+
+export type SecretaryGrantCategory = keyof typeof SECRETARY_GRANTS
+export const SECRETARY_GRANT_CATEGORIES = Object.keys(SECRETARY_GRANTS) as SecretaryGrantCategory[]
+
+export function isSecretaryGrantCategory(v: unknown): v is SecretaryGrantCategory {
+  return typeof v === 'string' && Object.prototype.hasOwnProperty.call(SECRETARY_GRANTS, v)
+}
+
+/** Личная строка считается выданной: is_granted и срок не истёк. */
+export function isActiveGrant(row: { is_granted: boolean; expires_at: string | null }, nowIso: string): boolean {
+  return row.is_granted && (row.expires_at === null || row.expires_at > nowIso)
+}

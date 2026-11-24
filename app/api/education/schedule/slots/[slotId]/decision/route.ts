@@ -5,11 +5,13 @@ import { createServerClient } from '@/lib/supabase/server'
 import { todayISO } from '@/lib/dates'
 import { generateLessonsForGroup, clampHorizonToPeriod } from '@/lib/education/lesson-generation'
 import { isMissingColumn } from '@/lib/supabase/errors'
+import { canDecideScheduleSlots } from '@/lib/education/schedule-approval-access'
 
 /**
  * POST /api/education/schedule/slots/[slotId]/decision
  * Утверждение/отклонение слота, запрошенного на зарезервированное время кодеш.
- * Право: ТОЛЬКО מנהל כללי (роль superadmin) — решение владельца.
+ * Право: מנהל כללי (роль superadmin) или узкое studies.approve_schedule_slots
+ * (его открывает המנהל секретарю в «מרחב המנהל», решение владельца 24.11.2026).
  * Body: { decision: 'approve' | 'reject' }.
  *   approve → approval_status='active' (слот вступает в силу, generate его берёт)
  *   reject  → approval_status='rejected'
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest, props: { params: Promise<{ slot
   const params = await props.params
   try {
     const session = await requireAuth()
-    if (!session.roles.includes('superadmin')) return apiError('forbidden', 403)
+    if (!(await canDecideScheduleSlots(session))) return apiError('forbidden', 403)
 
     const body = await request.json().catch(() => ({})) as { decision?: string }
     if (body.decision !== 'approve' && body.decision !== 'reject') {

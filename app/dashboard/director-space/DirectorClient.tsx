@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/Badge'
 import { inboxActions, type InboxAction, type InboxCategory } from '@/lib/director/rules'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import SecretaryGrants from './SecretaryGrants'
 
 // ── Ответ /api/director/inbox ────────────────────────────────────────────────
 
@@ -130,6 +131,8 @@ export default function DirectorClient() {
       {state === 'loading' && <Skeleton height={160} />}
       {state === 'error' && <p style={{ color: 'var(--danger)', fontSize: 14, margin: 0 }}>{t('load_error')}</p>}
       {state === 'forbidden' && <EmptyState text={t('forbidden')} />}
+
+      {state === 'ok' && data?.role === 'director' && <SecretaryGrants />}
 
       {state === 'ok' && (
         <>

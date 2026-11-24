@@ -4,6 +4,7 @@ import { managedOwnerIds } from '@/lib/meetings/access'
 import { serverT } from '@/lib/i18n/api-errors'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
 import { canDoEducationInAny } from '@/lib/education/permissions'
+import { canDecideScheduleSlots } from '@/lib/education/schedule-approval-access'
 import { directorSpaceRole, type DirectorSpaceRole, type InboxCategory } from './rules'
 
 // ─── «מרחב המנהל»: кто входит (читает БД) ────────────────────────────────────
@@ -60,10 +61,10 @@ export async function decidableCategories(session: SessionPayload, access: Direc
   const withButtons: InboxCategory[] = ['schedule_slot', 'discount', 'payment', 'teacher_attendance', 'meeting_request']
   if (access.role === 'director') return withButtons
   const out: InboxCategory[] = []
-  // schedule_slot — сегодня решает ТОЛЬКО superadmin (decision/route.ts).
+  if (await canDecideScheduleSlots(session)) out.push('schedule_slot')
   if (await hasFinancePrivilege(session, 'approve_discount')) out.push('discount')
-  if (await hasFinancePrivilege(session, 'approve_payment')) out.push('payment')
-  if (await canDoEducationInAny(session, 'manage_students')) out.push('teacher_attendance')
+  if ((await hasFinancePrivilege(session, 'approve_payment')) || (await hasFinancePrivilege(session, 'confirm_payment'))) out.push('payment')
+  if ((await canDoEducationInAny(session, 'manage_students')) || (await canDoEducationInAny(session, 'approve_teacher_attendance'))) out.push('teacher_attendance')
   // Заявки на встречу секретарь ведёт уже сегодня (lib/meetings/requests.ts).
   if (access.directorIds.length > 0) out.push('meeting_request')
   return out

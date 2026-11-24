@@ -47,6 +47,11 @@ export type EducationPrivilege =
   // (see 20260903120000_student_alerts).
   | 'manage_alerts'
   | 'view_sensitive_alerts'
+  // «מרחב המנהל», шаг 3 (решение владельца 24.11.2026): узкие права ТОЛЬКО на
+  // утверждение — המנהל открывает их секретарю по категориям
+  // (см. 20261124120000_director_space_approval_privileges).
+  | 'approve_schedule_slots'
+  | 'approve_teacher_attendance'
 
 export type { Scope }
 

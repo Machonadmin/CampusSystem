@@ -6436,6 +6436,10 @@
     "rejected": "Rejected",
     "action_failed": "Action failed",
     "no_permission": "You are not allowed to approve in this category",
-    "confirm_reject": "Reject this request?"
+    "confirm_reject": "Reject this request?",
+    "saved": "Saved",
+    "grants_title": "What the secretary approves",
+    "grants_hint": "Tick a category to let the secretary approve in it. The permission also appears on the Data security screen, where it can be removed too.",
+    "grants_none": "No secretary manages your calendar yet. Set this on the Meetings screen, in the settings tab."
   }
 }

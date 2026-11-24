@@ -12,7 +12,7 @@ import { chunks, lessonDepartments, lessonInfo, loadPendingTeacherAttendance } f
  *   GET ?scope=mine    → мои отметки (учитель): урок + статус.
  *   GET ?scope=lessons → мои уроки (class_teacher) + уроки, где я замещала
  *                        (отметила посещаемость учениц или уже отметилась).
- *   GET ?scope=pending → на подтверждение (секретариат: manage_students/superadmin).
+ *   GET ?scope=pending → на подтверждение (секретариат: manage_students/approve_teacher_attendance/superadmin).
  *                        Кроме реальных отметок — ВИРТУАЛЬНЫЕ заявки «דווח דרך
  *                        נוכחות תלמידות» (урок без отметки преподавателя, но с
  *                        посещаемостью учениц → тому, кто её отметил); пометка
@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
     const scope = request.nextUrl.searchParams.get('scope') ?? 'mine'
 
     if (scope === 'pending') {
-      const canApprove = session.roles.includes('superadmin') || await canDoEducationInAny(session, 'manage_students')
+      const canApprove = session.roles.includes('superadmin')
+        || await canDoEducationInAny(session, 'manage_students')
+        || await canDoEducationInAny(session, 'approve_teacher_attendance')
       if (!canApprove) return apiError('forbidden', 403)
       try {
         // Реальные + виртуальные заявки + пометка «два преподавателя» (общий загрузчик).
@@ -43,6 +45,7 @@ export async function GET(request: NextRequest) {
         // менеджера. Урок без подразделения виден лишь при scope='all'.
         const scopeAll = session.roles.includes('superadmin')
           || (await getEducationPrivilegeScope(session, 'manage_students')) === 'all'
+          || (await getEducationPrivilegeScope(session, 'approve_teacher_attendance')) === 'all'
         if (!scopeAll) {
           const myDepts = new Set(await getUserDepartmentIds(session.person_id))
           const deptByLesson = await lessonDepartments(sb, rows.map(r => r.lesson_id))

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireFinancePrivilege } from '@/lib/finance/permissions'
+import { hasFinancePrivilege } from '@/lib/finance/permissions'
+import { getSession } from '@/lib/auth/session'
 import { mapDbError } from '@/lib/finance/http'
 import { errorResponse } from '@/lib/api/handler'
 
@@ -10,7 +11,9 @@ import { errorResponse } from '@/lib/api/handler'
  *
  * Подтвердить платёж: status 'pending' → 'approved', проставить approved_by /
  * approved_at. Только подтверждённые платежи участвуют в балансе.
- * Право: finance.approve_payment.
+ * Право: finance.approve_payment ИЛИ узкое finance.confirm_payment («אימות תשלום»:
+ * только это подтверждение, без расчётных листков и доступа к финансам — его
+ * открывает המנהל секретарю в «מרחב המנהל», решение владельца 24.11.2026).
  *
  * 404 — платёж не найден.
  * 409 — платёж не в статусе 'pending' (уже подтверждён или отменён): недопустимый
@@ -20,7 +23,11 @@ import { errorResponse } from '@/lib/api/handler'
 export async function POST(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    const session = await requireFinancePrivilege('approve_payment')
+    const session = await getSession()
+    if (!session) return apiError('unauthorized', 401)
+    const allowed = (await hasFinancePrivilege(session, 'approve_payment'))
+      || (await hasFinancePrivilege(session, 'confirm_payment'))
+    if (!allowed) return apiError('forbidden', 403)
 
     const sb = createServerClient()
 

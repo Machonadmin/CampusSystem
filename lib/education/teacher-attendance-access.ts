@@ -8,6 +8,7 @@ import { hasEducationPrivilege, getEducationPrivilegeScope } from '@/lib/educati
  * владельца: «רק המחלקה שלו»). Урок → группа → department_id. Если у группы нет
  * подразделения — действовать может лишь scope='all' (иначе department-scope
  * трактовался бы как «общий пул»). superadmin — всегда.
+ * Право — manage_students ИЛИ узкое approve_teacher_attendance (тот же скоуп).
  */
 export async function canDecideTeacherAttendance(
   session: SessionPayload,
@@ -22,7 +23,13 @@ export async function canDecideTeacherAttendance(
     const { data: cg } = await sb.from('class_groups').select('department_id').eq('id', cgId).maybeSingle()
     deptId = (cg as { department_id?: string | null } | null)?.department_id ?? null
   }
-  return deptId
-    ? hasEducationPrivilege(session, 'manage_students', { department_id: deptId })
-    : (await getEducationPrivilegeScope(session, 'manage_students')) === 'all'
+  // Узкое право «אישור נוכחות מורים» (только утверждение, без תיק תלמידה) —
+  // «מרחב המנהל», шаг 3. Скоуп тот же, что у manage_students.
+  for (const priv of ['manage_students', 'approve_teacher_attendance'] as const) {
+    const ok = deptId
+      ? await hasEducationPrivilege(session, priv, { department_id: deptId })
+      : (await getEducationPrivilegeScope(session, priv)) === 'all'
+    if (ok) return true
+  }
+  return false
 }
