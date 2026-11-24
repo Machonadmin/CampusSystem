@@ -2,7 +2,9 @@ import type { SessionPayload } from '@/lib/auth/jwt'
 import { createServerClient } from '@/lib/supabase/server'
 import { managedOwnerIds } from '@/lib/meetings/access'
 import { serverT } from '@/lib/i18n/api-errors'
-import { directorSpaceRole, type DirectorSpaceRole } from './rules'
+import { hasFinancePrivilege } from '@/lib/finance/permissions'
+import { canDoEducationInAny } from '@/lib/education/permissions'
+import { directorSpaceRole, type DirectorSpaceRole, type InboxCategory } from './rules'
 
 // ─── «מרחב המנהל»: кто входит (читает БД) ────────────────────────────────────
 //
@@ -46,4 +48,23 @@ export async function requireDirectorSpaceAccess(sb: SB, session: SessionPayload
   const access = await directorSpaceAccess(sb, session)
   if (!access) throw Object.assign(new Error(serverT('forbidden')), { status: 403 })
   return access
+}
+
+/**
+ * В каких категориях человеку показывать кнопки «אשר / דחה». Это ТОЛЬКО
+ * подсказка экрану: решает всё равно исходный маршрут со своей проверкой.
+ * המנהל (superadmin) — везде. Секретарь — там, где у неё уже есть то же право,
+ * что требует исходный экран (выдаёт המנהל на «אבטחת מידע»).
+ */
+export async function decidableCategories(session: SessionPayload, access: DirectorSpaceAccess): Promise<InboxCategory[]> {
+  const withButtons: InboxCategory[] = ['schedule_slot', 'discount', 'payment', 'teacher_attendance', 'meeting_request']
+  if (access.role === 'director') return withButtons
+  const out: InboxCategory[] = []
+  // schedule_slot — сегодня решает ТОЛЬКО superadmin (decision/route.ts).
+  if (await hasFinancePrivilege(session, 'approve_discount')) out.push('discount')
+  if (await hasFinancePrivilege(session, 'approve_payment')) out.push('payment')
+  if (await canDoEducationInAny(session, 'manage_students')) out.push('teacher_attendance')
+  // Заявки на встречу секретарь ведёт уже сегодня (lib/meetings/requests.ts).
+  if (access.directorIds.length > 0) out.push('meeting_request')
+  return out
 }

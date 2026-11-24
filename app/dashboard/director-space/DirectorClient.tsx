@@ -8,7 +8,9 @@ import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import { Badge } from '@/components/ui/Badge'
-import type { InboxCategory } from '@/lib/director/rules'
+import { inboxActions, type InboxAction, type InboxCategory } from '@/lib/director/rules'
+import { toastError, toastSuccess } from '@/components/ui/toast'
+import { confirmDialog } from '@/components/ui/ConfirmDialog'
 
 // ── Ответ /api/director/inbox ────────────────────────────────────────────────
 
@@ -27,9 +29,12 @@ interface Item {
   day_of_week?: number | null
   start_time?: string | null
   end_time?: string | null
+  lesson_id?: string | null
+  teacher_person_id?: string | null
+  virtual?: boolean
 }
 interface Section { category: InboxCategory; total: number; items: Item[]; failed: boolean }
-interface Inbox { role: 'director' | 'secretary'; sections: Section[] }
+interface Inbox { role: 'director' | 'secretary'; sections: Section[]; can_decide?: InboxCategory[] }
 
 // 2024-01-01 — понедельник; тот же якорь, что на экране утверждения расписания.
 function weekdayLabel(lang: string, wd: number): string {
@@ -42,6 +47,7 @@ export default function DirectorClient() {
   const [data, setData] = useState<Inbox | null>(null)
   const [state, setState] = useState<'loading' | 'ok' | 'forbidden' | 'error'>('loading')
   const [cat, setCat] = useState<InboxCategory | 'all'>('all')
+  const [busy, setBusy] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -56,6 +62,34 @@ export default function DirectorClient() {
       .catch(() => { if (alive) setState('error') })
     return () => { alive = false }
   }, [])
+
+  const canDecide = useMemo(() => new Set(data?.can_decide ?? []), [data])
+
+  /** Решение уходит в тот же маршрут, что у исходного экрана; пункт убираем из ленты. */
+  const decide = async (it: Item, kind: 'approve' | 'reject', action: InboxAction) => {
+    if (kind === 'reject' && !(await confirmDialog({ message: t('confirm_reject'), tone: 'danger' }))) return
+    const key = `${it.category}:${it.id}`
+    setBusy(key)
+    try {
+      const r = await fetch(action.url, {
+        method: action.method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action.body),
+      })
+      if (!r.ok) {
+        const b = await r.json().catch(() => ({}))
+        toastError(r.status === 403 ? t('no_permission') : (b.error ?? t('action_failed')))
+        return
+      }
+      toastSuccess(kind === 'approve' ? t('approved') : t('rejected'))
+      setData(prev => prev && {
+        ...prev,
+        sections: prev.sections.map(s => s.category !== it.category ? s : {
+          ...s, total: Math.max(0, s.total - 1), items: s.items.filter(x => x.id !== it.id),
+        }),
+      })
+    } catch {
+      toastError(t('action_failed'))
+    } finally { setBusy(null) }
+  }
 
   const sections = useMemo(() => data?.sections ?? [], [data])
   const grandTotal = sections.reduce((n, s) => n + s.total, 0)
@@ -131,7 +165,7 @@ export default function DirectorClient() {
                 <div
                   key={`${s.category}:${it.id}`}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
+                    display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '10px 14px',
                     border: '1px solid var(--border)', borderRadius: 10, background: 'var(--surface)',
                   }}
                 >
@@ -148,6 +182,28 @@ export default function DirectorClient() {
                       {formatDate(it.at, lang)}
                     </div>
                   )}
+                  {canDecide.has(s.category) && (() => {
+                    const acts = inboxActions(it)
+                    const key = `${s.category}:${it.id}`
+                    const btn = (bg: string, fg: string): React.CSSProperties => ({
+                      fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 8, whiteSpace: 'nowrap',
+                      background: bg, color: fg, border: 'none', cursor: busy ? 'default' : 'pointer', opacity: busy === key ? 0.6 : 1,
+                    })
+                    return (
+                      <>
+                        {acts.approve && (
+                          <button type="button" disabled={!!busy} style={btn('var(--accent)', '#fff')} onClick={() => decide(it, 'approve', acts.approve!)}>
+                            {t('approve')}
+                          </button>
+                        )}
+                        {acts.reject && (
+                          <button type="button" disabled={!!busy} style={btn('var(--surface-2)', 'var(--danger)')} onClick={() => decide(it, 'reject', acts.reject!)}>
+                            {t('reject')}
+                          </button>
+                        )}
+                      </>
+                    )
+                  })()}
                   <Link
                     href={it.href} prefetch={false}
                     style={{

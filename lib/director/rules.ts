@@ -64,3 +64,70 @@ export function jewishnessStep(status: unknown, initialCheckedAt: unknown): 'jew
   if (s === 'verified' || s === 'rejected') return null
   return initialCheckedAt ? 'jewishness_final' : 'jewishness_initial'
 }
+
+// ─── Шаг 2: утвердить / отклонить прямо из ленты ─────────────────────────────
+//
+// Кнопки вызывают ТЕ ЖЕ маршруты, что и исходные экраны, — значит, и те же
+// проверки прав: что запрещено там, запрещено и здесь. Своей логики решения у
+// ленты нет. Где решение требует больше, чем одна кнопка, кнопки нет — только
+// «פתח»:
+//   • teacher_course — у рава три исхода (в т.ч. «запросить информацию»);
+//   • jewishness_*   — документы и заметка, две ступени с разными правами;
+//   • meeting_request «утвердить» — нужно выбрать время встречи;
+//   • payment «отклонить» — в финансах это «отмена» платежа, другое право.
+
+export interface InboxAction {
+  url: string
+  method: 'POST' | 'PATCH'
+  body: Record<string, unknown>
+}
+
+export interface InboxActionRef {
+  category: InboxCategory
+  id: string
+  lesson_id?: string | null
+  teacher_person_id?: string | null
+  virtual?: boolean
+}
+
+export function inboxActions(it: InboxActionRef): { approve: InboxAction | null; reject: InboxAction | null } {
+  const id = encodeURIComponent(it.id)
+  switch (it.category) {
+    case 'schedule_slot': {
+      const url = `/api/education/schedule/slots/${id}/decision`
+      return {
+        approve: { url, method: 'POST', body: { decision: 'approve' } },
+        reject: { url, method: 'POST', body: { decision: 'reject' } },
+      }
+    }
+    case 'discount': {
+      const url = `/api/finance/discount-approvals/${id}`
+      return {
+        approve: { url, method: 'PATCH', body: { status: 'approved' } },
+        reject: { url, method: 'PATCH', body: { status: 'rejected' } },
+      }
+    }
+    case 'payment':
+      return { approve: { url: `/api/finance/payments/${id}/approve`, method: 'POST', body: {} }, reject: null }
+    case 'teacher_attendance': {
+      if (it.virtual) {
+        if (!it.lesson_id || !it.teacher_person_id) return { approve: null, reject: null }
+        const url = '/api/education/teacher-attendance/from-attendance'
+        const base = { lesson_id: it.lesson_id, teacher_person_id: it.teacher_person_id }
+        return {
+          approve: { url, method: 'POST', body: { ...base, decision: 'approved' } },
+          reject: { url, method: 'POST', body: { ...base, decision: 'rejected' } },
+        }
+      }
+      const url = `/api/education/teacher-attendance/${id}`
+      return {
+        approve: { url, method: 'PATCH', body: { decision: 'approved' } },
+        reject: { url, method: 'PATCH', body: { decision: 'rejected' } },
+      }
+    }
+    case 'meeting_request':
+      return { approve: null, reject: { url: `/api/meetings/requests/${id}`, method: 'PATCH', body: { action: 'decline' } } }
+    default:
+      return { approve: null, reject: null }
+  }
+}
