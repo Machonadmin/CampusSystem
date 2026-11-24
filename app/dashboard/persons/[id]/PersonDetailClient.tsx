@@ -80,13 +80,16 @@ export default function PersonDetailClient({
 
   useEffect(() => { load() }, [load])
 
+  const personCrumbs = [
+    { label: tNav('home'), href: '/dashboard' },
+    { label: t('title'), href: '/dashboard/persons' },
+    { label: data?.full_name || t('detail.title') },
+  ]
+
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title'), href: '/dashboard/persons' },
-        { label: data?.full_name || t('detail.title') },
-      ]} />
+      {/* Пока шапки нет (загрузка/ошибка) — путь отдельной плашкой; потом он внутри шапки. */}
+      {(error || loading || !data) && <Breadcrumb items={personCrumbs} />}
 
       {error ? (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, fontSize: 13, color: 'var(--danger)' }}>
@@ -99,6 +102,7 @@ export default function PersonDetailClient({
       ) : (
         <>
           <ModuleHeader
+            breadcrumb={personCrumbs}
             module="persons"
             icon={<Avatar
               name={data.full_name}

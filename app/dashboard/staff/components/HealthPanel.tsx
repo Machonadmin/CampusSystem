@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * Самопроверка «ניהול עובדים» (запрос владельца: «נמאס לי לבדוק»).
@@ -53,7 +54,7 @@ export default function HealthPanel({ refreshSignal, onOpenMerge, onDuplicates }
         onClick={() => setOpen(v => !v)}
         style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'start' }}
       >
-        <span style={{ fontSize: 15 }}>⚠️</span>
+        <span style={{ fontSize: 15 }}><Icon name="alert" style={{ color: 'var(--warn)' }} /></span>
         <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: 'var(--warn)' }}>
           {t('title').replace('{count}', String(blankScreen.length + noSeat.length + dupClusters))}
         </span>

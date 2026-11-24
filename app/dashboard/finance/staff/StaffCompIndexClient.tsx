@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -88,14 +88,14 @@ export default function StaffCompIndexClient() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      {/* Header */}
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('finance'), href: '/dashboard/finance' },
         { label: t('title') },
-      ]} />
-
-      {/* Header */}
-      <ModuleHeader module="finance" title={t('title')} subtitle={t('subtitle')} />
+      ]} module="finance" title={t('title')} subtitle={t('subtitle')} />
 
       {/* Поиск и кнопка — одной строкой, счётчик под ними (общая шапка списков). */}
       <ListToolbar
@@ -117,7 +117,7 @@ export default function StaffCompIndexClient() {
       ) : loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('empty')}</div>
+        <EmptyState module="finance" text={t('empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>

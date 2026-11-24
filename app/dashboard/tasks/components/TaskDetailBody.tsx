@@ -8,6 +8,8 @@ import { isMaintenanceTask } from '@/lib/tasks/maintenance-link'
 import type { useTaskDetail, Comment } from './useTaskDetail'
 import StudentChip from './StudentChip'
 import RemindBeforeSelect from './RemindBeforeSelect'
+import { Icon } from '@/components/ui/Icon'
+import { Badge } from '@/components/ui/Badge'
 
 /**
  * Общее тело карточки задачи (заголовок → метаданные → наблюдатели → действия →
@@ -66,12 +68,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
             {task.title}
           </h2>
           <div style={{ display: 'flex', gap: 8, marginTop: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{
-              padding: '3px 10px', fontSize: 11, fontWeight: 600,
-              background: statusColor.bg, color: statusColor.fg, borderRadius: 14,
-            }}>
-              {t(`status.${task.status}`, task.status)}
-            </span>
+            <Badge dot colors={statusColor} label={t(`status.${task.status}`, task.status)} />
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               {t(`priority.${task.priority}`, task.priority)} {t('card.priority_suffix')}
             </span>
@@ -93,7 +90,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
                 padding: '2px 8px', fontSize: 11, background: 'var(--info-tint)', color: 'var(--info)',
                 borderRadius: 8, fontWeight: 600,
               }}>
-                🔧 {t('card.maintenance_badge')}
+                <Icon name="wrench" /> {t('card.maintenance_badge')}
               </span>
             )}
             <StudentChip student={task.student} />
@@ -138,7 +135,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
           background: 'var(--surface-2)', border: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
         }}>
-          <span style={{ fontSize: 13, color: 'var(--text)' }}>🔔 {t('remind.label')}</span>
+          <span style={{ fontSize: 13, color: 'var(--text)' }}><Icon name="bell" /> {t('remind.label')}</span>
           {d.access?.canEdit ? (
             <RemindBeforeSelect
               value={task.remind_days_before ?? null}
@@ -172,7 +169,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
           />
           <span>
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', display: 'block' }}>
-              🔧 {t('card.maintenance_toggle')}
+              <Icon name="wrench" /> {t('card.maintenance_toggle')}
             </span>
             <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               {t('card.maintenance_toggle_hint')}
@@ -236,8 +233,8 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
               onClick={d.handleAddWatcher}
               disabled={!d.newWatcherId}
               style={{
-                padding: '8px 14px', fontSize: 12, color: '#fff',
-                background: accent, border: 'none', borderRadius: 6,
+                padding: '8px 14px', fontSize: 12, color: 'var(--action-contrast)',
+                background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 6,
                 cursor: d.newWatcherId ? 'pointer' : 'not-allowed', opacity: d.newWatcherId ? 1 : 0.5,
               }}
             >
@@ -390,7 +387,7 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
                   )}
                   {willPreserve > 0 && (
                     <div style={{ color: 'var(--warn)', fontWeight: 500 }}>
-                      ⚠ {t('cancel_series.will_preserve')} <strong>{willPreserve}</strong>
+                      <Icon name="alert" /> {t('cancel_series.will_preserve')} <strong>{willPreserve}</strong>
                       <span style={{ color: 'var(--text-muted)', fontSize: 11, fontWeight: 400 }}>
                         {' '}({[
                           bs.in_progress ? `${bs.in_progress} ${t('cancel_series.breakdown_in_progress')}` : '',
@@ -483,8 +480,8 @@ export default function TaskDetailBody({ d, accent, headerExtra, reserveCloseSpa
               onClick={d.handleAddComment}
               disabled={d.postingComment || !d.newCommentText.trim()}
               style={{
-                padding: '8px 16px', fontSize: 13, fontWeight: 500, color: '#fff',
-                background: accent, border: 'none', borderRadius: 6,
+                padding: '8px 16px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+                background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 6,
                 cursor: d.postingComment || !d.newCommentText.trim() ? 'not-allowed' : 'pointer',
                 opacity: d.postingComment || !d.newCommentText.trim() ? 0.5 : 1,
               }}

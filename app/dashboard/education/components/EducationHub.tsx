@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { EDUCATION_SECTION_ROUTES, type EducationSection } from '@/lib/education/education-hub'
@@ -39,12 +38,12 @@ export default function EducationHub({ sections }: { sections: EducationSection[
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('education') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('hub.title')} subtitle={t('hub.subtitle')} />
+      ]} module="education" title={t('hub.title')} subtitle={t('hub.subtitle')} />
 
       <div data-testid="edu-hub" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
         {sections.map(s => {

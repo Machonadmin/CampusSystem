@@ -1,13 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
-
-const accent = getModuleColor('education')
+import { Icon } from '@/components/ui/Icon'
 
 interface PersonRef { id: string; full_name: string | null; hebrew_name: string | null }
 interface Approval {
@@ -187,7 +185,7 @@ export default function KodeshRavClient() {
                         </td>
                         <td style={td}>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button disabled={busy} onClick={() => saveQuota(q)} style={btn(accent)}>{t('save')}</button>
+                            <button disabled={busy} onClick={() => saveQuota(q)} style={{ ...btn('var(--action)'), color: 'var(--action-contrast)', boxShadow: 'inset 0 0 0 1px var(--action-border)' }}>{t('save')}</button>
                             <button disabled={busy} onClick={() => setEditTeacher(null)} style={{ ...btn('var(--surface)'), color: 'var(--text-faint)', border: '1px solid var(--border-strong)' }}>✕</button>
                           </div>
                         </td>
@@ -198,7 +196,7 @@ export default function KodeshRavClient() {
                         <td style={{ ...td, textAlign: 'center', color: 'var(--text-muted)' }}>{q.assigned_hours}</td>
                         <td style={{ ...td, textAlign: 'center', fontWeight: 600 }}>
                           {q.actual_hours ?? 0}
-                          {(q.actual_no_end_time ?? 0) > 0 && <span title={t('no_end_time_warning').replace('{n}', String(q.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 4 }}>⚠</span>}
+                          {(q.actual_no_end_time ?? 0) > 0 && <span title={t('no_end_time_warning').replace('{n}', String(q.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 4 }}><Icon name="alert" /></span>}
                         </td>
                         <td style={{ ...td, textAlign: 'center', color: q.over ? 'var(--warn)' : 'var(--text)', fontWeight: q.over ? 700 : 400 }}>
                           {q.remaining ?? '—'}{q.over ? ` · ${t('over')}` : ''}

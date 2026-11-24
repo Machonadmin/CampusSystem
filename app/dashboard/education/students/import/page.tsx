@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../../components/useSectionCrumb'
@@ -10,6 +9,7 @@ import { parseCsv } from '@/lib/csv-parse'
 import { IMPORT_FIELDS, guessField, type ImportField } from '@/lib/education/import-map'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { Icon } from '@/components/ui/Icon'
 
 interface RowResult { index: number; name: string; action: 'create' | 'duplicate' | 'error'; message?: string }
 interface ImportResult { dry_run: boolean; summary: { total: number; created: number; duplicates: number; errors: number }; results: RowResult[] }
@@ -83,13 +83,13 @@ export default function ImportStudentsPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
+      ]} module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {/* Step 1: file */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
@@ -119,7 +119,7 @@ export default function ImportStudentsPage() {
               </label>
             ))}
           </div>
-          {!hasName && <div style={{ fontSize: 12.5, color: 'var(--warn)', marginTop: 10 }}>⚠ {t('need_name')}</div>}
+          {!hasName && <div style={{ fontSize: 12.5, color: 'var(--warn)', marginTop: 10 }}><Icon name="alert" /> {t('need_name')}</div>}
         </div>
       )}
 

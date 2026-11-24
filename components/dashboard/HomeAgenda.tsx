@@ -1,5 +1,6 @@
 'use client'
 
+import { Icon } from '@/components/ui/Icon'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDate } from '@/lib/i18n/format-date'
@@ -22,7 +23,7 @@ interface AgendaItem {
   kind: 'appointment' | 'event' | 'task'
 }
 
-const KIND_ICON: Record<AgendaItem['kind'], string> = { appointment: '🤝', event: '📅', task: '✓' }
+const KIND_ICON: Record<AgendaItem['kind'], React.ReactNode> = { appointment: <Icon name="meeting" />, event: <Icon name="calendar" />, task: <Icon name="checkCircle" /> }
 const DAYS_AHEAD = 7
 
 export default function HomeAgenda({ onVisible }: { onVisible?: () => void } = {}) {

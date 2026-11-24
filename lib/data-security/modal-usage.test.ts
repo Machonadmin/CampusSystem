@@ -16,6 +16,10 @@ import { join } from 'node:path'
 //
 // Проверка ограничена этим модулем намеренно: менять умолчание в общем Modal
 // значило бы трогать вид десятков экранов, которые здесь никто не смотрел.
+//
+// С этапа 1 дизайн-плана у Modal есть стандартный вид: если передан `title`,
+// Modal сам рисует шапку, тело С ОТСТУПАМИ и низ с кнопками. Такое окно
+// отступ уже имеет — страж его пропускает.
 
 const DIR = join(process.cwd(), 'app', 'dashboard', 'data-security')
 
@@ -70,13 +74,14 @@ describe('окна модуля «Безопасность данных» име
     expect(total, 'ни одного <Modal> не найдено — проверь разбор').toBeGreaterThan(0)
   })
 
-  it('каждый <Modal> передаёт panelStyle с padding', () => {
+  it('каждый <Modal> передаёт panelStyle с padding или использует стандартный вид (title)', () => {
     const offenders: string[] = []
     for (const file of files) {
       for (const tag of modalTags(readFileSync(file, 'utf8'))) {
         const hasPanelStyle = /panelStyle\s*=/.test(tag)
         const hasPadding = /padding\s*:/.test(tag)
-        if (!hasPanelStyle || !hasPadding) {
+        const isStandard = /\btitle\s*=/.test(tag)
+        if (!isStandard && (!hasPanelStyle || !hasPadding)) {
           offenders.push(`${file.replace(process.cwd() + '/', '')}: ${tag.slice(0, 60)}…`)
         }
       }
@@ -84,7 +89,8 @@ describe('окна модуля «Безопасность данных» име
     expect(
       offenders,
       'Окно открывается без внутреннего отступа: Modal своего padding не задаёт, ' +
-      'и подписи полей упрутся в край панели. Добавь panelStyle={{ padding: 20 }}:\n' +
+      'и подписи полей упрутся в край панели. Передай title (стандартный вид) ' +
+      'или panelStyle={{ padding: 20 }}:\n' +
       offenders.join('\n'),
     ).toEqual([])
   })

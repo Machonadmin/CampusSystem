@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
@@ -375,12 +374,12 @@ export default function CalendarClient() {
 
   return (
     <div className="calendar-page p-6 space-y-5" dir={isRTL ? 'rtl' : 'ltr'}>
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
 
       <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
+      ]}
         module="dashboard"
         title={t('title')}
         subtitle={<>

@@ -11,7 +11,7 @@ interface Note { id: string; body: string; created_at: string; author: string | 
  * Заметки к уроку — журнал (append-only). Учитель/руководитель пишет заметку,
  * она видна всем, кто выше. Устойчиво к отсутствию таблицы (feature not migrated).
  */
-export default function LessonNotes({ lessonId, accentColor }: { lessonId: string; accentColor: string }) {
+export default function LessonNotes({ lessonId }: { lessonId: string; accentColor: string }) {
   const t = useTranslations('education.lesson_notes')
   const tCommon = useTranslations('common')
   const { lang } = useLang()
@@ -48,7 +48,7 @@ export default function LessonNotes({ lessonId, accentColor }: { lessonId: strin
         <textarea aria-label={t('placeholder')} value={body} onChange={e => setBody(e.target.value)} rows={2} placeholder={t('placeholder')}
           style={{ flex: 1, padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none', resize: 'vertical' }} />
         <button onClick={add} disabled={saving || !body.trim()}
-          style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, padding: '9px 14px', cursor: body.trim() ? 'pointer' : 'default', opacity: body.trim() && !saving ? 1 : 0.6, whiteSpace: 'nowrap' }}>
+          style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '9px 14px', cursor: body.trim() ? 'pointer' : 'default', opacity: body.trim() && !saving ? 1 : 0.6, whiteSpace: 'nowrap' }}>
           {t('add')}
         </button>
       </div>

@@ -15,6 +15,8 @@ export interface Me {
   can_view_staff_comp?: boolean
   /** Кнопка «הצעה לשיפור או באג» в шапке (право feedback.submit). */
   can_submit_feedback?: boolean
+  /** Кнопка «חבר ליומן גוגל» в календаре (право calendar.google_sync). */
+  can_google_calendar?: boolean
 }
 
 // Модульный кэш: /api/auth/me тянется один раз на всё приложение.

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -48,13 +47,13 @@ export default function TeachersClient({ canHours, canApprove, newTeacherDepts =
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={
+      ]} module="education" title={t('title')} subtitle={t('subtitle')} actions={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {newTeacherDepts.length > 0 && (
             <PageActionButton label={t('new_teacher_button')} onClick={() => setNewTeacherOpen(true)} accentColor={accent} />

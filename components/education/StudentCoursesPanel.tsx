@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/toast'
 import SubmissionLink from './SubmissionLink'
 import type { CourseResultStatus } from '@/types/database'
 import type { SubmissionState } from '@/lib/education/courses'
+import { Icon } from '@/components/ui/Icon'
 
 interface CourseAssessment {
   id: string
@@ -93,7 +94,10 @@ export default function StudentCoursesPanel({ journeyId, mode }: { journeyId: st
       {courses.length === 0 ? (
         <div style={{ fontSize: 12.5, color: 'var(--text-faint)' }}>{t('empty')}</div>
       ) : (
-        <div style={{ display: 'grid', gap: 10 }}>
+        // minmax(0, 1fr): без этого колонка grid растягивается до полной ширины
+        // длинного названия курса (nowrap), и строка курса вылезала за рамку
+        // карточки на телефоне (заметка владельца 2026-11-10: «משהו בורח שם»).
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 10 }}>
           {courses.map(c => {
             const sc = STATUS_COLOR[c.status]
             const isOpen = open.has(c.class_group_id)
@@ -110,7 +114,9 @@ export default function StudentCoursesPanel({ journeyId, mode }: { journeyId: st
                   }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {/* Название переносится, а не режется многоточием: на телефоне
+                        «…ь 1 (университет)» не читалось. */}
+                    <div style={{ fontSize: 13.5, fontWeight: 700, overflowWrap: 'break-word' }}>
                       {c.subject ?? c.name}
                     </div>
                     <div style={{ fontSize: 11.5, color: 'var(--text-faint)', marginTop: 2 }}>
@@ -133,7 +139,7 @@ export default function StudentCoursesPanel({ journeyId, mode }: { journeyId: st
                 </button>
 
                 {isOpen && (
-                  <div style={{ padding: '0 12px 12px', display: 'grid', gap: 6 }}>
+                  <div style={{ padding: '0 12px 12px', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 6 }}>
                     <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12, color: 'var(--text-muted)' }}>
                       <span>{t('final_grade')}: <b style={{ color: 'var(--text)' }}>{c.final_grade ?? '—'}</b></span>
                       <span>{t('average')}: <b style={{ color: 'var(--text)' }}>{c.average_percent ?? '—'}</b></span>
@@ -199,7 +205,7 @@ function AssessmentRow({ a, mode, lang, onSubmitted }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {a.requires_submission ? '📝 ' : ''}{a.title}
+            {a.requires_submission ? <><Icon name="note" />{' '}</> : ''}{a.title}
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>
             {a.date ? `${a.requires_submission ? t('due') : t('date')} ${formatDate(a.date, lang)}` : ''}
@@ -222,7 +228,7 @@ function AssessmentRow({ a, mode, lang, onSubmitted }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, flexWrap: 'wrap' }}>
           {a.submission && (mode === 'staff' || mode === 'student'
             ? <SubmissionLink submissionId={a.submission.id} fileName={a.submission.file_name} />
-            : <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>📎 {a.submission.file_name}</span>)}
+            : <span style={{ fontSize: 12, color: 'var(--text-muted)' }}><Icon name="paperclip" /> {a.submission.file_name}</span>)}
           {canUpload && (
             <>
               <input

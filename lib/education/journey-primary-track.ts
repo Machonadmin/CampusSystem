@@ -35,6 +35,8 @@ export interface SetPrimaryTrackInput {
   yearLevel?: number
   /** Снять отметку completed_at (повторное зачисление на маршрут). */
   reactivate?: boolean
+  /** מגמה внутри маршрута. undefined — не трогать; null/'' — снять. */
+  specializationId?: string | null
 }
 
 export type SetPrimaryTrackResult =
@@ -62,6 +64,7 @@ export function buildPrimaryTrackPayload(input: SetPrimaryTrackInput, nowIso: st
     payload.year_level = input.yearLevel
   }
   if (input.reactivate) payload.completed_at = null
+  if (input.specializationId !== undefined) payload.specialization_id = input.specializationId || null
   return payload
 }
 

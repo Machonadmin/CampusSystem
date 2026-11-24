@@ -1,6 +1,5 @@
 'use client'
 
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useLang, useTranslations } from '@/lib/i18n/LanguageContext'
 import { useUrlTab } from '@/lib/nav/useUrlTab'
@@ -34,12 +33,12 @@ export default function HealthClient({ canManageDoctor, canManagePsych }: {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t.nav.health },
-      ]} />
-
-      <ModuleHeader module={tab} title={t.nav.health} subtitle={t.moduleDesc.health} />
+      ]} module={tab} title={t.nav.health} subtitle={t.moduleDesc.health} />
 
       <div style={{ display: 'flex', gap: 6 }}>
         <button type="button" onClick={() => setTab('doctor')} style={tabBtn(tab === 'doctor')}>{tDoctor('title')}</button>

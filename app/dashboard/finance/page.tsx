@@ -1,9 +1,10 @@
 'use client'
 
+import { StatCard, StatGrid } from '@/components/ui/StatCard'
+import EmptyState from '@/components/ui/EmptyState'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -212,13 +213,13 @@ export default function FinancePage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('finance') },
-      ]} />
 
       {/* Header */}
       <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('finance') },
+      ]}
         module="finance"
         title={tNav('finance')}
         subtitle={t('list.subtitle')}
@@ -248,27 +249,32 @@ export default function FinancePage() {
         }
       />
 
-      {/* Сводка сбора: начислено / оплачено / остаток + доля собранного. */}
+      {/* Сводка сбора: начислено / оплачено / остаток — каждое число своей
+          карточкой в равной сетке (дизайн-план, этап 4), под ними — доля
+          собранного и полоса. */}
       {!loading && !error && totals.charged > 0 && (
-        <div className="anim-rise" style={{
-          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
-          padding: '14px 18px', boxShadow: 'var(--shadow)', display: 'grid', gap: 12,
-        }}>
-          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'baseline' }}>
-            <Metric label={t('list.sum_charged')} value={formatMoney(totals.charged)} color="var(--text)" />
-            {hasDiscounts && <Metric label={t('list.sum_discounts')} value={`−${formatMoney(totals.discounts)}`} color="var(--violet)" />}
-            <Metric label={t('list.sum_collected')} value={formatMoney(totals.paid)} color="var(--success)" />
-            <Metric label={t('list.sum_outstanding')} value={formatMoney(outstanding)} color={outstanding > 0.005 ? 'var(--danger)' : 'var(--success)'} />
-            <div style={{ flex: 1 }} />
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', fontVariantNumeric: 'tabular-nums' }}>
+        <div className="anim-rise" style={{ display: 'grid', gap: 12 }}>
+          <StatGrid>
+            <StatCard icon="document" label={t('list.sum_charged')} value={formatMoney(totals.charged)} />
+            {hasDiscounts && <StatCard icon="tag" label={t('list.sum_discounts')} value={`−${formatMoney(totals.discounts)}`} color="var(--violet)" />}
+            <StatCard icon="checkCircle" label={t('list.sum_collected')} value={formatMoney(totals.paid)} color="var(--success)" />
+            <StatCard icon="clock" label={t('list.sum_outstanding')} value={formatMoney(outstanding)} color={outstanding > 0.005 ? 'var(--danger)' : 'var(--success)'} />
+          </StatGrid>
+          <div style={{
+            background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+            padding: '12px 18px', boxShadow: 'var(--shadow)', display: 'flex', alignItems: 'center', gap: 14,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {t('list.sum_collected_pct').replace('{n}', String(collectedPct))}
             </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <MiniBar height={10} segments={[
+                { value: totals.paid, color: 'var(--success)', label: t('list.sum_collected') },
+                ...(hasDiscounts ? [{ value: totals.discounts, color: 'var(--violet)', label: t('list.sum_discounts') }] : []),
+                { value: outstanding, color: 'var(--danger)', label: t('list.sum_outstanding') },
+              ]} />
+            </div>
           </div>
-          <MiniBar height={10} segments={[
-            { value: totals.paid, color: 'var(--success)', label: t('list.sum_collected') },
-            ...(hasDiscounts ? [{ value: totals.discounts, color: 'var(--violet)', label: t('list.sum_discounts') }] : []),
-            { value: outstanding, color: 'var(--danger)', label: t('list.sum_outstanding') },
-          ]} />
         </div>
       )}
 
@@ -328,7 +334,7 @@ export default function FinancePage() {
           <button
             onClick={() => { if (selected.size > 0) setChargeOpen(true) }}
             disabled={selected.size === 0}
-            style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: selected.size === 0 ? 'default' : 'pointer', background: primary, color: '#fff', border: 'none', opacity: selected.size === 0 ? 0.5 : 1 }}
+            style={{ fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, cursor: selected.size === 0 ? 'default' : 'pointer', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', border: 'none', opacity: selected.size === 0 ? 0.5 : 1 }}
           >
             {t('bulk.charge')}
           </button>
@@ -345,7 +351,7 @@ export default function FinancePage() {
       ) : (loading || !filtersReady) ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
-        <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-faint)', fontSize: 14, background: 'var(--surface)', border: '1px dashed var(--border-strong)', borderRadius: 10 }}>{t('list.empty')}</div>
+        <EmptyState module="finance" text={t('list.empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -458,7 +464,7 @@ export default function FinancePage() {
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 18 }}>
               <button onClick={() => setChargeOpen(false)} disabled={bulkBusy} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{tCommon('cancel')}</button>
-              <button onClick={applyBulkCharge} disabled={bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: primary, color: '#fff', cursor: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
+              <button onClick={applyBulkCharge} disabled={bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim()} style={{ fontSize: 13, fontWeight: 600, padding: '8px 16px', border: 'none', borderRadius: 8, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 'default' : 'pointer', opacity: bulkBusy || !(Number(cAmount) > 0) || !cDescription.trim() ? 0.6 : 1 }}>{t('bulk.charge')}</button>
             </div>
         </Modal>
       )}
@@ -472,11 +478,3 @@ const inpModal: React.CSSProperties = {
   color: 'var(--text)', background: 'var(--surface)',
 }
 
-function Metric({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 700, color, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-    </div>
-  )
-}

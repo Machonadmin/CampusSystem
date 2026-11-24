@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { intlLocale } from '@/lib/i18n/format-date'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
@@ -79,13 +78,13 @@ export default function ScheduleApprovalsPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('approvals_title') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('approvals_title')} subtitle={t('approvals_subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
+      ]} module="education" title={t('approvals_title')} subtitle={t('approvals_subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {loading ? (
         <SkeletonRows avatar={false} rows={4} />

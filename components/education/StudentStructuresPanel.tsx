@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
 import { toast } from '@/components/ui/toast'
-import { getModuleColor } from '@/lib/module-colors'
 
 // Многоструктурное членство студентки (טורו ⊂ אוניברסיטה). Основная структура
 // (primary_department) не здесь — здесь ТОЛЬКО дополнительные. Управляет
@@ -13,7 +12,6 @@ import { getModuleColor } from '@/lib/module-colors'
 interface Dept { id: string; name: string; name_he?: string | null; name_en?: string | null }
 interface Membership { department_id: string; department: Dept | null }
 
-const accent = getModuleColor('education')
 
 export default function StudentStructuresPanel({ journeyId }: { journeyId: string }) {
   const t = useTranslations('education.structures')
@@ -94,7 +92,7 @@ export default function StudentStructuresPanel({ journeyId }: { journeyId: strin
           type="button"
           onClick={add}
           disabled={busy || !pick}
-          style={{ padding: '7px 14px', fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: busy || !pick ? 'default' : 'pointer', opacity: busy || !pick ? 0.5 : 1 }}
+          style={{ padding: '7px 14px', fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, cursor: busy || !pick ? 'default' : 'pointer', opacity: busy || !pick ? 0.5 : 1 }}
         >
           {t('add')}
         </button>

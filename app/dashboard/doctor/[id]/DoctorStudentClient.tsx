@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
@@ -11,6 +10,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { toastError } from '@/components/ui/toast'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { FormField, FormGrid } from '@/components/ui/FormField'
 
 interface Profile {
   blood_type: string | null
@@ -178,13 +178,13 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title'), href: '/dashboard/doctor' },
         { label: studentName },
-      ]} />
-
-      <ModuleHeader module="doctor" title={studentName} actions={<BackButton fallback="/dashboard/doctor" />} />
+      ]} module="doctor" title={studentName} actions={<BackButton fallback="/dashboard/doctor" />} />
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
@@ -195,29 +195,29 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('profile.title')}</h2>
             {profileError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{profileError}</div>}
-            <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-              <Field label={t('profile.blood_type')}>
+            <FormGrid>
+              <FormField label={t('profile.blood_type')}>
                 <input value={profile.blood_type ?? ''} onChange={e => setField('blood_type', e.target.value)} disabled={!canManage} style={inp} />
-              </Field>
-              <Field label={t('profile.emergency_contact')}>
+              </FormField>
+              <FormField label={t('profile.emergency_contact')}>
                 <input value={profile.emergency_contact ?? ''} onChange={e => setField('emergency_contact', e.target.value)} disabled={!canManage} style={inp} />
-              </Field>
-              <Field label={t('profile.allergies')} full>
+              </FormField>
+              <FormField label={t('profile.allergies')} full>
                 <textarea value={profile.allergies ?? ''} onChange={e => setField('allergies', e.target.value)} disabled={!canManage} rows={2} style={area} />
-              </Field>
-              <Field label={t('profile.chronic_conditions')} full>
+              </FormField>
+              <FormField label={t('profile.chronic_conditions')} full>
                 <textarea value={profile.chronic_conditions ?? ''} onChange={e => setField('chronic_conditions', e.target.value)} disabled={!canManage} rows={2} style={area} />
-              </Field>
-              <Field label={t('profile.medications')} full>
+              </FormField>
+              <FormField label={t('profile.medications')} full>
                 <textarea value={profile.medications ?? ''} onChange={e => setField('medications', e.target.value)} disabled={!canManage} rows={2} style={area} />
-              </Field>
-              <Field label={t('profile.notes')} full>
+              </FormField>
+              <FormField label={t('profile.notes')} full>
                 <textarea value={profile.notes ?? ''} onChange={e => setField('notes', e.target.value)} disabled={!canManage} rows={2} style={area} />
-              </Field>
-            </div>
+              </FormField>
+            </FormGrid>
             {canManage && (
               <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-                <SubmitButton onClick={saveProfile} loading={savingProfile} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+                <SubmitButton onClick={saveProfile} loading={savingProfile} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
                 {profileSaved && <span style={{ fontSize: 12, color: primary }}>{t('profile.saved')}</span>}
               </div>
             )}
@@ -228,28 +228,28 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
             <div style={{ background: 'var(--surface)', border: `1px solid ${primary}`, borderRadius: 14, padding: 16 }}>
               <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px' }}>{t('visit.record_title')}</h2>
               {visitError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{visitError}</div>}
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-                <Field label={t('visit.visit_date')}>
+              <FormGrid>
+                <FormField label={t('visit.visit_date')}>
                   <input type="date" value={vDate} onChange={e => setVDate(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('visit.follow_up_date')}>
+                </FormField>
+                <FormField label={t('visit.follow_up_date')}>
                   <input type="date" value={vFollowUp} onChange={e => setVFollowUp(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('visit.reason')} full>
+                </FormField>
+                <FormField label={t('visit.reason')} full>
                   <input value={vReason} onChange={e => setVReason(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('visit.diagnosis')} full>
+                </FormField>
+                <FormField label={t('visit.diagnosis')} full>
                   <textarea value={vDiagnosis} onChange={e => setVDiagnosis(e.target.value)} rows={2} style={area} />
-                </Field>
-                <Field label={t('visit.treatment')} full>
+                </FormField>
+                <FormField label={t('visit.treatment')} full>
                   <textarea value={vTreatment} onChange={e => setVTreatment(e.target.value)} rows={2} style={area} />
-                </Field>
-                <Field label={t('visit.notes')} full>
+                </FormField>
+                <FormField label={t('visit.notes')} full>
                   <textarea value={vNotes} onChange={e => setVNotes(e.target.value)} rows={2} style={area} />
-                </Field>
-              </div>
+                </FormField>
+              </FormGrid>
               <div style={{ marginTop: 12 }}>
-                <SubmitButton onClick={recordVisit} loading={busy} style={btn(primary)}>{t('visit.record')}</SubmitButton>
+                <SubmitButton onClick={recordVisit} loading={busy} style={btn('var(--action)')}>{t('visit.record')}</SubmitButton>
               </div>
             </div>
           )}
@@ -306,14 +306,6 @@ export default function DoctorStudentClient({ journeyId, studentName, canManage 
   )
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
-      {label}
-      {children}
-    </label>
-  )
-}
 
 const th: React.CSSProperties = {
   textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
@@ -325,7 +317,13 @@ const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1
 const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 function linkBtn(color: string): React.CSSProperties {
   return { background: 'none', border: 'none', color, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '2px 6px' }

@@ -2,12 +2,12 @@
 
 import { Fragment, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
 import { useSectionCrumb } from '../components/useSectionCrumb'
+import { Icon } from '@/components/ui/Icon'
 
 interface Slot { group_name: string; day_of_week: number; start_time: string; end_time: string; room: string | null }
 interface Teacher { person_id: string; name: string; groups_count: number; weekly_hours: number; actual_hours?: number; actual_lessons?: number; actual_no_end_time?: number; slots: Slot[] }
@@ -63,13 +63,13 @@ export default function TeachersHoursClient({ embedded = false, leading }: { emb
     <div className={embedded ? 'space-y-5' : 'p-6 space-y-5'}>
       {!embedded && (
         <>
-          <Breadcrumb items={[
+
+          <ModuleHeader
+        breadcrumb={[
             { label: tNav('home'), href: '/dashboard' },
             sectionCrumb,
             { label: t('title') },
-          ]} />
-
-          <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} />
+          ]} module="education" title={t('title')} subtitle={t('subtitle')} />
         </>
       )}
 
@@ -125,7 +125,7 @@ export default function TeachersHoursClient({ embedded = false, leading }: { emb
                         <span style={{ fontWeight: 700, color: 'var(--text)' }}>{tc.actual_hours ?? 0}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginInlineStart: 3 }}>{t('hours_short')}</span>
                         {(tc.actual_no_end_time ?? 0) > 0 && (
-                          <span title={t('no_end_time_warning').replace('{n}', String(tc.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 6 }}>⚠ {tc.actual_no_end_time}</span>
+                          <span title={t('no_end_time_warning').replace('{n}', String(tc.actual_no_end_time))} style={{ fontSize: 11, color: 'var(--warn)', marginInlineStart: 6 }}><Icon name="alert" /> {tc.actual_no_end_time}</span>
                         )}
                       </td>
                       <td style={{ ...td, textAlign: 'end', color: 'var(--text-faint)' }} data-label="">{tc.slots.length > 0 ? (open ? '▲' : '▼') : ''}</td>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -18,6 +17,8 @@ export interface TrackRow {
   years_count: number
   sort_order: number
   is_active: boolean
+  /** מגמות внутри маршрута (приходят из GET /api/education/study-tracks). */
+  specializations?: Array<{ id: string; code: string; name_he: string; name_ru: string; name_en: string; is_active: boolean }>
 }
 
 interface Props {
@@ -27,7 +28,6 @@ interface Props {
   onSaved: () => void
 }
 
-const accent = getModuleColor('education')
 
 export default function TrackModal({ mode, initial, onClose, onSaved }: Props) {
   const t = useTranslations('education.tracks')
@@ -158,7 +158,7 @@ export default function TrackModal({ mode, initial, onClose, onSaved }: Props) {
           <button type="button" onClick={onClose} disabled={saving} style={{ padding: '8px 16px', fontSize: 13, color: 'var(--text)', background: 'var(--surface)', border: '1px solid var(--border-strong)', borderRadius: 8, cursor: 'pointer' }}>
             {tCommon('cancel')}
           </button>
-          <SubmitButton type="submit" loading={saving} loadingLabel={tCommon('saving')} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>
+          <SubmitButton type="submit" loading={saving} loadingLabel={tCommon('saving')} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>
             {mode === 'create' ? tCommon('create') : tCommon('save')}
           </SubmitButton>
         </div>

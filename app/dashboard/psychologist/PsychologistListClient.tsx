@@ -2,15 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import PsychReferrals from '@/components/psychologist/PsychReferrals'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Student {
   journey_id: string
@@ -119,12 +118,12 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
     <div className={embedded ? 'space-y-5' : 'p-6 space-y-5'}>
       {!embedded && (
         <>
-          <Breadcrumb items={[
+
+          <ModuleHeader
+        breadcrumb={[
             { label: tNav('home'), href: '/dashboard' },
             { label: t('title') },
-          ]} />
-
-          <ModuleHeader module="psychologist" title={t('title')} subtitle={t('list.subtitle')} />
+          ]} module="psychologist" title={t('title')} subtitle={t('list.subtitle')} />
         </>
       )}
 
@@ -160,14 +159,7 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <button
-            type="button"
-            onClick={exportCsv}
-            disabled={filtered.length === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-          >
-            <DownloadIcon /> {tCommon('export_csv')}
-          </button>
+          <ListExportButton onClick={exportCsv} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         }
       />
 
@@ -178,7 +170,7 @@ export default function PsychologistListClient({ canManage, embedded = false }: 
         ) : loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+          <EmptyState module="psychologist" text={t('list.empty')} style={{ padding: '28px 16px' }} />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>

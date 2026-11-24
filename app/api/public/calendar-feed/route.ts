@@ -10,6 +10,7 @@ import {
 import { resolveMyClassGroupIds } from '@/lib/calendar/my-classes'
 import { todayISO } from '@/lib/dates'
 import { OPEN_TASK_STATUSES } from '@/lib/tasks/status'
+import { personCanUseGoogleCalendar } from '@/lib/calendar/google-access'
 
 /**
  * GET /api/public/calendar-feed?token=... — iCal (.ics) подписка на календарь
@@ -74,6 +75,12 @@ export async function GET(request: NextRequest) {
   const active = await hasActiveLogin(sb, personId)
   if (active === null) return new NextResponse('Temporarily unavailable', { status: 503 })
   if (!active) return new NextResponse('Invalid or expired feed token', { status: 404 })
+
+  // Право calendar.google_sync проверяется при КАЖДОМ обращении Google: владелец
+  // снял право — календарь в Google перестаёт обновляться (решение 2026-11-09).
+  const allowed = await personCanUseGoogleCalendar(personId)
+  if (allowed === null) return new NextResponse('Temporarily unavailable', { status: 503 })
+  if (!allowed) return new NextResponse('Invalid or expired feed token', { status: 404 })
 
   const from = addDaysUTC(todayISO(), -30)
   const to = addDaysUTC(todayISO(), 180)

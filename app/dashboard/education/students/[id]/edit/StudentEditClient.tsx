@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { canGoBackInApp, useSafeBack } from '@/lib/hooks/useSafeBack'
@@ -48,14 +47,14 @@ export default function StudentEditClient({ journeyId, personName }: Props) {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('card.section.student'), href: sectionCrumb.href },
         { label: personName, href: viewHref },
         { label: tCommon('edit') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="education"
         title={personName}
         subtitle={t('card.labels.student_editing')}

@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { SubmitButton } from '@/components/ui/SubmitButton'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Settings {
   rollover_month: number
@@ -14,7 +14,6 @@ interface Settings {
   last_rolled_year: number | null
 }
 
-const accent = getModuleColor('education')
 
 // Заморожено по просьбе владельца: авто/ручной переход отключены (см. lib/education/year-rollover).
 // Тут только отражаем это в UI — снять флаг вместе с ROLLOVER_FROZEN в движке.
@@ -86,7 +85,7 @@ export default function YearRolloverTab() {
   const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 4, display: 'block' }
   const inp: React.CSSProperties = { padding: '7px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, outline: 'none' }
 
-  if (loading) return <div style={{ padding: 24, color: 'var(--text-faint)', fontSize: 13 }}>{t('common.loading')}</div>
+  if (loading) return <SkeletonRows rows={4} />
   if (error) return <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>
   if (!settings) return <div style={{ padding: 24, color: 'var(--text-faint)', fontSize: 13 }}>{t('rollover.not_ready')}</div>
 
@@ -124,7 +123,7 @@ export default function YearRolloverTab() {
             loading={saving}
             disabled={saving || FROZEN}
             loadingLabel={t('common.saving')}
-            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accent, border: 'none', borderRadius: 8, cursor: saving ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: saving || FROZEN ? 0.6 : 1 }}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, cursor: saving ? 'wait' : FROZEN ? 'not-allowed' : 'pointer', opacity: saving || FROZEN ? 0.6 : 1 }}
           >
             {t('common.save')}
           </SubmitButton>

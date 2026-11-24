@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { toast } from '@/components/ui/toast'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 
 /** Фолбэк, если настройки финансов не прочитались (нет таблицы/строки). */
@@ -22,7 +21,6 @@ const FALLBACK_PERCENT = 90
  */
 export default function DiscountRequestPanel({ journeyId, defaultPercent }: { journeyId: string; defaultPercent?: number | null }) {
   const t = useTranslations('finance.discount_request')
-  const primary = getModuleColor('finance', 'primary')
 
   const [percent, setPercent] = useState<string>(String(typeof defaultPercent === 'number' && Number.isFinite(defaultPercent) ? defaultPercent : FALLBACK_PERCENT))
   const [touched, setTouched] = useState(false)
@@ -124,7 +122,7 @@ export default function DiscountRequestPanel({ journeyId, defaultPercent }: { jo
             disabled={!valid || sending}
             style={{
               fontSize: 13, fontWeight: 600, padding: '8px 14px', borderRadius: 8, border: 'none',
-              background: primary, color: '#fff',
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)',
               cursor: !valid || sending ? 'default' : 'pointer',
               opacity: !valid || sending ? 0.5 : 1,
             }}

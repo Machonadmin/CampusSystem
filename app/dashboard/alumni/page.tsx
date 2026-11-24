@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import EmptyState from '@/components/ui/EmptyState'
+import PageActionButton from '@/components/ui/PageActionButton'
+import AlumniFormModal from '@/components/alumni/AlumniFormModal'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -19,6 +21,9 @@ interface AlumniItem {
   email: string | null
   phones: string[]
   photo_url: string | null
+  city: string | null
+  country: string | null
+  year_start: number | null
   alumni_profile_id: string | null
   graduation_year: number | null
   institution: string | null
@@ -45,6 +50,12 @@ export default function AlumniPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  // «+ בוגרת חדשה» — только с alumni.manage (сервер присылает can_manage).
+  const [canManage, setCanManage] = useState(false)
+  const [creating, setCreating] = useState(false)
+  // Телефон: карточка показывает имя, телефон и почту; остальное — по стрелке
+  // (предложение владельца 2026-11-11). Ключ — journey_id раскрытых карточек.
+  const [openRows, setOpenRows] = useState<Record<string, boolean>>({})
   // Клик по строке сразу открывает карточку (owner: лишний слой раскрытия убран).
 
   const load = useCallback(async () => {
@@ -65,6 +76,7 @@ export default function AlumniPage() {
       }
       const body = await res.json()
       setItems(body.alumni ?? [])
+      setCanManage(body.can_manage === true)
     } catch {
       setError(t('list.load_error'))
     } finally {
@@ -84,7 +96,9 @@ export default function AlumniPage() {
         (a.email ?? '').toLowerCase().includes(q) ||
         a.phones.join(' ').toLowerCase().includes(q) ||
         (a.institution ?? '').toLowerCase().includes(q) ||
-        (a.direction ?? '').toLowerCase().includes(q))
+        (a.direction ?? '').toLowerCase().includes(q) ||
+        (a.city ?? '').toLowerCase().includes(q) ||
+        (a.country ?? '').toLowerCase().includes(q))
     : items
 
   const primary = getModuleColor('alumni', 'primary')
@@ -99,13 +113,25 @@ export default function AlumniPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('alumni') },
-      ]} />
 
       {/* Header */}
-      <ModuleHeader module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')} />
+      <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('alumni') },
+      ]} module="alumni" title={tNav('alumni')} subtitle={t('list.subtitle')}
+        actions={canManage ? (
+          <PageActionButton label={t('list.add')} icon={<span aria-hidden="true">+</span>} onClick={() => setCreating(true)} />
+        ) : undefined}
+      />
+
+      {creating && (
+        <AlumniFormModal
+          mode="create"
+          onClose={() => setCreating(false)}
+          onSaved={journeyId => { setCreating(false); router.push(`/dashboard/alumni/${journeyId}`) }}
+        />
+      )}
 
       {/* Поиск, счётчик под ним (общая шапка списков). */}
       <ListToolbar
@@ -119,20 +145,27 @@ export default function AlumniPage() {
       ) : loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : filtered.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+        <EmptyState module="alumni" text={t('list.empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div className="anim-rise" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, overflowX: 'auto' }}>
           <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr>
                 <th style={th}>{t('list.col_name')}</th>
+                <th style={th}>{t('list.col_year_start')}</th>
                 <th style={th}>{t('list.col_graduation_year')}</th>
                 <th style={th}>{t('list.col_institution')}</th>
+                <th style={th}>{t('list.col_direction')}</th>
+                <th style={th}>{t('list.col_location')}</th>
+                <th style={th}>{t('list.col_phone')}</th>
                 <th style={th}>{t('list.col_occupation')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(a => {
+                const isOpen = openRows[a.journey_id] === true
+                // На телефоне (≤640px) второстепенные поля свёрнуты, пока карточка закрыта.
+                const more = isOpen ? undefined : 'col-hide-sm'
                 return (
                   <tr
                     key={a.journey_id}
@@ -156,9 +189,33 @@ export default function AlumniPage() {
                         <span style={{ fontWeight: 500 }}>{a.full_name || '—'}</span>
                       </div>
                     </td>
-                    <td data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
-                    <td data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
-                    <td data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
+                    <td className={more} data-label={t('list.col_year_start')} style={td}>{a.year_start ?? '—'}</td>
+                    <td className={more} data-label={t('list.col_graduation_year')} style={td}>{a.graduation_year ?? '—'}</td>
+                    <td className={more} data-label={t('list.col_institution')} style={td}>{a.institution || '—'}</td>
+                    <td className={more} data-label={t('list.col_direction')} style={td}>{a.direction || '—'}</td>
+                    <td className={more} data-label={t('list.col_location')} style={td}>{[a.city, a.country].filter(Boolean).join(', ') || '—'}</td>
+                    {/* Телефон и почта на закрытой карточке — только если они есть. */}
+                    <td className={a.phones[0] ? undefined : more} data-label={t('list.col_phone')} style={td}><span dir="ltr">{a.phones[0] ?? '—'}</span></td>
+                    <td className={more} data-label={t('list.col_occupation')} style={td}>{a.current_occupation || '—'}</td>
+                    {/* Только телефон: почта (на десктопе колонки нет, как и было) и стрелка. */}
+                    {(a.email || isOpen) && (
+                      <td className="sm-only" data-label={t('list.col_email')} style={td}><span dir="ltr" style={{ overflowWrap: 'anywhere' }}>{a.email || '—'}</span></td>
+                    )}
+                    <td className="sm-only" data-label="" style={td}>
+                      <button
+                        type="button"
+                        data-alumni-toggle
+                        aria-expanded={isOpen}
+                        onClick={e => { e.stopPropagation(); setOpenRows(prev => ({ ...prev, [a.journey_id]: !isOpen })) }}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600,
+                          color: 'var(--accent-strong)', background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                        }}
+                      >
+                        <span aria-hidden="true" style={{ fontSize: 10 }}>{isOpen ? '▲' : '▼'}</span>
+                        {isOpen ? t('list.less_details') : t('list.more_details')}
+                      </button>
+                    </td>
                   </tr>
                 )
               })}

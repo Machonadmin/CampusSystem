@@ -56,7 +56,7 @@ export default function PlacementsPanel({ journeyId }: { journeyId: string }) {
         </div>
         {canManageAny && (
           <button onClick={() => setAdding(a => !a)}
-            style={{ fontSize: 12, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
+            style={{ fontSize: 12, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '7px 14px', cursor: 'pointer' }}>
             + {t('add_to_class')}
           </button>
         )}
@@ -93,7 +93,7 @@ export default function PlacementsPanel({ journeyId }: { journeyId: string }) {
   )
 }
 
-function AddPlacement({ journeyId, accent, onDone }: { journeyId: string; accent: string; onDone: () => void }) {
+function AddPlacement({ journeyId, onDone }: { journeyId: string; accent: string; onDone: () => void }) {
   const t = useTranslations('education.placements')
   const tCommon = useTranslations('common')
   const [units, setUnits] = useState<Unit[]>([])
@@ -144,7 +144,7 @@ function AddPlacement({ journeyId, accent, onDone }: { journeyId: string; accent
         {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
       </select>
       <button onClick={add} disabled={!classId || busy}
-        style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '8px 16px', cursor: classId ? 'pointer' : 'default', opacity: classId && !busy ? 1 : 0.6 }}>
+        style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: classId ? 'pointer' : 'default', opacity: classId && !busy ? 1 : 0.6 }}>
         {t('add_btn')}
       </button>
     </div>

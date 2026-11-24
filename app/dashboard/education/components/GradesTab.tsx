@@ -13,6 +13,7 @@ import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import type { CourseResultStatus } from '@/types/database'
 import { COURSE_RESULT_STATUSES } from '@/lib/education/courses'
+import { Icon } from '@/components/ui/Icon'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -234,7 +235,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                     </div>
                     {a.requires_submission && (
                       <div style={{ fontWeight: 400, marginTop: 2, textTransform: 'none', color: 'var(--info)' }}>
-                        📎 {students.filter(st => submitted.has(`${st.journey_id}|${a.id}`)).length} {t('submitted_short')}
+                        <Icon name="paperclip" /> {students.filter(st => submitted.has(`${st.journey_id}|${a.id}`)).length} {t('submitted_short')}
                       </div>
                     )}
                     {canSetGrades && (
@@ -282,7 +283,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                           <span style={{ color: has ? 'var(--text)' : 'var(--border-strong)', fontWeight: has ? 600 : 400 }}>
                             {has ? formatScore(sc) : '—'}
                           </span>
-                          {sub && <span title={t('submitted_short')} style={{ marginInlineStart: 4, fontSize: 11 }}>📎</span>}
+                          {sub && <span title={t('submitted_short')} style={{ marginInlineStart: 4, fontSize: 11 }}><Icon name="paperclip" /></span>}
                         </td>
                       )
                     })}
@@ -297,7 +298,7 @@ export default function GradesTab({ groupId, canSetGrades, accentColor }: Props)
                               onClick={() => setResultFor(s)}
                               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COURSE_STATUS_COLOR[status], fontWeight: 600, fontSize: 12.5 }}
                             >
-                              {label} ✎
+                              {label} <Icon name="pencil" />
                             </button>
                           ) : (
                             <span style={{ color: COURSE_STATUS_COLOR[status], fontWeight: 600, fontSize: 12.5 }}>{label}</span>
@@ -360,7 +361,7 @@ interface AssessmentFormModalProps {
   onDone: () => void
 }
 
-function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone }: AssessmentFormModalProps) {
+function AssessmentFormModal({ groupId, assessment, onClose, onDone }: AssessmentFormModalProps) {
   const t = useTranslations('education.grades')
   const tCommon = useTranslations('common')
 
@@ -492,8 +493,8 @@ function AssessmentFormModal({ groupId, assessment, accentColor, onClose, onDone
           <SubmitButton
             onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
             style={{
-              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-              background: accentColor, border: 'none', borderRadius: 8,
+              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
               opacity: saving ? 0.55 : 1,
             }}
           >
@@ -523,7 +524,7 @@ interface CourseResultModalProps {
   onDone: () => void
 }
 
-function CourseResultModal({ groupId, student, current, accentColor, onClose, onDone }: CourseResultModalProps) {
+function CourseResultModal({ groupId, student, current, onClose, onDone }: CourseResultModalProps) {
   const t = useTranslations('education.grades')
   const tCommon = useTranslations('common')
   const [status, setStatus] = useState<CourseResultStatus>(current?.status ?? 'in_progress')
@@ -598,7 +599,7 @@ function CourseResultModal({ groupId, student, current, accentColor, onClose, on
         </button>
         <SubmitButton
           onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
-          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff', background: accentColor, border: 'none', borderRadius: 8, opacity: saving ? 0.55 : 1 }}
+          style={{ padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, opacity: saving ? 0.55 : 1 }}
         >
           {t('btn_save')}
         </SubmitButton>

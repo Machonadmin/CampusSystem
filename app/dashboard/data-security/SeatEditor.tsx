@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { toastError, toastSuccess } from '@/components/ui/toast'
-import { getModuleColor } from '@/lib/module-colors'
 import type { UnitNode } from '@/lib/data-security/units'
 import { flattenUnits } from '@/lib/data-security/units'
 import type { PersonAccess } from '@/lib/data-security/load'
@@ -94,18 +93,22 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
   }
 
   return (
-    // Третий случай той же забывчивости, найденный стражем
-    // lib/data-security/modal-usage.test.ts: Modal своего padding не задаёт,
-    // и без него подписи полей упираются в край панели.
+    // Стандартный вид Modal (title): отступы тела, ✕ и закреплённая кнопка
+    // сохранения даёт сам Modal — страж lib/data-security/modal-usage.test.ts
+    // это учитывает.
     <Modal
       onClose={onClose}
       maxWidth={560}
-      ariaLabel={t('seat_edit')}
-      panelStyle={{ padding: 20 }}
+      title={t('seat_edit')}
+      subtitle={person.name}
+      footer={
+        <SubmitButton
+          loading={saving}
+          onClick={save}
+          style={{ width: '100%', padding: '11px 0', borderRadius: 9, border: 0, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+        >{t('seat_save')}</SubmitButton>
+      }
     >
-      <h2 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>{t('seat_edit')}</h2>
-      <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-muted)' }}>{person.name}</p>
-
       <div style={{ maxHeight: 280, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 9, padding: 6 }}>
         {flat.map(u => {
           const on = selected.has(u.id)
@@ -170,15 +173,10 @@ export default function SeatEditor({ person, units, t, onClose, onSaved }: {
         )}
       </div>
 
-      <p style={{ margin: '12px 0', padding: '9px 11px', borderRadius: 8, background: 'var(--danger-tint)', fontSize: 12, color: 'var(--danger)', lineHeight: 1.6 }}>
+      <p style={{ margin: '12px 0 0', padding: '9px 11px', borderRadius: 8, background: 'var(--danger-tint)', fontSize: 12, color: 'var(--danger)', lineHeight: 1.6 }}>
         {t('seat_warning')}
       </p>
 
-      <SubmitButton
-        loading={saving}
-        onClick={save}
-        style={{ width: '100%', padding: '11px 0', borderRadius: 9, border: 0, background: getModuleColor('data_security'), color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
-      >{t('seat_save')}</SubmitButton>
     </Modal>
   )
 }

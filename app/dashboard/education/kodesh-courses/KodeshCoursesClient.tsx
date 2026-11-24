@@ -7,6 +7,7 @@ import { PersonSelect } from '@/components/ui/person-select'
 import { toast } from '@/components/ui/toast'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { Icon } from '@/components/ui/Icon'
 
 const KODESH_DEPT_ID = '9a3d7b3f-3f65-4653-a111-4d5296404a27'
 const accent = getModuleColor('education')
@@ -141,8 +142,11 @@ export default function KodeshCoursesClient() {
       {levels.map(level => {
         const courses = coursesByLevel.get(level.id) ?? []
         return (
-          <div key={level.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+          // Без overflow:hidden: выпадающий список «בחר מורה» (PersonSelect,
+          // position:absolute) обрезался бы краем карточки и открывался «внутри
+          // квадрата» (жалоба 2026-11-11). Скругление шапки — её собственным radius.
+          <div key={level.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', borderRadius: '11px 11px 0 0' }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{gname(level)}</span>
               <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('courses_count').replace('{n}', String(courses.length))}</span>
               <div style={{ flex: 1 }} />
@@ -155,7 +159,7 @@ export default function KodeshCoursesClient() {
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
                 <input aria-label={t('course_name')} value={newName} onChange={e => setNewName(e.target.value)} placeholder={t('course_name')} dir="rtl" autoFocus style={{ ...inp, flex: 1, minWidth: 160 }} />
                 <input aria-label={t('hours')} value={newHours} onChange={e => setNewHours(e.target.value)} placeholder={t('hours')} type="number" min={0} style={{ ...inp, width: 90 }} />
-                <button disabled={busy} onClick={() => createCourse(level.id)} style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer' }}>{t('create')}</button>
+                <button disabled={busy} onClick={() => createCourse(level.id)} style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '7px 16px', cursor: 'pointer' }}>{t('create')}</button>
               </div>
             )}
 
@@ -178,7 +182,7 @@ export default function KodeshCoursesClient() {
                       </span>
                     ) : (
                       <button onClick={() => { setEditHoursFor(c.id); setHoursVal(c.hours != null ? String(c.hours) : '') }} style={{ ...linkBtn, color: 'var(--text-muted)', fontWeight: 500 }}>
-                        {t('hours')}: {c.hours ?? '—'} ✎
+                        {t('hours')}: {c.hours ?? '—'} <Icon name="pencil" />
                       </button>
                     )}
                     {noTeacher && <span style={badge('var(--warn)')}>{t('badge_no_teacher')}</span>}

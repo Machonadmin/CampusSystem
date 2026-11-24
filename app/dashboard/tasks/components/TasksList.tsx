@@ -10,6 +10,7 @@ import type { TaskStudentRef } from '@/lib/tasks/student-tag'
 import StudentChip from './StudentChip'
 // STATUS_COLORS / PRIORITY_COLORS — единая копия в TaskDetailBody (идентичны).
 import { STATUS_COLORS, PRIORITY_COLORS } from './TaskDetailBody'
+import { Badge } from '@/components/ui/Badge'
 
 /** Строка списка: API добавляет `student` к задачам с меткой «תלמידה קשורה». */
 type TaskListItem = TaskRow & { student?: TaskStudentRef | null }
@@ -97,13 +98,7 @@ function TaskCard({ task, onClick, selectable, selected, onToggleSelect, onQuick
             {task.title}
           </div>
 
-          <span style={{
-            padding: '2px 8px', fontSize: 11, fontWeight: 600,
-            background: status.bg, color: status.fg, borderRadius: 14,
-            whiteSpace: 'nowrap', flexShrink: 0,
-          }}>
-            {t(`status.${task.status}`, task.status)}
-          </span>
+          <Badge dot colors={status} label={t(`status.${task.status}`, task.status)} style={{ flexShrink: 0 }} />
 
           {onQuickComplete && isOpenTaskStatus(task.status) && (
             <button

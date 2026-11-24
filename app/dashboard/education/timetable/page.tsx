@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { localizedDeptName } from '@/lib/departments/localized-name'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { conflictedSlotIds, type ScheduleConflict } from '@/lib/education/schedule-conflicts'
@@ -14,6 +13,7 @@ import { getModuleColor } from '@/lib/module-colors'
 import SlotFormModal, { type SlotFormSlot } from '@/components/education/SlotFormModal'
 import CancelLessonDialog from './CancelLessonDialog'
 import { useSectionCrumb } from '../components/useSectionCrumb'
+import { Icon } from '@/components/ui/Icon'
 
 interface Slot {
   id: string
@@ -235,13 +235,13 @@ export default function TimetablePage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
+      ]} module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
 
       {/* Toolbar */}
       {/* На телефоне всё в одну строку (владелец: «כמה שפחות שיתפוס מהמסך»):
@@ -261,7 +261,7 @@ export default function TimetablePage() {
           style={{ fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', padding: '4px 8px', borderRadius: 999,
             color: conflicts.length ? 'var(--danger)' : 'var(--success)',
             background: conflicts.length ? 'var(--danger-tint)' : 'var(--success-tint)' }}>
-          {conflicts.length === 0 ? '✓' : `⚠ ${conflicts.length}`}
+          {conflicts.length === 0 ? '✓' : <><Icon name="alert" /> {conflicts.length}</>}
         </span>
         {canEdit && view === 'week' && <span className="tt-hint" style={{ fontSize: 12, color: 'var(--text-faint)' }}>· {t('drag_hint', 'גרור שיעור שבועי ליום אחר')}</span>}
         <div className="tt-spacer" style={{ flex: 1 }} />
@@ -281,7 +281,7 @@ export default function TimetablePage() {
         {canEdit && slots.length > 0 && (
           <button type="button" onClick={() => setFormSlot({ create: true })} style={{
             fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-            border: 'none', background: accent, color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap',
+            border: 'none', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: 'pointer', whiteSpace: 'nowrap',
           }}>+ {t('add_lesson', 'הוספת שיעור שבועי')}</button>
         )}
       </div>
@@ -310,7 +310,7 @@ export default function TimetablePage() {
           {canEdit && (
             <button type="button" onClick={() => setFormSlot({ create: true })} style={{
               marginTop: 14, fontSize: 13, fontWeight: 600, padding: '8px 18px', borderRadius: 8,
-              border: 'none', background: accent, color: '#fff', cursor: 'pointer',
+              border: 'none', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: 'pointer',
             }}>+ {t('add_lesson', 'הוספת שיעור שבועי')}</button>
           )}
         </div>
@@ -357,7 +357,7 @@ export default function TimetablePage() {
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                             {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
                               <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
-                                ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                                <Icon name="alert" /> {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
                               </span>
                             ))}
                           </div>
@@ -443,7 +443,7 @@ export default function TimetablePage() {
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
                               {[...(kindsBySlot.get(s.id) ?? [])].map(k => (
                                 <span key={k} style={{ fontSize: 10, fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-tint)', padding: '2px 6px', borderRadius: 6 }}>
-                                  ⚠ {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
+                                  <Icon name="alert" /> {t(k === 'teacher' ? 'teacher_dbl' : k === 'room' ? 'room_dbl' : 'students_dbl')}
                                 </span>
                               ))}
                             </div>

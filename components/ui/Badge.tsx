@@ -39,6 +39,7 @@ export function Badge({
   colors,
   tone = 'neutral',
   strong = false,
+  dot = false,
   style,
   ...rest
 }: Omit<HTMLAttributes<HTMLSpanElement>, 'color'> & {
@@ -50,6 +51,12 @@ export function Badge({
   tone?: BadgeTone
   /** Усиленная насыщенность — для «кричащих» статусов (критично/срочно). */
   strong?: boolean
+  /**
+   * Точка цвета чипа перед подписью — признак чипа СОСТОЯНИЯ (открыт, в работе,
+   * закрыт). Отличает статус от меток (категория, роль) и читается даже тем,
+   * кто плохо различает оттенки фона. Дизайн-план, доп. раунд.
+   */
+  dot?: boolean
 }) {
   const c = colors ?? TONE[tone]
   const base: CSSProperties = {
@@ -66,6 +73,16 @@ export function Badge({
   }
   return (
     <span {...rest} style={{ ...base, ...style }}>
+      {dot && (
+        <span
+          aria-hidden="true"
+          style={{
+            display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+            background: 'currentColor', marginInlineEnd: 5, verticalAlign: 'middle',
+            position: 'relative', top: -1,
+          }}
+        />
+      )}
       {label ?? children}
     </span>
   )

@@ -5,10 +5,11 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { useMe } from '@/lib/hooks/useMe'
 import { Modal } from '@/components/ui/Modal'
 import { toast } from '@/components/ui/toast'
+import { Icon } from '@/components/ui/Icon'
 
 /**
- * «חבר ליומן גוגל» — персональная iCal-подписка. Показывается ТОЛЬКО
- * суперадмину (пробный доступ по решению владельца); остальным — null.
+ * «חבר ליומן גוגל» — персональная iCal-подписка. Показывается только тем,
+ * кому владелец выдал право calendar.google_sync (и superadmin); остальным — null.
  * Тянет URL из /api/calendar/feed-link и показывает инструкцию для Google.
  */
 export function GoogleCalendarLink({ primary }: { primary: string }) {
@@ -19,7 +20,7 @@ export function GoogleCalendarLink({ primary }: { primary: string }) {
   const [url, setUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  if (!me?.roles?.includes('superadmin')) return null
+  if (!me?.can_google_calendar) return null
 
   async function openDialog() {
     setOpen(true)
@@ -69,7 +70,7 @@ export function GoogleCalendarLink({ primary }: { primary: string }) {
           display: 'inline-flex', alignItems: 'center', gap: 6,
         }}
       >
-        📅 {t('button')}
+        <Icon name="calendar" /> {t('button')}
       </button>
 
       {open && (
@@ -98,7 +99,7 @@ export function GoogleCalendarLink({ primary }: { primary: string }) {
               disabled={!url}
               style={{
                 fontSize: 13, fontWeight: 600, padding: '9px 16px', borderRadius: 8,
-                border: 'none', cursor: url ? 'pointer' : 'default', background: primary, color: '#fff',
+                border: 'none', cursor: url ? 'pointer' : 'default', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)',
                 opacity: url ? 1 : 0.5,
               }}
             >

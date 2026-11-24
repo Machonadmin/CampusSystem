@@ -1,7 +1,9 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
+import Link from 'next/link'
 import { getModuleColor } from '@/lib/module-colors'
+import { useLang } from '@/lib/i18n/LanguageContext'
 
 /**
  * Единая шапка модуля. Раньше этот блок был скопирован inline в ~60 страницах
@@ -31,6 +33,7 @@ export function ModuleHeader({
   icon,
   actions,
   compact = false,
+  breadcrumb,
 }: {
   module: string
   title: ReactNode
@@ -38,7 +41,16 @@ export function ModuleHeader({
   icon?: ReactNode
   actions?: ReactNode
   compact?: boolean
+  /**
+   * Путь «где я» (дизайн-план, доп. раунд — решение владельца): раньше это была
+   * отдельная серая плашка <Breadcrumb> НАД шапкой. Теперь — тихая строка
+   * ВНУТРИ шапки над заголовком. Последний пункт (текущий экран) не выводится:
+   * его имя и так крупно стоит в заголовке, раньше оно повторялось дважды.
+   */
+  breadcrumb?: { label: string; href?: string }[]
 }) {
+  const { isRTL } = useLang()
+  const trail = breadcrumb ? breadcrumb.slice(0, -1) : []
   return (
     <div
       className="anim-rise"
@@ -58,6 +70,28 @@ export function ModuleHeader({
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
         {icon}
         <div style={{ minWidth: 0 }}>
+          {trail.length > 0 && (
+            <nav
+              aria-label="breadcrumb"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap',
+                fontSize: 12, color: 'var(--text-muted)', marginBottom: 3, lineHeight: 1.4,
+              }}
+            >
+              {trail.map((item, idx) => (
+                <Fragment key={idx}>
+                  {item.href ? (
+                    <Link href={item.href} className="mh-crumb" style={{ color: 'var(--text-muted)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <span style={{ whiteSpace: 'nowrap' }}>{item.label}</span>
+                  )}
+                  <span aria-hidden="true" style={{ color: 'var(--text-faint)', fontSize: 11 }}>{isRTL ? '‹' : '›'}</span>
+                </Fragment>
+              ))}
+            </nav>
+          )}
           <h1 style={{ fontSize: compact ? 15.5 : 20, fontWeight: 600, margin: 0, lineHeight: 1.25, minWidth: 0, overflowWrap: 'anywhere' }}>{title}</h1>
           {subtitle != null && subtitle !== '' && (
             // Приглушённый токен вместо прежней opacity .85 поверх белого.

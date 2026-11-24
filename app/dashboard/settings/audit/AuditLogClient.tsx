@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { ListToolbar } from '@/components/ui/ListToolbar'
 import { SkeletonRows } from '@/components/ui/Skeleton'
@@ -46,6 +45,9 @@ export default function AuditLogClient() {
   const [error, setError] = useState<string | null>(null)
   const [notMigrated, setNotMigrated] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
+  // Телефон: фильтры свёрнуты за кнопкой «סינון», чтобы записи были видны сразу
+  // (заметка владельца 2026-11-11: «הרבה שורות של סינון»). На широком экране — как было.
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const load = useCallback(async (nextOffset: number, replace: boolean) => {
     setLoading(true); setError(null)
@@ -95,7 +97,8 @@ export default function AuditLogClient() {
     background: 'var(--surface)', color: 'var(--text)', outline: 'none',
   }
 
-  const applyFilters = () => { setApplied({ entityType, action, entityId, from, to }); setOpenId(null) }
+  const applyFilters = () => { setApplied({ entityType, action, entityId, from, to }); setOpenId(null); setFiltersOpen(false) }
+  const activeFilters = Object.values(applied).filter(v => v.trim() !== '').length
   const resetFilters = () => {
     setEntityType(''); setAction(''); setEntityId(''); setFrom(''); setTo('')
     setApplied({ entityType: '', action: '', entityId: '', from: '', to: '' }); setOpenId(null)
@@ -110,13 +113,13 @@ export default function AuditLogClient() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('settings'), href: '/dashboard/settings' },
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="settings" title={t('title')} subtitle={t('subtitle')} />
+      ]} module="settings" title={t('title')} subtitle={t('subtitle')} />
 
       {/* Только чтение + документированное ограничение по «кто» */}
       <div style={{ display: 'grid', gap: 6 }}>
@@ -128,8 +131,26 @@ export default function AuditLogClient() {
         </div>
       </div>
 
+      {/* Телефон: кнопка «סינון (N)» раскрывает фильтры; на широком экране скрыта. */}
+      <button
+        type="button"
+        className="sm-only"
+        onClick={() => setFiltersOpen(o => !o)}
+        aria-expanded={filtersOpen}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600,
+          padding: '7px 14px', border: '1px solid var(--border-strong)', borderRadius: 8,
+          background: activeFilters > 0 ? 'var(--accent-tint)' : 'var(--surface)', color: 'var(--text)', cursor: 'pointer',
+        }}
+      >
+        {t('filters')}{activeFilters > 0 ? ` (${activeFilters})` : ''}
+        <span aria-hidden="true" style={{ fontSize: 10, color: 'var(--text-muted)' }}>{filtersOpen ? '▲' : '▼'}</span>
+      </button>
+
       {/* Фильтры — в общей шапке списка: поля в строку, «החל»/«איפוס» в её
-          конце (заметка владельца 2026-10-15: одинаково везде). */}
+          конце (заметка владельца 2026-10-15: одинаково везде). На телефоне
+          свёрнуты, пока не нажата «סינון» (.col-hide-sm прячет только ≤640px). */}
+      <div className={filtersOpen ? undefined : 'col-hide-sm'}>
       <ListToolbar
         filters={<>
           <label style={{ display: 'grid', gap: 4 }}>
@@ -164,6 +185,7 @@ export default function AuditLogClient() {
           <Button onClick={resetFilters}>{t('reset')}</Button>
         </>}
       />
+      </div>
 
       {error && (
         <div style={{ padding: 12, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8, fontSize: 13 }}>{error}</div>

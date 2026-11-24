@@ -2,14 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import { downloadCsv } from '@/lib/csv'
 import { SkeletonRows } from '@/components/ui/Skeleton'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Student {
   journey_id: string
@@ -108,13 +107,13 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
 
       {/* Header */}
-      <ModuleHeader module="documents" title={t('title')} subtitle={t('list.subtitle')} />
+      <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
+      ]} module="documents" title={t('title')} subtitle={t('list.subtitle')} />
 
       {/* Expiring worklist */}
       {(expired.length > 0 || expiringSoon.length > 0) && (
@@ -147,14 +146,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
       <ListToolbar
         search={<ListSearchInput value={search} onChange={setSearch} placeholder={t('list.search_placeholder')} />}
         actions={
-          <button
-            type="button"
-            onClick={exportCsv}
-            disabled={filtered.length === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, padding: '9px 14px', border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-          >
-            <DownloadIcon /> {tCommon('export_csv')}
-          </button>
+          <ListExportButton onClick={exportCsv} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         }
       />
 
@@ -165,7 +157,7 @@ export default function DocumentsListClient({ canManage }: { canManage: boolean 
         ) : loading ? (
           <SkeletonRows avatar={false} rows={6} />
         ) : filtered.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+          <EmptyState module="documents" text={t('list.empty')} style={{ padding: '28px 16px' }} />
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="cards-sm" style={{ width: '100%', borderCollapse: 'collapse' }}>

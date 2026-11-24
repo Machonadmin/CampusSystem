@@ -107,7 +107,7 @@ export default function NoModuleAccess({
               background: 'var(--surface)', color: 'var(--text)', textDecoration: 'none',
             }}
           >
-            ← {t('back_home')}
+            <span className="dir-flip" aria-hidden="true" style={{ display: 'inline-block' }}>←</span> {t('back_home')}
           </Link>
         </div>
       </div>

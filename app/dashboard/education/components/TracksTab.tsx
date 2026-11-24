@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
 import TrackModal, { type TrackRow } from './TrackModal'
+import TrackManagersModal from './TrackManagersModal'
+import TrackSpecializationsModal, { type SpecializationLite } from './TrackSpecializationsModal'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
@@ -34,6 +36,8 @@ export default function TracksTab() {
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [editing, setEditing] = useState<TrackRow | null>(null)
+  const [managersFor, setManagersFor] = useState<TrackRow | null>(null)
+  const [specsFor, setSpecsFor] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -115,13 +119,20 @@ export default function TracksTab() {
                   <th style={thStyle}>{t('code_label')}</th>
                   <th style={{ ...thStyle, width: 80, textAlign: 'center' }}>{t('years_count_label')}</th>
                   <th style={{ ...thStyle, width: 100 }}>{t('table_status')}</th>
-                  <th style={{ ...thStyle, width: 170 }}>{t('table_actions')}</th>
+                  <th style={{ ...thStyle, width: 320 }}>{t('table_actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {visible.map(tr => (
                   <tr key={tr.id} style={{ borderTop: '1px solid var(--surface-2)' }}>
-                    <td style={tdStyle} data-label={t('table_name')}>{trackName(tr, lang)}</td>
+                    <td style={tdStyle} data-label={t('table_name')}>
+                      {trackName(tr, lang)}
+                      {(tr.specializations ?? []).filter(sp => sp.is_active).length > 0 && (
+                        <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>
+                          {t('spec_list_prefix')}: {(tr.specializations ?? []).filter(sp => sp.is_active).map(sp => (lang === 'ru' ? sp.name_ru : lang === 'en' ? sp.name_en : sp.name_he) || sp.name_he).join(', ')}
+                        </div>
+                      )}
+                    </td>
                     <td style={{ ...tdStyle, color: 'var(--text-muted)', fontFamily: 'monospace' }} data-label={t('code_label')} dir="ltr">{tr.code}</td>
                     <td style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-faint)' }} data-label={t('years_count_label')}>{tr.years_count}</td>
                     <td style={tdStyle} data-label={t('table_status')}>
@@ -132,6 +143,8 @@ export default function TracksTab() {
                     <td style={tdStyle} data-label="">
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button onClick={() => { setEditing(tr); setModalMode('edit') }} style={btnSecondary}>{t('edit')}</button>
+                        <button onClick={() => setManagersFor(tr)} style={btnSecondary}>{t('managers_button')}</button>
+                        <button onClick={() => setSpecsFor(tr.id)} style={btnSecondary}>{t('spec_button')}</button>
                         <button onClick={() => handleDelete(tr)} style={{ ...btnSecondary, color: 'var(--danger)', borderColor: 'var(--danger)' }}>{t('delete')}</button>
                       </div>
                     </td>
@@ -141,6 +154,24 @@ export default function TracksTab() {
             </table>
           </div>
         )
+      )}
+
+      {specsFor && (() => {
+        const tr = tracks.find(x => x.id === specsFor)
+        if (!tr) return null
+        return (
+          <TrackSpecializationsModal
+            trackId={tr.id}
+            trackName={trackName(tr, lang)}
+            specializations={(tr.specializations ?? []) as SpecializationLite[]}
+            onClose={() => setSpecsFor(null)}
+            onChanged={load}
+          />
+        )
+      })()}
+
+      {managersFor && (
+        <TrackManagersModal trackId={managersFor.id} trackName={trackName(managersFor, lang)} onClose={() => setManagersFor(null)} />
       )}
 
       {modalMode && (

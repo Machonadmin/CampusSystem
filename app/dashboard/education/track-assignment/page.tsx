@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
 import { useSectionCrumb } from '../components/useSectionCrumb'
@@ -61,13 +60,13 @@ export default function TrackAssignmentPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
+      ]} module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback={sectionCrumb.href} />} />
 
       {err && <div style={{ fontSize: 13, color: 'var(--danger)', background: 'var(--danger-tint)', border: '1px solid var(--danger)', borderRadius: 8, padding: '8px 12px' }}>{err}</div>}
 

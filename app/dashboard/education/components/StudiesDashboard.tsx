@@ -414,38 +414,31 @@ const LIC = {
   alert: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z',
 }
 
-// Дедуп (запрос владельца, вторая итерация): «פעולות» = ТОЛЬКО ежедневные
-// действия, одной плоской сеткой без под-заголовков. Убраны дубли и настройки:
-//   • «סמסטרים» — есть в рельсе слева (и вёл на ЛЕГАСИ-страницу старой таблицы);
-//   • «מקצועות» — есть в «הגדרות» (тот же экран);
-//   • «מבנה יחידות», «יחידות לימוד» — конфигурация → перенесены в «הגדרות».
-// Ничего не удалено из системы — только из этой панели.
+// «פעולות» = ежедневная работа с ученицами и учителями в течение года
+// (решение владельца 11.11.2026): три группы с под-заголовками. Настроечные
+// каталоги (מסלולי חול, קורסי יהדות, ימים ללא לימודים) перенесены в «הגדרות»;
+// «מעבר שנה» — наоборот, из «הגדרות» сюда (это действие над ученицами).
+// Ранее убраны дубли: «סמסטרים» (есть в рельсе), «מקצועות» и «מבנה יחידות»
+// (в «הגדרות»), «שיבוץ מסלולים» (на дашборде), «כספים והנחות» (в «כספים»),
+// «חברותא» (в главном меню). Ничего не удалено из системы — только из этой панели.
+// `acc` — та же проверка, что даёт главный GET экрана (иначе клик упёрся бы в 403).
 const LGROUPS: { key: string; fb: string; badge?: string; items: LItem[] }[] = [
-  { key: 'launch_actions_flat', fb: '', items: [
+  { key: 'launch_group_assign', fb: 'שיבוץ', items: [
     { key: 'launch_assignment', fb: 'שיבוץ לסמסטרים וקורסים', icon: LIC.grid, href: '/dashboard/education/assignment', acc: 'assignment' },
-    // «שיבוץ מסלולים» убран (owner: «ממה נפשך» — дубль): вход на распределение
-    // по маршрутам живёт на дашборде (KPI + карточка «ждут распределения»),
-    // который появляется ровно тогда, когда есть кого распределять.
     { key: 'launch_kodesh', fb: 'שיבוץ לרמות יהדות', icon: LIC.star, href: '/dashboard/education/kodesh', acc: 'kodesh' },
-    // Модуль иудаики (Phase 1/2/3) и прочие экраны. Решение владельца: карточка
-    // скрыта, если главный GET экрана дал бы 403 («אין לך הרשאה») — acc зеркалит
-    // ту же проверку (см. launcher-access). «קורסי קודש» без acc: её GET
-    // class-groups открыт любому вошедшему, ForbiddenState там не бывает.
-    { key: 'launch_kodesh_home', fb: 'מרחב יהדות', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
-    { key: 'launch_kodesh_courses', fb: 'קורסי יהדות', icon: LIC.cap, href: '/dashboard/education/kodesh-courses' },
-    { key: 'launch_kodesh_rav', fb: 'אישורי הרב', icon: LIC.check, href: '/dashboard/education/kodesh-rav', acc: 'kodesh_rav' },
-    { key: 'launch_track_catalog', fb: 'מסלולי חול', icon: LIC.map, href: '/dashboard/education/tracks', acc: 'track_catalog' },
-    { key: 'launch_no_lesson_days', fb: 'ימים ללא לימודים', icon: LIC.cal, href: '/dashboard/education/no-lesson-days', acc: 'no_lesson_days' },
+    // Без acc — как и раньше в «הגדרות»: экран сам проверяет права своего API.
+    { key: 'launch_year_rollover', fb: 'מעבר שנה', icon: LIC.cal, href: '/dashboard/education/studies?sec=actions&sub=year_rollover' },
+  ] },
+  { key: 'launch_group_track', fb: 'מעקב וטיפול', items: [
     { key: 'launch_student_alerts', fb: 'התראות על תלמידות', icon: LIC.alert, href: '/dashboard/education/alerts', acc: 'student_alerts' },
-    // «כספים והנחות» убрана (решение владельца 4, 24.09.2026): финансовое
-    // администрирование живёт в модуле «כספים» — ссылка в шапке /dashboard/finance
-    // (тот же маршрут /dashboard/education/finance-admin, тот же гейт finance_admin).
-    // Объединённая «מורים» (часы + посещаемость) вместо двух карточек.
-    { key: 'launch_teachers', fb: 'מורות', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
     { key: 'launch_absences', fb: 'טיפול בהיעדרויות', icon: LIC.alert, href: '/dashboard/education/absences', acc: 'absences' },
+    { key: 'launch_kodesh_rav', fb: 'אישורי הרב', icon: LIC.check, href: '/dashboard/education/kodesh-rav', acc: 'kodesh_rav' },
+    // Объединённая «מורים» (часы + посещаемость).
+    { key: 'launch_teachers', fb: 'מורות', icon: LIC.users, href: '/dashboard/education/teachers', acc: 'teachers_hours' },
+    { key: 'launch_kodesh_home', fb: 'מרחב יהדות', icon: LIC.chart, href: '/dashboard/education/kodesh-home', acc: 'kodesh_home' },
+  ] },
+  { key: 'launch_group_review', fb: 'בדיקה ודוחות', items: [
     { key: 'launch_teaching_surveys', fb: 'הערכת הוראה', icon: LIC.chart, href: '/dashboard/education/teaching-surveys', acc: 'teaching_surveys' },
-    // «חברותא» убрана (owner: дубль): модуль «חברותא» есть в главном боковом
-    // меню и ведёт менеджера на тот же хаб.
     { key: 'launch_reports', fb: 'דוחות', icon: LIC.chart, href: '/dashboard/education/reports', acc: 'reports' },
   ] },
 ]

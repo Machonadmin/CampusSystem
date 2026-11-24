@@ -11,6 +11,7 @@ import { confirmDialog } from '@/components/ui/ConfirmDialog'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
+import { Icon } from '@/components/ui/Icon'
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 
@@ -214,7 +215,7 @@ export default function LessonsJournalTab({ groupId, canManageLessons, canCorrec
                               <span style={{ color: 'var(--success)', fontWeight: 600 }} title={tAtt('present')}>✓ {lesson.present_count}</span>
                             )}
                             {lesson.late_count > 0 && (
-                              <span style={{ color: 'var(--warn)', fontWeight: 600 }} title={tAtt('late')}>⏱ {lesson.late_count}</span>
+                              <span style={{ color: 'var(--warn)', fontWeight: 600 }} title={tAtt('late')}><Icon name="clock" /> {lesson.late_count}</span>
                             )}
                             {lesson.absent_count > 0 && (
                               <span style={{ color: 'var(--danger)', fontWeight: 600 }} title={tAtt('absent')}>✕ {lesson.absent_count}</span>
@@ -314,7 +315,7 @@ interface LessonFormModalProps {
   onDone: () => void
 }
 
-function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: LessonFormModalProps) {
+function LessonFormModal({ groupId, lesson, onClose, onDone }: LessonFormModalProps) {
   const t = useTranslations('education.journal')
   const tCommon = useTranslations('common')
 
@@ -432,8 +433,8 @@ function LessonFormModal({ groupId, lesson, accentColor, onClose, onDone }: Less
           <SubmitButton
             onClick={handleSubmit} loading={saving} loadingLabel={t('btn_saving')}
             style={{
-              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-              background: accentColor, border: 'none', borderRadius: 8,
+              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
               opacity: saving ? 0.55 : 1,
             }}
           >

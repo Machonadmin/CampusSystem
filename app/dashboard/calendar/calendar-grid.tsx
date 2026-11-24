@@ -14,6 +14,7 @@ import {
   LESSON_BG, LESSON_FG, LESSON_ACCENT, SCHEDULE_BG, SCHEDULE_FG, SCHEDULE_ACCENT,
   TASK_BG, TASK_FG, TASK_ACCENT, BIRTHDAY_BG, BIRTHDAY_FG, BIRTHDAY_ACCENT,
 } from './calendar-utils'
+import { Icon } from '@/components/ui/Icon'
 
 // ─────────────────────────────────────────────
 // Месячная сетка
@@ -183,7 +184,7 @@ export function MonthView({
                             fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           }}
                         >
-                          {ev.time && `${ev.time} `}📅 {ce.title}
+                          {ev.time && `${ev.time} `}<Icon name="calendar" /> {ce.title}
                         </button>
                       )
                     }
@@ -202,7 +203,7 @@ export function MonthView({
                             fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
                           }}
                         >
-                          🎂 {t('birthday')} · {b.age}
+                          <Icon name="cake" /> {t('birthday')} · {b.age}
                         </span>
                       )
                     }
@@ -432,7 +433,7 @@ export function WeekView({
                           {ev.time || t('all_day')}
                         </span>
                         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--violet)', flex: 1 }}>
-                          📅 {ce.title}
+                          <Icon name="calendar" /> {ce.title}
                         </span>
                       </button>
                     )
@@ -454,7 +455,7 @@ export function WeekView({
                           {t('all_day')}
                         </span>
                         <span style={{ fontSize: 13, fontWeight: 600, color: BIRTHDAY_FG, flex: 1 }}>
-                          <span style={birthdayTag}>🎂 {t('birthday')}</span>
+                          <span style={birthdayTag}><Icon name="cake" /> {t('birthday')}</span>
                           {' · '}{b.age}
                         </span>
                       </div>

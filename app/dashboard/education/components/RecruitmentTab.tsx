@@ -6,13 +6,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getModuleColor } from '@/lib/module-colors'
 import PageActionButton from '@/components/ui/PageActionButton'
-import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
+import { ListToolbar, ListSearchInput, ListExportButton } from '@/components/ui/ListToolbar'
 import EducationJourneyForm from '@/components/education/EducationJourneyForm'
 import QuickLeadModal from './QuickLeadModal'
 import RecruitmentSummary from './RecruitmentSummary'
 import { downloadCsv } from '@/lib/csv'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
-import { DownloadIcon } from '@/components/ui/DownloadIcon'
 import { Caret } from '@/components/ui/Caret'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
@@ -24,6 +23,7 @@ import {
   type Lead, type LeadSortKey, type ProcessStatusFilter,
 } from './education-shared'
 import { PhoneLink } from '@/components/ui/PhoneLink'
+import { Icon } from '@/components/ui/Icon'
 
 // ─── Вкладка «Набор» (лиды) ──────────────────────────────────────────────────
 // Выделена из education/page.tsx (Workstream 3b). Владеет всем состоянием,
@@ -193,6 +193,9 @@ export default function RecruitmentTab() {
         {[
           { href: '/dashboard/education/recruitment-report', label: t('recruitment_report.title') },
           { href: '/dashboard/education/recruitment-form', label: t('recruitment_form.title') },
+          // «קהילות» — откуда приходят кандидатки; перенесено сюда из
+          // «הגדרות» раздела «לימודים» (решение владельца 11.11.2026).
+          { href: '/dashboard/education/communities', label: t('communities.nav') },
         ].map(l => (
           <Link key={l.href} href={l.href}
             style={{
@@ -237,14 +240,7 @@ export default function RecruitmentTab() {
             )}
             <Caret open={filtersOpen} variant="toggle" color="currentColor" />
           </button>
-          <button
-            type="button"
-            onClick={exportLeads}
-            disabled={filtered.length === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: filtered.length === 0 ? 'var(--text-faint)' : 'var(--text)', cursor: filtered.length === 0 ? 'default' : 'pointer', whiteSpace: 'nowrap' }}
-          >
-            <DownloadIcon /> {tCommon('export_csv')}
-          </button>
+          <ListExportButton onClick={exportLeads} disabled={filtered.length === 0} label={tCommon('export_csv')} />
         </>}
       />
 
@@ -467,7 +463,7 @@ export default function RecruitmentTab() {
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--success-tint)' }}
                             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
                           >
-                            ♻ {t('leads.actions.restore')}
+                            <Icon name="restore" /> {t('leads.actions.restore')}
                           </button>
                         ) : (
                           <>
@@ -522,29 +518,26 @@ export default function RecruitmentTab() {
       </div>
 
       {deleteTarget && (
-        <Modal onClose={() => setDeleteTarget(null)} maxWidth={400} panelStyle={{ padding: '28px 28px 24px', width: '90%', boxShadow: 'var(--shadow-lg)' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: '0 0 10px' }}>
-              {t('leads.delete_confirm.title')}
-            </h2>
-            <p style={{ fontSize: 14, color: 'var(--text)', margin: '0 0 24px', lineHeight: 1.5 }}>
+        <Modal
+          onClose={() => { if (!deleteLoading) setDeleteTarget(null) }}
+          maxWidth={400}
+          title={t('leads.delete_confirm.title')}
+          // Короткое подтверждение: на телефоне остаётся карточкой, не на весь экран.
+          sheetOnPhone={false}
+          panelStyle={{ width: '90%' }}
+          footer={<>
+            <button
+              onClick={confirmDelete}
+              disabled={deleteLoading}
+              style={{ padding: '8px 18px', fontSize: 13, border: 'none', borderRadius: 8, background: 'var(--danger)', color: '#fff', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}
+            >
+              {t('leads.delete_confirm.confirm')}
+            </button>
+          </>}
+        >
+            <p style={{ fontSize: 14, color: 'var(--text)', margin: 0, lineHeight: 1.5 }}>
               <strong>{deleteTarget.full_name}</strong> {t('leads.delete_confirm.message').replace('{filter}', t('leads.process_status.deleted'))}
             </p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setDeleteTarget(null)}
-                disabled={deleteLoading}
-                style={{ padding: '8px 18px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface)', cursor: 'pointer', color: 'var(--text)' }}
-              >
-                {t('leads.delete_confirm.cancel')}
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleteLoading}
-                style={{ padding: '8px 18px', fontSize: 13, border: 'none', borderRadius: 8, background: 'var(--danger)', color: '#fff', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.7 : 1 }}
-              >
-                {t('leads.delete_confirm.confirm')}
-              </button>
-            </div>
         </Modal>
       )}
 

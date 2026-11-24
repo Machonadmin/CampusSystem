@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
@@ -175,13 +174,13 @@ export default function RecruitmentFormSettingsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="education"
         title={t('title')}
         subtitle={t('subtitle')}
@@ -338,7 +337,7 @@ export default function RecruitmentFormSettingsPage() {
           </section>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')} style={{ fontSize: 14, fontWeight: 600, padding: '10px 22px', border: 'none', borderRadius: 9, background: accent, color: '#fff', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+            <SubmitButton onClick={save} loading={saving} loadingLabel={t('saving')} style={{ fontSize: 14, fontWeight: 600, padding: '10px 22px', border: 'none', borderRadius: 9, background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1 }}>
               {t('save')}
             </SubmitButton>
           </div>

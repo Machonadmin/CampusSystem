@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
@@ -9,6 +8,8 @@ import { BackButton } from '@/components/ui/BackButton'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { allowedTransitions } from '@/lib/security/incidents'
 import { SEVERITIES } from '@/lib/security/validation'
+import { Badge } from '@/components/ui/Badge'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 interface Incident {
   id: string
@@ -133,18 +134,18 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: tNav('security'), href: '/dashboard/security' },
         { label: incidentTitle || '—' },
-      ]} />
-
-      <ModuleHeader module="security" title={incident?.title || incidentTitle} actions={<BackButton fallback="/dashboard/security" />} />
+      ]} module="security" title={incident?.title || incidentTitle} actions={<BackButton fallback="/dashboard/security" />} />
 
       {error ? (
         <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>
       ) : loading || !incident ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : (
         <>
           {actionError && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{actionError}</div>}
@@ -153,7 +154,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'grid', gap: 14 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Badge label={t(`severity.${incident.severity}`)} colors={vc} />
-              <Badge label={t(`status.${incident.status}`)} colors={sc} />
+              <Badge dot label={t(`status.${incident.status}`)} colors={sc} />
               <Badge label={t(`category.${incident.category}`)} colors={{ bg: 'var(--surface-2)', fg: 'var(--text)' }} />
             </div>
 
@@ -242,7 +243,7 @@ export default function SecurityDetailClient({ incidentId, incidentTitle, canMan
                     onClick={() => patch({ resolution: resolutionDraft })}
                     loading={busy}
                     disabled={busy || resolutionDraft === (incident.resolution ?? '')}
-                    style={btn(primary)}
+                    style={btn('var(--action)')}
                   >
                     {tCommon('save')}
                   </SubmitButton>
@@ -265,19 +266,17 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Badge({ label, colors }: { label: string; colors: { bg: string; fg: string } }) {
-  return (
-    <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: colors.bg, color: colors.fg, whiteSpace: 'nowrap' }}>
-      {label}
-    </span>
-  )
-}
-
 const fieldLabelStyle: React.CSSProperties = {
   fontSize: 11, fontWeight: 600, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: 0.5,
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 function outlineBtn(color: string): React.CSSProperties {
   return { fontSize: 13, fontWeight: 600, padding: '6px 14px', border: `1px solid ${color}`, borderRadius: 8, background: 'var(--surface)', color, cursor: 'pointer' }

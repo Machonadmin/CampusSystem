@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { toast } from '@/components/ui/toast'
+import { Icon } from '@/components/ui/Icon'
 
 /**
  * Ссылка «פתח קובץ» на сданную מטלה: по клику берёт свежую подписанную ссылку
@@ -46,7 +47,7 @@ export default function SubmissionLink({ submissionId, fileName }: { submissionI
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}
     >
-      📎 {fileName}
+      <Icon name="paperclip" /> {fileName}
     </button>
   )
 }

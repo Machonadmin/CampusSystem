@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import PageActionButton from '@/components/ui/PageActionButton'
 import { PersonSelect } from '@/components/ui/person-select'
 import { getModuleColor } from '@/lib/module-colors'
@@ -86,13 +85,13 @@ export default function UnitTeamPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('units.title') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="education"
         title={t('units.title')}
         subtitle={t('units.subtitle')}
@@ -232,8 +231,19 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
   const inp: React.CSSProperties = { width: '100%', padding: '8px 10px', fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box' }
 
   return (
-    <Modal onClose={onClose} maxWidth={420} closeOnBackdrop panelStyle={{ padding: 20, display: 'grid', gap: 12 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)' }}>{t('units.add_member')}</div>
+    <Modal
+      onClose={onClose}
+      maxWidth={420}
+      closeOnBackdrop
+      title={t('units.add_member')}
+      bodyStyle={{ display: 'grid', gap: 12 }}
+      footer={<>
+        <SubmitButton onClick={submit} loading={saving} disabled={saving || (mode === 'create' ? !firstName.trim() : !personId.trim())}
+          style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', opacity: saving ? 0.6 : 1 }}>
+          {t('units.create_btn')}
+        </SubmitButton>
+      </>}
+    >
 
         {/* role */}
         <div style={{ display: 'flex', gap: 8 }}>
@@ -272,13 +282,6 @@ function AddMemberModal({ unitId, accent, onClose, onDone }: { unitId: string; a
           />
         )}
 
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
-          <button onClick={onClose} style={{ padding: '8px 16px', fontSize: 13, borderRadius: 8, border: '1px solid var(--border-strong)', background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer' }}>{t('units.cancel')}</button>
-          <SubmitButton onClick={submit} loading={saving} disabled={saving || (mode === 'create' ? !firstName.trim() : !personId.trim())}
-            style={{ padding: '8px 16px', fontSize: 13, fontWeight: 600, borderRadius: 8, border: 'none', background: accent, color: '#fff', opacity: saving ? 0.6 : 1 }}>
-            {t('units.create_btn')}
-          </SubmitButton>
-        </div>
     </Modal>
   )
 }

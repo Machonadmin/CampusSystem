@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -52,13 +51,13 @@ export default function TaskPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title'), href: '/dashboard/tasks' },
         { label: d.loading ? '…' : (task?.title ?? t('title')) },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="tasks"
         compact
         icon={
@@ -69,7 +68,7 @@ export default function TaskPage() {
               color: 'var(--text)', padding: '4px 10px', cursor: 'pointer', fontSize: 13,
             }}
           >
-            ← {tCommon('back')}
+            <span className="dir-flip" aria-hidden="true" style={{ display: 'inline-block' }}>←</span> {tCommon('back')}
           </button>
         }
         title={d.loading ? tCommon('loading') : (task?.title ?? t('title'))}

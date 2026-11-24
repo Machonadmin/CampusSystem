@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { intlLocale } from '@/lib/i18n/format-date'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { DateInput } from '@/components/ui/date-input'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { toastError, toastSuccess } from '@/components/ui/toast'
 import { confirmDialog } from '@/components/ui/ConfirmDialog'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -339,15 +339,15 @@ export default function ChavrutaTeacherClient({ initialDate }: { initialDate?: s
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="chavruta" title={t('title')} subtitle={t('subtitle')} />
+      ]} module="chavruta" title={t('title')} subtitle={t('subtitle')} />
 
       {!studentsLoaded ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : forbidden ? (
         <div style={{
           background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
@@ -573,7 +573,7 @@ export default function ChavrutaTeacherClient({ initialDate }: { initialDate?: s
 
           {/* Sessions for the date */}
           {sessionsLoading ? (
-            <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('loading')}</div>
+            <SkeletonRows rows={4} />
           ) : sessions.length === 0 ? (
             <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('no_sessions')}</div>
           ) : (
@@ -617,7 +617,7 @@ export default function ChavrutaTeacherClient({ initialDate }: { initialDate?: s
                           disabled={savingEdit}
                           style={{
                             padding: '7px 16px', fontSize: 12, fontWeight: 600,
-                            background: accent, color: '#fff', border: 'none', borderRadius: 8,
+                            background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', color: 'var(--action-contrast)', border: 'none', borderRadius: 8,
                             cursor: savingEdit ? 'not-allowed' : 'pointer',
                           }}
                         >{savingEdit ? t('saving') : t('save')}</button>

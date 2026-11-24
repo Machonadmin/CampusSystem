@@ -5,12 +5,12 @@ import Link from 'next/link'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import SignatureCapture, { type SignaturePayload } from '@/components/workflow/SignatureCapture'
 import { useMe } from '@/lib/hooks/useMe'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Modal } from '@/components/ui/Modal'
 import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
+import { Badge } from '@/components/ui/Badge'
 
 // Ровно три статуса (владелец, M16): pending «בבדיקה» · verified «אושר» · rejected «לא אושר».
 type Status = 'pending' | 'verified' | 'rejected'
@@ -128,13 +128,13 @@ export default function JewishnessListClient() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: t('title') },
-      ]} />
 
       {/* Header */}
-      <ModuleHeader module="jewishness" title={t('title')} subtitle={t('module_subtitle')} />
+      <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: t('title') },
+      ]} module="jewishness" title={t('title')} subtitle={t('module_subtitle')} />
 
       {/* Фильтр-чипы по статусу */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -200,13 +200,7 @@ export default function JewishnessListClient() {
 }
 
 function StatusBadge({ status, label }: { status: string; label: string }) {
-  const c = statusColors(status)
-  return (
-    <span style={{
-      fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 999,
-      background: c.bg, color: c.fg, whiteSpace: 'nowrap',
-    }}>{label}</span>
-  )
+  return <Badge dot label={label} colors={statusColors(status)} />
 }
 
 function StudentRow({ student, primary, onOpen }: { student: ListStudent; primary: string; onOpen: () => void }) {
@@ -240,7 +234,7 @@ function StudentRow({ student, primary, onOpen }: { student: ListStudent; primar
       </div>
       <button
         onClick={onOpen}
-        style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: primary, border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+        style={{ fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', whiteSpace: 'nowrap' }}
       >
         {t('details')}
       </button>
@@ -681,7 +675,7 @@ function TwoStepActions({ detail, primary, reload }: { detail: Detail; primary: 
       <input aria-label={t('note_optional')} value={note} onChange={e => setNote(e.target.value)} placeholder={t('note_optional')}
         style={{ fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, width: '100%' }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {showInitial && <button onClick={() => post({ action: 'initial_check' })} disabled={busy} style={btn(primary)}>{t('action_initial_check')}</button>}
+        {showInitial && <button onClick={() => post({ action: 'initial_check' })} disabled={busy} style={{ ...btn(primary), background: 'var(--action)', color: 'var(--action-contrast)', boxShadow: 'inset 0 0 0 1px var(--action-border)' }}>{t('action_initial_check')}</button>}
         {showFinal && <button onClick={() => post({ status: 'verified' })} disabled={busy} style={btn('var(--success)')}>{t('action_final_approve')}</button>}
         {showReject && <button onClick={() => post({ status: 'rejected' })} disabled={busy} style={btn('var(--danger)', true)}>{t('action_reject')}</button>}
       </div>

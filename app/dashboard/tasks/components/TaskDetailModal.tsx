@@ -5,6 +5,7 @@ import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Modal } from '@/components/ui/Modal'
 import { useTaskDetail } from './useTaskDetail'
 import TaskDetailBody from './TaskDetailBody'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 /**
  * Карточка задачи в модалке. Вся логика — в useTaskDetail, всё тело — в
@@ -21,7 +22,6 @@ interface Props {
 }
 
 export default function TaskDetailModal({ taskId, currentUserId, onClose, onChanged }: Props) {
-  const tCommon = useTranslations('common')
   const accent = getModuleColor('tasks')
 
   const d = useTaskDetail({
@@ -33,7 +33,7 @@ export default function TaskDetailModal({ taskId, currentUserId, onClose, onChan
   return (
     <ModalShell onClose={onClose}>
       {d.loading ? (
-        <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-muted)' }}>{tCommon('loading')}</div>
+        <SkeletonRows rows={4} />
       ) : d.error && !d.task ? (
         <div style={{ padding: 24, background: 'var(--danger-tint)', color: 'var(--danger)', borderRadius: 8 }}>
           {d.error}

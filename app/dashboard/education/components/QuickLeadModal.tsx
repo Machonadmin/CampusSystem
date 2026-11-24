@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { getModuleColor } from '@/lib/module-colors'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
 import { Modal } from '@/components/ui/Modal'
 import { SubmitButton } from '@/components/ui/SubmitButton'
@@ -13,7 +12,6 @@ import { toastSuccess } from '@/components/ui/toast'
 // Источники по бизнес-процессу v2 (как в EducationJourneyForm).
 const SOURCE_CODES = ['self', 'event_community', 'referral', 'import']
 
-const accent = getModuleColor('education')
 
 /**
  * Быстрое создание лида (owner: «6 שלבים בשביל 3 שדות חובה» — перебор).
@@ -185,7 +183,7 @@ export default function QuickLeadModal({ onClose, onSaved, onFullForm }: {
             {tCommon('cancel')}
           </button>
           <SubmitButton type="submit" loading={saving} loadingLabel={tCommon('save')}
-            style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, color: '#fff', background: accent, border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>
+            style={{ padding: '8px 20px', fontSize: 13, fontWeight: 600, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8, opacity: saving ? 0.6 : 1 }}>
             {t('form.create_lead')}
           </SubmitButton>
         </div>

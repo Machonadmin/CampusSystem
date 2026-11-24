@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
@@ -90,13 +89,13 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('dormitory') },
-      ]} />
 
       {/* Header */}
       <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('dormitory') },
+      ]}
         module="dormitory"
         title={tNav('dormitory')}
         subtitle={t('list.subtitle')}
@@ -104,8 +103,8 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
           {canManage && (
             <button onClick={() => setShowForm(v => !v)} style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
-              color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid var(--action-border)', background: 'var(--action)',
+              color: 'var(--action-contrast)', cursor: 'pointer', whiteSpace: 'nowrap',
             }}>
               + {t('list.add_building')}
             </button>
@@ -124,7 +123,7 @@ export default function DormBuildingsClient({ canManage }: { canManage: boolean 
             <option value="female">{t('gender.female')}</option>
           </select>
           <input aria-label={t('form.address')} value={address} onChange={e => setAddress(e.target.value)} placeholder={t('form.address')} style={inp(240)} />
-          <SubmitButton loading={busy} onClick={submit} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+          <SubmitButton loading={busy} onClick={submit} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
           {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
         </div>
       )}
@@ -187,5 +186,11 @@ function inp(width: number): React.CSSProperties {
   return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)' }
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }

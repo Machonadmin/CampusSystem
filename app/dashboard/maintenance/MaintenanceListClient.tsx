@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
@@ -14,6 +13,8 @@ import { downloadCsv } from '@/lib/csv'
 import { CATEGORIES, PRIORITIES, STATUSES } from '@/lib/maintenance/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
+import { Icon } from '@/components/ui/Icon'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface Ticket {
   id: string
@@ -199,13 +200,13 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('maintenance') },
-      ]} />
 
       {/* Header */}
       <ModuleHeader
+        breadcrumb={[
+        { label: tNav('home'), href: '/dashboard' },
+        { label: tNav('maintenance') },
+      ]}
         module="maintenance"
         title={tNav('maintenance')}
         subtitle={t('list.subtitle')}
@@ -213,8 +214,8 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
           {canManage && (
             <button onClick={() => setShowForm(v => !v)} style={{
               fontSize: 13, fontWeight: 600, padding: '8px 16px', borderRadius: 8,
-              border: '1px solid var(--border-strong)', background: 'var(--surface-2)',
-              color: 'var(--text)', cursor: 'pointer', whiteSpace: 'nowrap',
+              border: '1px solid var(--action-border)', background: 'var(--action)',
+              color: 'var(--action-contrast)', cursor: 'pointer', whiteSpace: 'nowrap',
             }}>
               + {t('list.new_ticket')}
             </button>
@@ -274,7 +275,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
             <select value={priority} onChange={e => setPriority(e.target.value)} style={sel(140)}>
               {PRIORITIES.map(p => <option key={p} value={p}>{t(`priority.${p}`)}</option>)}
             </select>
-            <SubmitButton onClick={submit} loading={busy} style={btn(primary)}>{tCommon('save')}</SubmitButton>
+            <SubmitButton onClick={submit} loading={busy} style={btn('var(--action)')}>{tCommon('save')}</SubmitButton>
             {formError && <span style={{ fontSize: 12, color: 'var(--danger)' }}>{formError}</span>}
           </div>
         </div>
@@ -302,7 +303,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
       ) : loading ? (
         <SkeletonRows avatar={false} rows={6} />
       ) : items.length === 0 ? (
-        <div style={{ fontSize: 13, color: 'var(--text-faint)' }}>{t('list.empty')}</div>
+        <EmptyState module="maintenance" text={t('list.empty')} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14 }} />
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {items.map(r => {
@@ -337,7 +338,7 @@ export default function MaintenanceListClient({ canManage }: { canManage: boolea
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <Badge label={t(`priority.${r.priority}`)} colors={pc} />
-                  <Badge label={t(`status.${r.status}`)} colors={sc} />
+                  <Badge dot label={t(`status.${r.status}`)} colors={sc} />
                 </div>
               </div>
             )
@@ -395,7 +396,7 @@ function MaintenanceTasksSection() {
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
         <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--text)' }}>
-          🔧 {t('tasks.title')}
+          <Icon name="wrench" /> {t('tasks.title')}
           {!loading && tasks.length > 0 && (
             <span style={{ marginInlineStart: 6, fontVariantNumeric: 'tabular-nums', color: 'var(--text-muted)', fontWeight: 600 }}>
               {tasks.length}
@@ -459,7 +460,7 @@ function MaintenanceTasksSection() {
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                   <Badge label={t(`priority.${task.priority}`)} colors={pc} />
-                  <Badge label={t(`tasks.state_${task.state}`)} colors={sc} />
+                  <Badge dot label={t(`tasks.state_${task.state}`)} colors={sc} />
                 </span>
               </button>
             )
@@ -489,6 +490,12 @@ function sel(width: number): React.CSSProperties {
   return { width, fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', background: 'var(--surface)' }
 }
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 const area: React.CSSProperties = { width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit' }

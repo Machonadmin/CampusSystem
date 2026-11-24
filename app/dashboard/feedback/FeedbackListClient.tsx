@@ -133,7 +133,7 @@ function ReportCard({ item, isOwner, lang, onSaved }: {
     >
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
         <Badge tone={item.kind === 'bug' ? 'danger' : 'info'} label={t(item.kind === 'bug' ? 'kind_bug' : 'kind_suggestion')} />
-        <Badge tone={STATUS_TONE[item.status]} label={t(`status_${item.status}`)} />
+        <Badge dot tone={STATUS_TONE[item.status]} label={t(`status_${item.status}`)} />
         <span style={{ fontSize: 12, color: 'var(--text-faint)' }}>
           {t('sent_at')}: {formatDateTime(item.created_at, lang)}
         </span>

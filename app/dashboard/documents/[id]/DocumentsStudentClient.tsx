@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { todayISO } from '@/lib/dates'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { BackButton } from '@/components/ui/BackButton'
@@ -14,6 +13,8 @@ import { DOC_TYPES } from '@/lib/documents/validation'
 import { SkeletonRows } from '@/components/ui/Skeleton'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { titleFromFileName, exceedsRequestLimit } from '@/lib/documents/client-upload'
+import { Icon } from '@/components/ui/Icon'
+import { FormField, FormGrid } from '@/components/ui/FormField'
 
 interface Doc {
   id: string
@@ -188,13 +189,13 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         { label: t('title'), href: '/dashboard/documents' },
         { label: studentName },
-      ]} />
-
-      <ModuleHeader module="documents" title={studentName} actions={<BackButton fallback="/dashboard/documents" />} />
+      ]} module="documents" title={studentName} actions={<BackButton fallback="/dashboard/documents" />} />
 
       {error && <div style={{ fontSize: 13, color: 'var(--danger)' }}>{error}</div>}
       {loading ? (
@@ -203,7 +204,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
         <>
           {/* Add document — collapsed by default */}
           {canManage && !showAddForm && (
-            <button onClick={() => setShowAddForm(true)} style={{ ...btn(primary), alignSelf: 'flex-start' }}>
+            <button onClick={() => setShowAddForm(true)} style={{ ...btn('var(--action)'), alignSelf: 'flex-start' }}>
               + {t('add.title')}
             </button>
           )}
@@ -214,24 +215,24 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                 <button onClick={() => setShowAddForm(false)} aria-label={tCommon('cancel')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 20, lineHeight: 1 }}>×</button>
               </div>
               {formError && <div style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 10 }}>{formError}</div>}
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-                <Field label={t('fields.doc_type')}>
+              <FormGrid>
+                <FormField label={t('fields.doc_type')}>
                   <select value={dType} onChange={e => setDType(e.target.value)} style={inp}>
                     {DOC_TYPES.map(tp => (
                       <option key={tp} value={tp}>{t(`types.${tp}`)}</option>
                     ))}
                   </select>
-                </Field>
-                <Field label={t('fields.title')}>
+                </FormField>
+                <FormField label={t('fields.title')}>
                   <input value={dTitle} onChange={e => setDTitle(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('fields.issued_date')}>
+                </FormField>
+                <FormField label={t('fields.issued_date')}>
                   <input type="date" value={dIssued} onChange={e => setDIssued(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('fields.expiry_date')}>
+                </FormField>
+                <FormField label={t('fields.expiry_date')}>
                   <input type="date" value={dExpiry} onChange={e => setDExpiry(e.target.value)} style={inp} />
-                </Field>
-                <Field label={t('fields.upload_file')} full>
+                </FormField>
+                <FormField label={t('fields.upload_file')} full>
                   <input
                     key={fileKey}
                     type="file"
@@ -245,8 +246,8 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                     style={inp}
                   />
                   <span style={{ fontSize: 11, color: 'var(--text-faint)', fontWeight: 400 }}>{t('fields.upload_hint')}</span>
-                </Field>
-                <Field label={t('fields.file_url')} full>
+                </FormField>
+                <FormField label={t('fields.file_url')} full>
                   <input
                     value={dFileUrl}
                     onChange={e => setDFileUrl(e.target.value)}
@@ -254,13 +255,13 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                     disabled={!!dFile}
                     style={{ ...inp, opacity: dFile ? 0.5 : 1 }}
                   />
-                </Field>
-                <Field label={t('fields.notes')} full>
+                </FormField>
+                <FormField label={t('fields.notes')} full>
                   <textarea value={dNotes} onChange={e => setDNotes(e.target.value)} rows={2} style={area} />
-                </Field>
-              </div>
+                </FormField>
+              </FormGrid>
               <div style={{ marginTop: 12 }}>
-                <SubmitButton onClick={addDocument} loading={busy} style={btn(primary)}>{t('add.submit')}</SubmitButton>
+                <SubmitButton onClick={addDocument} loading={busy} style={btn('var(--action)')}>{t('add.submit')}</SubmitButton>
               </div>
             </div>
           )}
@@ -292,7 +293,7 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
                           ) : (
                             <span style={{ fontWeight: 500 }}>{d.title}</span>
                           )}
-                          {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>📎 {d.file_name}</div>}
+                          {d.file_name && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}><Icon name="paperclip" /> {d.file_name}</div>}
                           {d.notes && <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>{d.notes}</div>}
                         </td>
                         <td data-label={t('fields.issued_date')} style={td}>{d.issued_date || '—'}</td>
@@ -335,14 +336,6 @@ export default function DocumentsStudentClient({ journeyId, studentName, canMana
   )
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'grid', gap: 4, gridColumn: full ? '1 / -1' : undefined }}>
-      {label}
-      {children}
-    </label>
-  )
-}
 
 const th: React.CSSProperties = {
   textAlign: 'start', fontSize: 11, fontWeight: 600, color: 'var(--text-faint)',
@@ -354,7 +347,13 @@ const inp: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1
 const area: React.CSSProperties = { fontSize: 13, padding: '7px 10px', border: '1px solid var(--border-strong)', borderRadius: 8, color: 'var(--text)', resize: 'vertical', fontFamily: 'inherit', width: '100%' }
 
 function btn(bg: string): React.CSSProperties {
-  return { fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, color: '#fff', cursor: 'pointer' }
+  // Основное действие (var(--action)) — мягкий оттенок модуля (этап 2 дизайн-плана).
+  const action = bg === 'var(--action)'
+  return {
+    fontSize: 13, fontWeight: 600, padding: '7px 16px', border: 'none', borderRadius: 8, background: bg, cursor: 'pointer',
+    color: action ? 'var(--action-contrast)' : '#fff',
+    boxShadow: action ? 'inset 0 0 0 1px var(--action-border)' : undefined,
+  }
 }
 function linkBtn(color: string): React.CSSProperties {
   return { background: 'none', border: 'none', color, cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: '2px 6px' }

@@ -10,6 +10,8 @@ import { useTranslations, useLang } from '@/lib/i18n/LanguageContext'
 import { formatDateLong } from '@/lib/i18n/format-date'
 import { hasFeatureAccess, type FeatureAccess } from '@/lib/permissions'
 import { ForbiddenState } from '@/components/ui/ForbiddenState'
+import { Icon } from '@/components/ui/Icon'
+import { SkeletonRows } from '@/components/ui/Skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -138,7 +140,7 @@ function QuestionRow({ q, entry, onChange, disabled, err }: {
         {!disabled && (
           <button type="button" onClick={() => setCommentOpen(o => !o)} title={t('fill.add_comment_title')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: '2px 4px', borderRadius: 4, color: entry.comment ? 'var(--accent)' : 'var(--border-strong)', flexShrink: 0, transition: 'color 0.15s' }}>
-            💬
+            <Icon name="comment" />
           </button>
         )}
       </div>
@@ -360,7 +362,7 @@ export default function FillCheckPage() {
 
   // ── Render guards ──
   if (loading) {
-    return <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{tCommon('loading')}</div>
+    return <SkeletonRows rows={4} />
   }
   if (!check) {
     if (loadFailure === 'forbidden') return <ForbiddenState />

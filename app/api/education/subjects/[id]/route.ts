@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { specializationBelongsTo } from '@/lib/education/track-specializations'
 import { requireEducationPrivilege } from '@/lib/education/permissions'
 import type { SubjectUpdate } from '@/types/database'
 import { errorResponse } from '@/lib/api/handler'
@@ -22,6 +23,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       sort_order?: number
       is_active?: boolean
       study_track_id?: string
+      specialization_id?: string | null
       year_level?: number
     }
 
@@ -29,7 +31,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     const { data: current, error: fetchErr } = await sb
       .from('subjects')
-      .select('department_id')
+      .select('department_id, study_track_id')
       .eq('id', params.id)
       .maybeSingle()
     if (fetchErr) throw fetchErr
@@ -69,6 +71,16 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
       }
       update.study_track_id = body.study_track_id
       update.department_id = newDept ?? null
+    }
+
+    // מגמה — проверяем против итогового маршрута (клиент шлёт ключ, только когда
+    // у маршрута есть מגמות или она была выбрана, — до миграции ключа нет).
+    const finalTrack = (body.study_track_id ?? (current as { study_track_id?: string | null }).study_track_id) ?? null
+    if (body.specialization_id !== undefined) {
+      if (body.specialization_id && (!finalTrack || !(await specializationBelongsTo(sb, body.specialization_id, finalTrack)))) {
+        return apiError('invalid_reference', 400)
+      }
+      ;(update as unknown as Record<string, unknown>).specialization_id = body.specialization_id || null
     }
 
     if (Object.keys(update).length === 0) {

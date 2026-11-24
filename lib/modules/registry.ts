@@ -97,7 +97,10 @@ export const MODULES = [
       'Личный календарь: requireCalendarUser() в lib/calendar/permissions.ts ' +
       'пускает любого вошедшего, а записи фильтруются по provider_id = его person_id.',
     inAccessibleModules: false, hasColour: false, implemented: false,
-    inSidebar: false, isPrivilegeModule: false,
+    inSidebar: false,
+    // Модуль прав ТОЛЬКО ради calendar.google_sync («חבר ליומן גוגל»), которое
+    // владелец выдаёт людям на экране «אבטחת מידע». Сам календарь им не закрыт.
+    isPrivilegeModule: true,
   },
   {
     code: 'profile', navKey: 'profile', href: '/dashboard/profile',
@@ -123,6 +126,27 @@ export const MODULES = [
     gateExceptionReason:
       'פאנל ניהול: как календарь — requireCalendarUser() пускает любого сотрудника, ' +
       'а /api/management/** отдаёт только то, где он создатель, участник или ответственный.',
+    inAccessibleModules: false, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: false,
+  },
+
+  {
+    code: 'meetings', navKey: 'meetings', href: '/dashboard/meetings',
+    routeGuard: false, pageGates: false, pagePrivilege: null,
+    gateExceptionReason:
+      'פגישות: как календарь — requireCalendarUser() пускает любого сотрудника, а ' +
+      '/api/meetings/** отдаёт только своё: свой календарь, календарь, который он ведёт ' +
+      '(calendar_delegates), встречи, содержание которых ему открыли, и переданное ему.',
+    inAccessibleModules: false, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: false,
+  },
+
+  {
+    code: 'my_track', navKey: 'my_track', href: '/dashboard/my-track',
+    routeGuard: false, pageGates: false, pagePrivilege: null,
+    gateExceptionReason:
+      'המסלול שלי: как פאנל ניהול — страница только под auth, а /api/education/my-track/** ' +
+      'пускает ответственного маршрута (study_track_managers), manage_tracks или superadmin.',
     inAccessibleModules: false, hasColour: false, implemented: false,
     inSidebar: false, isPrivilegeModule: false,
   },

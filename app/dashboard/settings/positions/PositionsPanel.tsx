@@ -1,7 +1,6 @@
 'use client'
 
 import { Fragment, useCallback, useEffect, useState } from 'react'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { getModuleColor } from '@/lib/module-colors'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import PageActionButton from '@/components/ui/PageActionButton'
@@ -113,13 +112,17 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <div className={embedded ? '' : 'p-6 space-y-6'} style={embedded ? { display: 'flex', flexDirection: 'column', gap: 16 } : undefined}>
-      {!embedded && <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        { label: tNav('settings'), href: '/dashboard/settings' },
-        { label: t('title') },
-      ]} />}
-
-      {!embedded && <ModuleHeader module="settings" title={t('title')} />}
+      {!embedded && (
+        <ModuleHeader
+          breadcrumb={[
+            { label: tNav('home'), href: '/dashboard' },
+            { label: tNav('settings'), href: '/dashboard/settings' },
+            { label: t('title') },
+          ]}
+          module="settings"
+          title={t('title')}
+        />
+      )}
 
       {/* Тулбар */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -413,8 +416,8 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
             loading={saving}
             loadingLabel={t('saving')}
             style={{
-              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-              background: accent, border: 'none', borderRadius: 8,
+              padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+              background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
               opacity: saving ? 0.7 : 1,
             }}
           >

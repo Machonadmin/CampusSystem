@@ -3,6 +3,7 @@ import { requireAuth, errorResponse } from '@/lib/api/handler'
 import { apiError, serverT } from '@/lib/i18n/api-errors'
 import { isMissingRelation } from '@/lib/supabase/errors'
 import { createServerClient } from '@/lib/supabase/server'
+import { specializationBelongsTo } from '@/lib/education/track-specializations'
 import { requireEducationPrivilege, hasEducationPrivilege, getEducationStructureDeptFilter } from '@/lib/education/permissions'
 import type { SubjectInsert } from '@/types/database'
 import { ensureSubjectInTrackSemesters, DEFAULT_SEMESTER_PRICE, isSubjectNameTaken } from '@/lib/education/subject-semesters'
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
       name_ru?: string
       name_en?: string
       study_track_id?: string
+      specialization_id?: string | null
       year_level?: number
       tuition_amount?: number
       sort_order?: number
@@ -137,6 +139,11 @@ export async function POST(request: NextRequest) {
       study_track_id: body.study_track_id,
       year_level: body.year_level,
       sort_order: body.sort_order ?? 0,
+    }
+    // מגמה (напр. אוניברסיטה → כלכלה): только если прислана и принадлежит маршруту.
+    if (body.specialization_id) {
+      if (!(await specializationBelongsTo(sb, body.specialization_id, body.study_track_id))) return apiError('invalid_reference', 400)
+      ;(insert as unknown as Record<string, unknown>).specialization_id = body.specialization_id
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

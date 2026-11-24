@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useTranslations } from '@/lib/i18n/LanguageContext'
-import { Breadcrumb } from '@/components/settings/Breadcrumb'
 import { ModuleHeader } from '@/components/ui/ModuleHeader'
 import { ListToolbar, ListSearchInput } from '@/components/ui/ListToolbar'
 import { BackButton } from '@/components/ui/BackButton'
@@ -75,7 +74,7 @@ function toForm(c: Community): FormState {
 export default function CommunitiesPage() {
   const t = useTranslations('education.communities')
   const tNav = useTranslations('navigation')
-  const sectionCrumb = useSectionCrumb('studies', '/dashboard/education/studies?sec=settings')
+  const sectionCrumb = useSectionCrumb('recruitment')
   const tCommon = useTranslations('common')
 
   const [communities, setCommunities] = useState<Community[]>([])
@@ -198,13 +197,13 @@ export default function CommunitiesPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
+
+      <ModuleHeader
+        breadcrumb={[
         { label: tNav('home'), href: '/dashboard' },
         sectionCrumb,
         { label: t('title') },
-      ]} />
-
-      <ModuleHeader
+      ]}
         module="education"
         title={t('title')}
         subtitle={t('subtitle')}

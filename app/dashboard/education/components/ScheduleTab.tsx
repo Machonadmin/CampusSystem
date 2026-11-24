@@ -128,7 +128,7 @@ export default function ScheduleTab({ groupId, canManageLessons, accentColor, pe
             </button>
             <button
               onClick={() => setGenerating(true)}
-              style={{ padding: '4px 10px', fontSize: 12, color: '#fff', background: accentColor, border: `1px solid ${accentColor}`, borderRadius: 6, cursor: 'pointer' }}
+              style={{ padding: '4px 10px', fontSize: 12, color: 'var(--action-contrast)', background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: `1px solid var(--action-border)`, borderRadius: 6, cursor: 'pointer' }}
             >
               {t('generate')}
             </button>
@@ -249,7 +249,7 @@ interface GenerateModalProps {
   onClose: () => void
 }
 
-function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }: GenerateModalProps) {
+function GenerateModal({ groupId, periodStart, periodEnd, onClose }: GenerateModalProps) {
   const t = useTranslations('education.schedule')
 
   const [from, setFrom] = useState(periodStart ?? '')
@@ -320,8 +320,8 @@ function GenerateModal({ groupId, accentColor, periodStart, periodEnd, onClose }
           onClick={handleRun} loading={running}
           loadingLabel={t('generating')}
           style={{
-            padding: '8px 18px', fontSize: 13, fontWeight: 500, color: '#fff',
-            background: accentColor, border: 'none', borderRadius: 8,
+            padding: '8px 18px', fontSize: 13, fontWeight: 500, color: 'var(--action-contrast)',
+            background: 'var(--action)', boxShadow: 'inset 0 0 0 1px var(--action-border)', border: 'none', borderRadius: 8,
             cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.55 : 1,
           }}
         >

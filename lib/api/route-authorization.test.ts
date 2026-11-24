@@ -99,6 +99,8 @@ const EXCEPTIONS: Record<string, string> = {
   // session.person_id (скоуп «own» задан фильтром, а не хелпером привилегий).
   'education/my-groups/route.ts': 'own-data: teacher_id = session.person_id',
   'education/my-lessons/route.ts': 'own-data: teacher_id = session.person_id',
+  'education/my-track/route.ts': 'own-data: маршруты, где study_track_managers.person_id = session.person_id (или manage_tracks/superadmin через myManagedTrackIds)',
+  'education/my-track/[trackId]/students/route.ts': 'guard(): trackId должен входить в myManagedTrackIds — ответственный маршрута, manage_tracks или superadmin',
 }
 
 const routeFiles = walkRoutes(API_DIR)

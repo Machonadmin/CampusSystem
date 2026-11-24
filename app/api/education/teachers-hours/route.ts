@@ -56,13 +56,30 @@ export async function GET(request: NextRequest) {
     // 1. Пары преподаватель↔группа.
     const { data: ct } = await sb.from('class_teachers').select('teacher_id, class_group_id')
     let links = (ct ?? []) as Array<{ teacher_id: string; class_group_id: string }>
-    if (links.length === 0) return NextResponse.json({ teachers: [], period, actual_no_end_time: 0 })
 
-    let groupIds = [...new Set(links.map(l => l.class_group_id))]
+    // 1б. Группы, где преподаватель назначен прямо на урок (слот с teacher_id).
+    // У такой группы может вообще не быть class_teachers (курс кодеша, где
+    // преподавателя группы утверждает рав, или учительница выбрана только на
+    // урок) — раньше такие группы сюда не попадали, и учительница не видна
+    // была на экране «מורות» (жалоба владельца 2026-11-10: «הוספנו מורה
+    // ובחרנו אותו לשיעור… הוא לא מוצג כאן»). Нет колонки teacher_id — пусто.
+    const slotTeacherGroupIds = new Set<string>()
+    {
+      const { data, error } = await sb.from('class_schedule_slots')
+        .select('class_group_id, teacher_id')
+        .not('teacher_id', 'is', null)
+      if (!error) {
+        for (const s of (data ?? []) as Array<{ class_group_id: string | null }>) {
+          if (s.class_group_id) slotTeacherGroupIds.add(s.class_group_id)
+        }
+      }
+    }
+
+    let groupIds = [...new Set([...links.map(l => l.class_group_id), ...slotTeacherGroupIds])]
 
     // 3. Названия групп (+ department_id для фильтра по подразделению).
     const groupNameById = new Map<string, string>()
-    {
+    if (groupIds.length > 0) {
       const { data } = await sb.from('class_groups').select('id, name, department_id').in('id', groupIds)
       const rows = (data ?? []) as Array<{ id: string; name: string; department_id: string | null }>
       const allowedGroups = myDepts
@@ -74,8 +91,7 @@ export async function GET(request: NextRequest) {
       }
       if (allowedGroups) {
         links = links.filter(l => allowedGroups.has(l.class_group_id))
-        if (links.length === 0) return NextResponse.json({ teachers: [], period, actual_no_end_time: 0 })
-        groupIds = [...new Set(links.map(l => l.class_group_id))]
+        groupIds = groupIds.filter(id => allowedGroups.has(id))
       }
     }
 
@@ -83,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Имена преподавателей.
     const nameById = new Map<string, string>()
-    {
+    if (teacherIds.length > 0) {
       const { data } = await sb.from('persons').select('id, full_name, hebrew_name').in('id', teacherIds)
       for (const p of (data ?? []) as Array<{ id: string; full_name: string | null; hebrew_name: string | null }>) {
         nameById.set(p.id, (p.hebrew_name || p.full_name || '').trim())
@@ -94,7 +110,7 @@ export async function GET(request: NextRequest) {
     // миграцией 20260915120000 и может ещё отсутствовать.
     type Slot = { class_group_id: string; day_of_week: number; start_time: string; end_time: string; room: string | null; teacher_id?: string | null }
     const slotsByGroup = new Map<string, Slot[]>()
-    {
+    if (groupIds.length > 0) {
       const { data } = await sb.from('class_schedule_slots')
         .select('*')
         .in('class_group_id', groupIds)

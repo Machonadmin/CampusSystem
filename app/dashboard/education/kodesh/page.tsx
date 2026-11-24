@@ -171,13 +171,13 @@ export default function KodeshAssignmentPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <Breadcrumb items={[
-        { label: tNav('home'), href: '/dashboard' },
-        sectionCrumb,
-        { label: t('title') },
-      ]} />
-
-      <ModuleHeader module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
+      <ModuleHeader
+        breadcrumb={[
+          { label: tNav('home'), href: '/dashboard' },
+          sectionCrumb,
+          { label: t('title') },
+        ]}
+        module="education" title={t('title')} subtitle={t('subtitle')} actions={<BackButton fallback="/dashboard/education/studies" />} />
 
       <PeriodSelector onChange={s => setPeriodReadOnly(s.readOnly)} />
 

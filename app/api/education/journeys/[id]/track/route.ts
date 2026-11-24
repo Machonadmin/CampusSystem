@@ -7,6 +7,7 @@ import { journeyDeptTarget } from '@/lib/education/journey-target'
 import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 
 import { setPrimaryStudyTrack } from '@/lib/education/journey-primary-track'
+import { specializationBelongsTo } from '@/lib/education/track-specializations'
 import { errorResponse } from '@/lib/api/handler'
 /**
  * Учебные маршруты студентки (spec §3.2): один ГЛАВНЫЙ (primary) + опциональные
@@ -52,11 +53,17 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
 
     // 1:N select. Deploy-safe: 42703 (нет role/year_level до миграции) → base select.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let { data, error } = await (sb
+    const fullSelect = (cols: string) => sb
       .from('journey_study_tracks')
-      .select('journey_id, track_id, role, notes, year_level, completed_at, updated_at')
+      .select(cols)
       .eq('journey_id', params.id)
-      .order('role', { ascending: true }) as any)
+      .order('role', { ascending: true })
+    let { data, error } = await (fullSelect('journey_id, track_id, role, notes, year_level, completed_at, updated_at, specialization_id') as any)
+    // Нет specialization_id (до миграции 20261111120000) — без מגמה.
+    if (error && isMissingColumn(error)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;({ data, error } = await (fullSelect('journey_id, track_id, role, notes, year_level, completed_at, updated_at') as any))
+    }
     if (error && isMissingColumn(error)) {
       const base = await sb
         .from('journey_study_tracks')
@@ -93,10 +100,15 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       notes?: string | null
       year_level?: number
       reactivate?: boolean
+      specialization_id?: string | null
     }
     const role: Role = body.role === 'additional' ? 'additional' : 'primary'
     const trackId = body.track_id ?? null
     const notes = body.notes && String(body.notes).trim() ? String(body.notes).trim().slice(0, 2000) : null
+    // מגמה должна принадлежать выбранному маршруту (undefined — не трогаем).
+    if (trackId && body.specialization_id && !(await specializationBelongsTo(sb, body.specialization_id, trackId))) {
+      return apiError('invalid_reference', 400)
+    }
 
     // track_id=null + primary → снять главный маршрут (удаление строк primary).
     if (trackId === null) {
@@ -122,6 +134,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       const r = await setPrimaryStudyTrack(sb, {
         journeyId: params.id, trackId, updatedBy: session.person_id, notes,
         yearLevel: body.year_level, reactivate: body.reactivate,
+        specializationId: body.specialization_id,
       })
       if (!r.ok) {
         if (r.error.code === '23503') return apiError('invalid_reference', 400)
@@ -143,6 +156,7 @@ export async function PUT(request: NextRequest, props: { params: Promise<{ id: s
       payload.year_level = body.year_level
     }
     if (body.reactivate) payload.completed_at = null
+    if (body.specialization_id !== undefined) payload.specialization_id = body.specialization_id || null
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let { error } = await (sb.from('journey_study_tracks').upsert(payload as any, { onConflict: 'journey_id,track_id' }) as any)
