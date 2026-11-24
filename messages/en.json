@@ -6408,7 +6408,7 @@
   },
   "director": {
     "title": "Director space",
-    "subtitle": "Everything waiting for approval in the system, in one place. Approving is done on the original screen via \"Open\".",
+    "subtitle": "Everything waiting for approval in the system, in one place. Approve or reject here; anything that needs a closer look opens on the original screen.",
     "subtitle_secretary": "Everything waiting for the director's approval, in one place. The director, or whoever he authorised, approves.",
     "load_error": "Failed to load",
     "forbidden": "This screen is open only to the director and his secretaries",
@@ -6429,6 +6429,13 @@
     "cat_jewishness_final": "Jewish status: awaiting final decision",
     "cat_meeting_request": "Meeting request",
     "percent": "{n}% discount",
-    "lesson": "Lesson {date}"
+    "lesson": "Lesson {date}",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "action_failed": "Action failed",
+    "no_permission": "You are not allowed to approve in this category",
+    "confirm_reject": "Reject this request?"
   }
 }

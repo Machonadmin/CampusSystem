@@ -41,6 +41,10 @@ export interface InboxItem {
   day_of_week?: number | null
   start_time?: string | null
   end_time?: string | null
+  /** נוכחות מורה: для кнопок (виртуальная заявка решается через from-attendance). */
+  lesson_id?: string | null
+  teacher_person_id?: string | null
+  virtual?: boolean
 }
 
 export interface InboxSection {
@@ -194,6 +198,7 @@ async function teacherAttendance(sb: SB): Promise<InboxSection> {
         who: names.get(r.teacher_person_id) ?? null, what: l?.group_name || null,
         by: null, at: r.reported_at,
         date: l?.date ?? null, time: l?.time ?? null,
+        lesson_id: r.lesson_id, teacher_person_id: r.teacher_person_id, virtual: r.virtual,
         href: inboxHref('teacher_attendance'),
       }
     }),
