@@ -6,7 +6,7 @@ import { errorResponse } from '@/lib/api/handler'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
 import { isAppointmentStatus } from '@/lib/calendar/validation'
 import { db, loadMeeting, personNames } from '@/lib/meetings/access'
-import { attendeesFor, studentsFor } from '@/lib/meetings/server'
+import { attendeesFor, studentsFor, overlappingEvent } from '@/lib/meetings/server'
 import { redactMeeting, cleanText, isValidRange } from '@/lib/meetings/rules'
 import { meetingsError } from '@/lib/meetings/http'
 
@@ -134,6 +134,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
         if (await hasOverlappingAppointment(sb, owner, starts, ends, id)) return meetingsError('overlap')
         const lesson = await overlappingLesson(sb, owner, starts, ends)
         if (lesson) return meetingsError('lesson', lesson.time)
+        const ev = await overlappingEvent(sb, owner, starts, ends)
+        if (ev) return meetingsError('event', ev.time)
         patch.starts_at = starts
         patch.ends_at = ends
       }

@@ -137,7 +137,7 @@ export const MODULES = [
       'פגישות: как календарь — requireCalendarUser() пускает любого сотрудника, а ' +
       '/api/meetings/** отдаёт только своё: свой календарь, календарь, который он ведёт ' +
       '(calendar_delegates), встречи, содержание которых ему открыли, и переданное ему.',
-    inAccessibleModules: false, hasColour: false, implemented: false,
+    inAccessibleModules: false, hasColour: true, implemented: false,
     inSidebar: false, isPrivilegeModule: false,
   },
 

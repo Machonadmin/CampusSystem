@@ -4,7 +4,7 @@ import { isMissingTable } from '@/lib/supabase/errors'
 import { createNotifications } from '@/lib/notifications/create'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
 import { db, delegateIdsOf, personNames, MEETING_COLS } from './access'
-import { isoToMinutes, freeSlots, type MinuteRange, type MeetingRow } from './rules'
+import { isoToMinutes, freeSlots, eventBusyRange, type MinuteRange, type MeetingRow } from './rules'
 
 type SB = ReturnType<typeof createServerClient>
 
@@ -63,7 +63,7 @@ export async function ownerMeetings(sb: SB, ownerId: string, from: string, to: s
 
 export interface DayBusy {
   blocked: boolean
-  busy: Array<{ start: number; end: number; kind: 'meeting' | 'lesson' }>
+  busy: Array<{ start: number; end: number; kind: 'meeting' | 'lesson' | 'event' }>
   free: MinuteRange[]
 }
 
@@ -98,15 +98,64 @@ export async function dayBusy(sb: SB, ownerId: string, date: string): Promise<Da
     }
   }
 
+  for (const ev of await ownerEventRows(sb, ownerId, date, date)) {
+    const r = eventBusyRange(ev.event_time, ev.all_day)
+    if (r) busy.push({ start: r[0], end: r[1], kind: 'event' })
+  }
+
   const { data: block } = await db(sb).from('calendar_blocks').select('id').eq('provider_id', ownerId).eq('block_date', date).maybeSingle()
   const blocked = !!block
   busy.sort((a, b) => a.start - b.start)
   return { blocked, busy, free: blocked ? [] : freeSlots(busy.map(b => [b.start, b.end] as MinuteRange)) }
 }
 
+export interface OwnerEventRow {
+  id: string
+  title: string
+  event_date: string
+  event_time: string | null
+  all_day: boolean
+  created_by: string | null
+}
+
+/** Личные события владельца (calendar_events) в диапазоне дат. Нет таблицы → пусто. */
+export async function ownerEventRows(sb: SB, ownerId: string, from: string, to: string): Promise<OwnerEventRow[]> {
+  const { data, error } = await db(sb).from('calendar_events')
+    .select('id, title, event_date, event_time, all_day, created_by')
+    .eq('owner_id', ownerId)
+    .gte('event_date', from)
+    .lte('event_date', to)
+    .order('event_date', { ascending: true })
+    .order('event_time', { ascending: true, nullsFirst: true })
+    .limit(2000)
+  if (error) {
+    if (isMissingTable(error)) return []
+    throw error
+  }
+  return (data ?? []) as OwnerEventRow[]
+}
+
+/**
+ * Событие владельца, на которое попадает интервал встречи (startsAt..endsAt,
+ * один день). События «весь день» не блокируют. → { time: 'HH:mm' } | null.
+ */
+export async function overlappingEvent(sb: SB, ownerId: string, startsAt: string, endsAt: string): Promise<{ time: string } | null> {
+  const date = startsAt.slice(0, 10)
+  const aStart = isoToMinutes(startsAt)
+  const aEnd = endsAt.slice(0, 10) === date ? isoToMinutes(endsAt) : 24 * 60
+  if (aStart === null || aEnd === null) return null
+  for (const ev of await ownerEventRows(sb, ownerId, date, date)) {
+    const r = eventBusyRange(ev.event_time, ev.all_day)
+    if (r && aStart < r[1] && r[0] < aEnd) {
+      return { time: `${String(Math.floor(r[0] / 60)).padStart(2, '0')}:${String(r[0] % 60).padStart(2, '0')}` }
+    }
+  }
+  return null
+}
+
 export type BookResult =
   | { ok: true; id: string }
-  | { ok: false; reason: 'overlap' | 'lesson' | 'blocked'; time?: string }
+  | { ok: false; reason: 'overlap' | 'lesson' | 'blocked' | 'event'; time?: string }
 
 /**
  * Назначает встречу в календарь владельца (сам владелец или его секретарь).
@@ -130,6 +179,8 @@ export async function bookMeeting(sb: SB, args: {
   if (await hasOverlappingAppointment(sb, args.ownerId, args.startsAt, args.endsAt)) return { ok: false, reason: 'overlap' }
   const lesson = await overlappingLesson(sb, args.ownerId, args.startsAt, args.endsAt)
   if (lesson) return { ok: false, reason: 'lesson', time: lesson.time }
+  const ev = await overlappingEvent(sb, args.ownerId, args.startsAt, args.endsAt)
+  if (ev) return { ok: false, reason: 'event', time: ev.time }
 
   const insert: Record<string, unknown> = {
     provider_id: args.ownerId,

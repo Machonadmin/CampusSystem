@@ -188,3 +188,65 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export function isUuid(v: unknown): v is string {
   return typeof v === 'string' && UUID_RE.test(v)
 }
+
+// ─── Личные события владельца (calendar_events) на экране «פגישות» ──────────
+//
+// Решение владельца (25.11.2026): секретарь видит события календаря того, кого
+// ведёт, — ТОЛЬКО название и время (без заметок и ссылок), может добавлять
+// события в его календарь и править/удалять лишь те, что добавила сама.
+// У события нет времени окончания: событие со временем считается занятым
+// EVENT_DEFAULT_MINUTES минут (как урок без конца), событие «весь день» время
+// не занимает и встречи не блокирует.
+
+export const EVENT_DEFAULT_MINUTES = 60
+
+/** Занятый интервал события в минутах суток; null — событие «весь день». */
+export function eventBusyRange(eventTime: string | null, allDay: boolean): MinuteRange | null {
+  if (allDay || !eventTime) return null
+  const m = eventTime.match(/^(\d{1,2}):(\d{2})/)
+  if (!m) return null
+  const start = Number(m[1]) * 60 + Number(m[2])
+  return [start, Math.min(start + EVENT_DEFAULT_MINUTES, 24 * 60)]
+}
+
+/** Может ли человек править/удалять событие в календаре владельца. */
+export function canEditOwnerEvent(a: { role: 'owner' | 'delegate'; createdBy: string | null; me: string }): boolean {
+  if (a.role === 'owner') return true
+  return a.createdBy === a.me
+}
+
+/** Что отдаётся о событии на экране «פגישות»: только название и время. */
+export interface OwnerEventOut {
+  id: string
+  title: string
+  event_date: string
+  event_time: string | null
+  all_day: boolean
+  can_edit: boolean
+}
+
+export function redactOwnerEvent(
+  row: { id: string; title: string; event_date: string; event_time: string | null; all_day: boolean; created_by: string | null },
+  role: 'owner' | 'delegate',
+  me: string,
+): OwnerEventOut {
+  return {
+    id: row.id,
+    title: row.title,
+    event_date: row.event_date,
+    event_time: row.event_time ? row.event_time.slice(0, 5) : null,
+    all_day: row.all_day || !row.event_time,
+    can_edit: canEditOwnerEvent({ role, createdBy: row.created_by, me }),
+  }
+}
+
+/** Время события 'HH:mm' (или пусто — «весь день»). undefined — неверный формат. */
+export function cleanEventTime(v: unknown): string | null | undefined {
+  if (v === null || v === undefined || v === '') return null
+  if (typeof v !== 'string') return undefined
+  const m = v.trim().match(/^(\d{1,2}):(\d{2})$/)
+  if (!m) return undefined
+  const h = Number(m[1]), mi = Number(m[2])
+  if (h > 23 || mi > 59) return undefined
+  return `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}`
+}

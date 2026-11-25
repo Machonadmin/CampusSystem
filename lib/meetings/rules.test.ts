@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   meetingVisibility, redactMeeting, freeSlots, isoToMinutes, minutesToHHmm,
   canApplyRequestAction, statusAfter, isLocalDateTime, isValidRange, cleanText, isUuid,
+  eventBusyRange, canEditOwnerEvent, redactOwnerEvent, cleanEventTime, EVENT_DEFAULT_MINUTES,
   type MeetingRow,
 } from './rules'
 
@@ -176,5 +177,42 @@ describe('מזכירת המנהל по должности', () => {
       [],
     )
     expect(r).toHaveLength(2)
+  })
+})
+
+describe('события владельца на экране «פגישות» (решение 25.11.2026)', () => {
+  it('eventBusyRange: событие со временем занимает EVENT_DEFAULT_MINUTES', () => {
+    expect(eventBusyRange('10:30:00', false)).toEqual([630, 630 + EVENT_DEFAULT_MINUTES])
+    expect(eventBusyRange('10:30', false)).toEqual([630, 690])
+  })
+  it('eventBusyRange: «весь день» или без времени — не занимает', () => {
+    expect(eventBusyRange(null, true)).toBeNull()
+    expect(eventBusyRange('10:00', true)).toBeNull()
+    expect(eventBusyRange(null, false)).toBeNull()
+  })
+  it('eventBusyRange: не выходит за конец суток', () => {
+    expect(eventBusyRange('23:30', false)).toEqual([1410, 1440])
+  })
+  it('canEditOwnerEvent: владелец — любое, секретарь — только своё', () => {
+    expect(canEditOwnerEvent({ role: 'owner', createdBy: 'x', me: 'o' })).toBe(true)
+    expect(canEditOwnerEvent({ role: 'delegate', createdBy: 's', me: 's' })).toBe(true)
+    expect(canEditOwnerEvent({ role: 'delegate', createdBy: 'o', me: 's' })).toBe(false)
+    expect(canEditOwnerEvent({ role: 'delegate', createdBy: null, me: 's' })).toBe(false)
+  })
+  it('redactOwnerEvent: только название и время, без заметок и ссылок', () => {
+    const row = { id: '1', title: 'T', event_date: '2026-11-26', event_time: '09:15:00', all_day: false, created_by: 'o', notes: 'секрет', link: '/x' }
+    const out = redactOwnerEvent(row, 'delegate', 's')
+    expect(out).toEqual({ id: '1', title: 'T', event_date: '2026-11-26', event_time: '09:15', all_day: false, can_edit: false })
+    expect(Object.keys(out)).not.toContain('notes')
+    expect(Object.keys(out)).not.toContain('link')
+  })
+  it('cleanEventTime', () => {
+    expect(cleanEventTime('9:05')).toBe('09:05')
+    expect(cleanEventTime('')).toBeNull()
+    expect(cleanEventTime(null)).toBeNull()
+    expect(cleanEventTime('25:00')).toBeUndefined()
+    expect(cleanEventTime('10:60')).toBeUndefined()
+    expect(cleanEventTime('abc')).toBeUndefined()
+    expect(cleanEventTime(5)).toBeUndefined()
   })
 })
