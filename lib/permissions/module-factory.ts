@@ -4,7 +4,7 @@ import { getSession } from '@/lib/auth/session'
 import type { SessionPayload } from '@/lib/auth/jwt'
 import type { RoleCode, PrivilegeModule } from '@/types/database'
 import { reduceScopes, applyPersonGrants, type Scope } from '@/lib/permissions/scope'
-import { loadPersonModuleGrants } from '@/lib/permissions/person-grants'
+import { loadPersonModuleGrants, loadPersonalGrantScope } from '@/lib/permissions/person-grants'
 
 /**
  * Фабрика прав модуля. Раньше ~13 файлов lib/<module>/permissions.ts были
@@ -101,11 +101,12 @@ export function makeModulePermissions<P extends string>(moduleName: string): Mod
     const cached = getCached(session.person_id)
     if (cached) return cached
 
-    const [rolePrivileges, personGrants] = await Promise.all([
+    const [rolePrivileges, personGrants, grantScope] = await Promise.all([
       loadPrivileges(session.roles),
       loadPersonModuleGrants(moduleName, session.person_id),
+      loadPersonalGrantScope(session.person_id),
     ])
-    const privileges = applyPersonGrants<P>(rolePrivileges, personGrants)
+    const privileges = applyPersonGrants<P>(rolePrivileges, personGrants, grantScope)
     setCached(session.person_id, privileges)
     return { privileges, expiresAt: Date.now() + CACHE_TTL_MS }
   }

@@ -8,6 +8,7 @@ import { reduceScopes, grantsAccess, applyPersonGrants, widenKodeshViewStudents,
 import { getHeadedUnitIds } from '@/lib/education/unit-access'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { loadStructureSeats, structurePrivilegeRows } from '@/lib/permissions/structure'
+import { loadPersonalGrantScope } from '@/lib/permissions/person-grants'
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -293,13 +294,14 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   const cached = getCached(session.person_id)
   if (cached) return cached
 
-  const [rolePrivileges, departmentIds, personGrants, headedUnitIds, seats, kodeshMember] = await Promise.all([
+  const [rolePrivileges, departmentIds, personGrants, headedUnitIds, seats, kodeshMember, grantScope] = await Promise.all([
     loadPrivileges(session.roles),
     getUserDepartmentIds(session.person_id),
     loadPersonPrivileges(session.person_id),
     getHeadedUnitIds(session.person_id),
     loadStructureSeats(session.person_id),
     hasActiveKodeshPosition(session.person_id),
+    loadPersonalGrantScope(session.person_id),
   ])
 
   // Права из оргструктуры (глава / заместитель / секретариат — решение
@@ -312,7 +314,7 @@ async function getUserAccess(session: SessionPayload): Promise<CacheEntry> {
   const basePrivileges = reduceScopes<EducationPrivilege>(baseRows)
 
   // Персональные выдачи/запреты поверх ролевых и структурных (см. applyPersonGrants).
-  const privileges = applyPersonGrants<EducationPrivilege>(basePrivileges, personGrants)
+  const privileges = applyPersonGrants<EducationPrivilege>(basePrivileges, personGrants, grantScope)
 
   // Кодеш — сквозная кафедра: КАЖДАЯ студентка приписана к её группе кодеша (утром
   // все учат кодеш; «основное» подразделение — её дневной מסלול, никогда не кодеш).

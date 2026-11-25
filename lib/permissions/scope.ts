@@ -40,14 +40,37 @@ export function reduceScopes<P extends string>(
 export function applyPersonGrants<P extends string>(
   base: Partial<Record<P, Scope>>,
   grants: { code: string; is_granted: boolean }[],
+  /**
+   * Область личной выдачи. По умолчанию 'department'. 'all' — для того, кто
+   * сидит в ВЕРХНЕЙ единице оргструктуры (см. personalGrantScopeFor): его
+   * единица и так покрывает всё дерево, а 'all' дополнительно открывает
+   * объекты без подразделения (студентки и бывшие ученицы к единицам не
+   * привязаны — решение владельца 25.11.2026).
+   */
+  grantScope: 'department' | 'all' = 'department',
 ): Partial<Record<P, Scope>> {
   const out: Partial<Record<P, Scope>> = { ...base }
   for (const g of grants) {
     const code = g.code as P
     if (!g.is_granted) { delete out[code]; continue }
-    if (out[code] !== 'all') out[code] = 'department'
+    if (out[code] !== 'all') out[code] = grantScope
   }
   return out
+}
+
+/**
+ * Область личных выдач человека (решение владельца 25.11.2026): если у него есть
+ * действующая посадка в ВЕРХНЕЙ единице оргструктуры (parent_id = null, сейчас —
+ * «לשכת הנשיא»), его личные выдачи действуют на всё учреждение ('all'). Иначе —
+ * 'department', как раньше. Чистая функция: на вход — подразделения действующих
+ * посадок человека и id верхних единиц.
+ */
+export function personalGrantScopeFor(
+  seatDepartmentIds: readonly string[],
+  topUnitIds: readonly string[],
+): 'department' | 'all' {
+  const top = new Set(topUnitIds)
+  return seatDepartmentIds.some(id => top.has(id)) ? 'all' : 'department'
 }
 
 /** Что именно проверяем: подразделение действия и/или ответственные лица. */
