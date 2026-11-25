@@ -5,8 +5,8 @@ import { requireCalendarUser } from '@/lib/calendar/permissions'
 import { errorResponse } from '@/lib/api/handler'
 import { isIsoDate } from '@/lib/calendar/validation'
 import { db, canManageCalendar, personNames } from '@/lib/meetings/access'
-import { ownerMeetings, attendeesFor, studentsFor, dayBusy, bookMeeting, notifyCalendarTeam } from '@/lib/meetings/server'
-import { meetingVisibility, redactMeeting, cleanText, isValidRange, isUuid } from '@/lib/meetings/rules'
+import { ownerMeetings, attendeesFor, studentsFor, dayBusy, bookMeeting, notifyCalendarTeam, ownerEventRows } from '@/lib/meetings/server'
+import { meetingVisibility, redactMeeting, cleanText, isValidRange, isUuid, redactOwnerEvent } from '@/lib/meetings/rules'
 import { meetingsError } from '@/lib/meetings/http'
 import { createNotifications } from '@/lib/notifications/create'
 
@@ -14,7 +14,8 @@ import { createNotifications } from '@/lib/notifications/create'
  * Календарь владельца глазами владельца или его секретаря (מזכירת המנהל).
  *
  * GET  ?owner=<id>&from=YYYY-MM-DD&to=YYYY-MM-DD[&day=YYYY-MM-DD]
- *   → { role, meetings[], day? }  — встречи с участниками; секретарю содержание
+ *   → { role, meetings[], events[], day? } — встречи с участниками; events —
+ *     личные события владельца, только название и время; секретарю содержание
  *     НЕ отдаётся (только время, участники, тема), если владелец не открыл его
  *     для конкретной встречи. day — занятость и свободные окна этого дня.
  * POST { owner_id, title, starts_at, ends_at, attendee_person_ids?, prep_notes? }
@@ -60,7 +61,11 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ role, meetings, day: day ? await dayBusy(sb, ownerId, day) : null })
+    // Личные события владельца — только название и время (redactOwnerEvent).
+    const events = (await ownerEventRows(sb, ownerId, from, to))
+      .map(e => redactOwnerEvent(e, role, session.person_id))
+
+    return NextResponse.json({ role, meetings, events, day: day ? await dayBusy(sb, ownerId, day) : null })
   } catch (err) {
     return errorResponse(err as { status?: number; message?: string })
   }

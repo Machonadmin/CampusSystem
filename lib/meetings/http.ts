@@ -13,6 +13,11 @@ export function meetingsError(err: RequestError, time?: string): NextResponse {
     case 'invalid_time': return apiError('meetings_invalid_time', 400)
     case 'overlap': return apiError('meeting_overlap', 409)
     case 'blocked': return apiError('meetings_blocked_day', 409)
+    case 'event':
+      return NextResponse.json(
+        { error: serverT('meetings_event_overlap').replace('{time}', time ?? ''), code: 'meetings_event_overlap' },
+        { status: 409 },
+      )
     case 'lesson':
       return NextResponse.json(
         { error: serverT('meetings_lesson_overlap').replace('{time}', time ?? ''), code: 'meetings_lesson_overlap' },

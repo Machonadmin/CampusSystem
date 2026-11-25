@@ -43,9 +43,21 @@ interface MeetingItem {
   can_see_content: boolean
 }
 
+/** Личное событие владельца: только название и время (см. redactOwnerEvent). */
+interface EventItem {
+  id: string
+  title: string
+  event_date: string
+  event_time: string | null
+  all_day: boolean
+  can_edit: boolean
+}
+
+type DayEntry = { kind: 'meeting'; sort: string; m: MeetingItem } | { kind: 'event'; sort: string; e: EventItem }
+
 interface DayInfo {
   blocked: boolean
-  busy: Array<{ start: number; end: number; kind: 'meeting' | 'lesson' }>
+  busy: Array<{ start: number; end: number; kind: 'meeting' | 'lesson' | 'event' }>
   free: Array<[number, number]>
 }
 
@@ -108,7 +120,7 @@ export default function MeetingsClient() {
 
   return (
     <div className="p-4 md:p-6" style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 1100 }}>
-      <ModuleHeader module="dashboard" title={t('title')} subtitle={t('subtitle')} />
+      <ModuleHeader module="meetings" title={t('title')} subtitle={t('subtitle')} />
       {failed && <p style={{ color: 'var(--danger)', fontSize: 14, margin: 0 }}>{t('load_error')}</p>}
       {!failed && !ctx && <Skeleton height={120} />}
       {ctx && !ctx.migrated && <div style={card}><p style={{ margin: 0, fontSize: 14 }}>{t('not_migrated')}</p></div>}
@@ -166,6 +178,9 @@ function CalendarTab({ ctx }: { ctx: Context }) {
   const [owner, setOwner] = useState(defaultOwner(ctx))
   const [day, setDay] = useState(todayLocal())
   const [meetings, setMeetings] = useState<MeetingItem[] | null>(null)
+  const [events, setEvents] = useState<EventItem[]>([])
+  // Событие: null — окно закрыто; { } — новое; { e } — правка своего.
+  const [eventEdit, setEventEdit] = useState<{ e?: EventItem } | null>(null)
   const [dayInfo, setDayInfo] = useState<DayInfo | null>(null)
   const params = useSearchParams()
   // Из ספר אנשי קשר: «קבע פגישה» с этим человеком (?with=<id>&wname=<имя>).
@@ -178,21 +193,24 @@ function CalendarTab({ ctx }: { ctx: Context }) {
   const load = useCallback(async () => {
     setMeetings(null)
     const r = await fetch(`/api/meetings/calendar?owner=${owner}&from=${day}&to=${addDays(day, 13)}&day=${day}`, { cache: 'no-store' })
-    if (!r.ok) { setMeetings([]); toastError(t('load_error')); return }
+    if (!r.ok) { setMeetings([]); setEvents([]); toastError(t('load_error')); return }
     const b = await r.json()
     setMeetings(b.meetings ?? [])
+    setEvents(b.events ?? [])
     setDayInfo(b.day ?? null)
   }, [owner, day, t])
   useEffect(() => { load() }, [load])
 
+  // Встречи и события вместе, по дням и времени. «Весь день» — первым в дне.
   const byDay = useMemo(() => {
-    const m = new Map<string, MeetingItem[]>()
-    for (const x of meetings ?? []) {
-      const d = isoDate(x.starts_at)
-      m.set(d, [...(m.get(d) ?? []), x])
-    }
+    const m = new Map<string, DayEntry[]>()
+    const push = (d: string, x: DayEntry) => m.set(d, [...(m.get(d) ?? []), x])
+    for (const x of meetings ?? []) push(isoDate(x.starts_at), { kind: 'meeting', sort: isoTime(x.starts_at), m: x })
+    for (const e of events) push(e.event_date, { kind: 'event', sort: e.event_time ?? '', e })
     return [...m.entries()]
-  }, [meetings])
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([d, list]) => [d, list.sort((a, b) => a.sort.localeCompare(b.sort))] as const)
+  }, [meetings, events])
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
@@ -205,6 +223,7 @@ function CalendarTab({ ctx }: { ctx: Context }) {
           <Button size="sm" variant="ghost" onClick={() => setDay(todayLocal())}>{t('today')}</Button>
         </div>
         <div style={{ flex: 1 }} />
+        <Button onClick={() => setEventEdit({})}>{t('new_event')}</Button>
         <Button variant="primary" onClick={() => setBooking({ start: '09:00', end: '09:30' })}>{t('new_meeting')}</Button>
       </div>
 
@@ -230,6 +249,11 @@ function CalendarTab({ ctx }: { ctx: Context }) {
             {t('lessons_today')}: {dayInfo.busy.filter(b => b.kind === 'lesson').map(b => `${minutesToHHmm(b.start)}–${minutesToHHmm(b.end)}`).join(', ')}
           </div>
         )}
+        {dayInfo && dayInfo.busy.some(b => b.kind === 'event') && (
+          <div style={{ ...muted, marginTop: 8 }}>
+            {t('events_today')}: {dayInfo.busy.filter(b => b.kind === 'event').map(b => `${minutesToHHmm(b.start)}–${minutesToHHmm(b.end)}`).join(', ')}
+          </div>
+        )}
       </div>
 
       <div>
@@ -240,7 +264,9 @@ function CalendarTab({ ctx }: { ctx: Context }) {
               <div key={d}>
                 <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 6 }}>{formatDate(d, lang)}</div>
                 <div style={{ display: 'grid', gap: 8 }}>
-                  {list.map(m => <MeetingRow key={m.id} m={m} />)}
+                  {list.map(x => x.kind === 'meeting'
+                    ? <MeetingRow key={`m-${x.m.id}`} m={x.m} />
+                    : <EventRow key={`e-${x.e.id}`} e={x.e} onEdit={() => setEventEdit({ e: x.e })} />)}
                 </div>
               </div>
             ))}
@@ -250,6 +276,9 @@ function CalendarTab({ ctx }: { ctx: Context }) {
 
       {booking && (
         <BookModal ownerId={owner} day={day} initial={booking} onClose={() => setBooking(null)} onDone={() => { setBooking(null); load() }} />
+      )}
+      {eventEdit && (
+        <EventModal ownerId={owner} day={day} event={eventEdit.e} onClose={() => setEventEdit(null)} onDone={() => { setEventEdit(null); load() }} />
       )}
     </div>
   )
@@ -267,6 +296,79 @@ function MeetingRow({ m }: { m: MeetingItem }) {
       </div>
       {m.status !== 'scheduled' && <Badge dot tone={STATUS_TONE[m.status] ?? 'neutral'} label={t(`status_${m.status}`)} />}
     </Link>
+  )
+}
+
+/** Личное событие владельца: только название и время. Править — только своё. */
+function EventRow({ e, onEdit }: { e: EventItem; onEdit: () => void }) {
+  const t = useTranslations('meetings_mgr')
+  const body = (
+    <>
+      <div style={{ minWidth: 92, fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>{e.all_day ? t('all_day') : e.event_time}</div>
+      <div style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700 }}>{e.title}</div>
+      <Badge tone="neutral" label={t('event_badge')} />
+    </>
+  )
+  const style: React.CSSProperties = { ...card, display: 'flex', gap: 12, alignItems: 'center', color: 'var(--text)', padding: 12, width: '100%', textAlign: 'start', font: 'inherit' }
+  return e.can_edit
+    ? <button type="button" onClick={onEdit} title={t('edit_event')} style={{ ...style, cursor: 'pointer' }}>{body}</button>
+    : <div style={style}>{body}</div>
+}
+
+function EventModal({ ownerId, day, event, onClose, onDone }: {
+  ownerId: string; day: string; event?: EventItem; onClose: () => void; onDone: () => void
+}) {
+  const t = useTranslations('meetings_mgr')
+  const [title, setTitle] = useState(event?.title ?? '')
+  const [date, setDate] = useState(event?.event_date ?? day)
+  const [allDay, setAllDay] = useState(event ? event.all_day : false)
+  const [time, setTime] = useState(event?.event_time ?? '09:00')
+  const [busy, setBusy] = useState(false)
+
+  async function save() {
+    if (!title.trim()) { toastError(t('err_subject')); return }
+    setBusy(true)
+    const payload = { title, event_date: date, event_time: allDay ? null : time }
+    const r = event
+      ? await send(`/api/meetings/events/${event.id}`, 'PATCH', payload)
+      : await send('/api/meetings/events', 'POST', { owner_id: ownerId, ...payload })
+    setBusy(false)
+    if (!r.ok) { toastError(String(r.data.error ?? t('action_failed'))); return }
+    toastSuccess(event ? t('event_saved') : t('event_added'))
+    onDone()
+  }
+
+  async function remove() {
+    if (!event) return
+    setBusy(true)
+    const r = await send(`/api/meetings/events/${event.id}`, 'DELETE')
+    setBusy(false)
+    if (!r.ok) { toastError(String(r.data.error ?? t('action_failed'))); return }
+    toastSuccess(t('event_deleted'))
+    onDone()
+  }
+
+  return (
+    <Modal onClose={onClose} title={event ? t('edit_event') : t('new_event')} maxWidth={460}
+      footer={<div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        {event && <Button variant="danger" disabled={busy} onClick={remove}>{t('delete')}</Button>}
+        <div style={{ flex: 1 }} />
+        <Button onClick={onClose}>{t('cancel')}</Button>
+        <Button variant="primary" disabled={busy} onClick={save}>{t('save')}</Button>
+      </div>}>
+      <div style={{ display: 'grid', gap: 12 }}>
+        <div><span style={label}>{t('subject')}</span><input style={input} value={title} onChange={ev => setTitle(ev.target.value)} maxLength={300} /></div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 8 }}>
+          <div><span style={label}>{t('date')}</span><input type="date" style={input} value={date} onChange={ev => setDate(ev.target.value)} /></div>
+          <div><span style={label}>{t('event_time')}</span><input type="time" style={input} value={time} disabled={allDay} onChange={ev => setTime(ev.target.value)} /></div>
+        </div>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13.5 }}>
+          <input type="checkbox" checked={allDay} onChange={ev => setAllDay(ev.target.checked)} />
+          {t('all_day')}
+        </label>
+        <div style={muted}>{t('event_hint')}</div>
+      </div>
+    </Modal>
   )
 }
 
