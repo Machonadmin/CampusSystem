@@ -152,16 +152,6 @@ export const MODULES = [
   },
 
   {
-    code: 'director_space', navKey: 'director_space', href: '/dashboard/director-space',
-    routeGuard: false, pageGates: false, pagePrivilege: null,
-    gateExceptionReason:
-      'מרחב המנהל: как פגישות — страница только под auth, а /api/director/** пускает ' +
-      'המנהל (superadmin) и מזכירת המנהל (ведёт календарь superadmin, lib/director/access.ts).',
-    inAccessibleModules: false, hasColour: false, implemented: false,
-    inSidebar: false, isPrivilegeModule: false,
-  },
-
-  {
     code: 'feedback', navKey: 'feedback', href: '/dashboard/feedback',
     routeGuard: false, pageGates: false, pagePrivilege: null,
     gateExceptionReason:
