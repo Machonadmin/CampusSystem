@@ -219,7 +219,6 @@ export function PositionsPanel({ embedded = false }: { embedded?: boolean }) {
                           <td colSpan={4} data-label="" style={{ padding: '2px 16px 14px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px 22px', paddingInlineStart: 16 }}>
                               <Detail label={t('table_teaching')} value={pos.is_teaching ? t('yes') : '—'} />
-                              <Detail label={t('table_sort_order')} value={String(pos.sort_order)} />
                             </div>
                             <div style={{ display: 'flex', gap: 5, marginTop: 12, paddingInlineStart: 16, flexWrap: 'wrap' }} onClick={e => e.stopPropagation()}>
                               <button onClick={() => setModal({ mode: 'edit', item: pos })} style={btnSecondary}>
@@ -280,7 +279,6 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
   const [nameHe, setNameHe] = useState(initial?.name_he ?? '')
   const [category, setCategory] = useState<PositionCategory>(initial?.category ?? 'academic')
   const [isTeaching, setIsTeaching] = useState(initial?.is_teaching ?? false)
-  const [sortOrder, setSortOrder] = useState(String(initial?.sort_order ?? 100))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -306,7 +304,6 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
         name_he: nameHe.trim() || null,
         category,
         is_teaching: isTeaching,
-        sort_order: Number(sortOrder) || 100,
       }
 
       const url = mode === 'edit' && initial ? `/api/settings/positions/${initial.id}` : '/api/settings/positions'
@@ -391,11 +388,6 @@ function PositionModal({ mode, initial, onClose, onSaved }: ModalProps) {
               <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('is_teaching_hint')}</span>
             )}
           </label>
-
-          <div>
-            <label style={lbl}>{t('sort_order_label')}</label>
-            <input aria-label={t('sort_order_label')} type="number" value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={{ ...inp, width: 100 }} />
-          </div>
         </div>
 
         {error && (
