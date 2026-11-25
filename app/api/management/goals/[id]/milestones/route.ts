@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db, notMigrated, canEditGoal, syncMilestoneCalendar, type GoalRow, type MilestoneRow } from '@/lib/management/store'
 import { cleanText, isIsoDateStr } from '@/lib/management/validation'
@@ -13,7 +13,7 @@ import { cleanText, isIsoDateStr } from '@/lib/management/validation'
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('management')
     const sb = db()
     const { data: goal, error: gErr } = await sb.from('management_goals').select('*').eq('id', params.id).maybeSingle()
     if (gErr) {

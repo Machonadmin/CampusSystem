@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { DOCUMENTS_BUCKET } from '@/lib/documents/storage'
 import { PHOTO_MIME_TYPES } from '@/lib/persons/profile-photos'
@@ -24,7 +24,7 @@ type Params = { params: Promise<{ kind: string; id: string }> }
 async function gate(props: Params) {
   const { kind, id } = await props.params
   if (!isContactKind(kind) || !isUuid(id)) return { err: apiError('record_not_found', 404) }
-  const session = await requireCalendarUser()
+  const session = await requireModuleUser('meetings')
   const sb = createServerClient()
   const acc = await addressBookAccess(sb, session)
   const access = await contactAccess(sb, session, acc, kind as ContactKind, id)

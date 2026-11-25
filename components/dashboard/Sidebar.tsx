@@ -37,14 +37,14 @@ const TOP_ITEMS = [
 ]
 
 // Группа «ניהול שלי» (решение владельца 11.11.2026): личные рабочие экраны
-// под одним заголовком сразу после верхних пунктов. Состав и доступ прежние:
-// пункты не гейтятся модульным правом, своё отдаёт API.
+// под одним заголовком сразу после верхних пунктов. С 25.11.2026 каждый пункт —
+// модуль со своим правом '<key>.access' (виден ⇔ есть в accessible_modules).
 const MY_WORK_ITEMS = [
   { key: 'management' as const, href: '/dashboard/management', icon: I.management },
-  // «פגישות» — יומן המנהל, בקשות לפגישה, מה הועבר אליי. Для всех сотрудников:
-  // что кому видно, решает /api/meetings/**.
+  // «פגישות» — יומן המנהל, בקשות לפגישה, מה הועבר אליי. Что кому видно внутри,
+  // решает /api/meetings/**.
   { key: 'meetings' as const, href: '/dashboard/meetings', icon: I.meetings },
-  // «המסלול שלי» — только у тех, кому /api/education/my-track вернул маршруты.
+  // «המסלול שלי» — при праве и только если /api/education/my-track вернул маршруты.
   { key: 'my_track' as const, href: '/dashboard/my-track', icon: I.my_track },
 ]
 
@@ -110,8 +110,9 @@ function SidebarNavLink({
   /** Небольшая точка на иконке — сигнал «есть что-то моё» (напр. открытые задачи). */
   dot?: boolean
 }) {
-  // 'home', 'calendar' и 'management' (פאנל ניהול) — личные страницы: всегда
-  // доступны, свои данные отдаёт API.
+  // 'home', 'calendar' — личные страницы, всегда доступны. «ניהול שלי»
+  // (management / meetings / my_track) — модули с правом, но экраны есть всегда,
+  // поэтому «בקרוב» для них не рисуется.
   const isPersonalPage = moduleKey === 'home' || moduleKey === 'calendar' || moduleKey === 'management' || moduleKey === 'meetings' || moduleKey === 'my_track'
   const implemented = isPersonalPage || isModuleImplemented(moduleKey)
   return (
@@ -285,6 +286,9 @@ export default function Sidebar() {
     if (key === 'chavruta') return isChavrutaTeacher || canViewChavrutaHub || accessibleModules.includes('chavruta')
     return accessibleModules.includes(key)
   }
+  const myWorkItems = MY_WORK_ITEMS
+    .filter(item => canAccess(item.key))
+    .filter(item => item.key !== 'my_track' || hasMyTrack)
   const sections = [
     ...MODULE_GROUPS,
     ...(FALLBACK_KEYS.length ? [{ key: 'other' as const, modules: FALLBACK_KEYS }] : []),
@@ -529,8 +533,9 @@ export default function Sidebar() {
           )
         })}
 
-        {/* «ניהול שלי» — פאנל ניהול + המסלול שלי под общим заголовком. */}
-        <div>
+        {/* «ניהול שלי» — פאנל ניהול / פגישות / המסלול שלי под общим заголовком;
+            заголовок не рисуется, если ни одного пункта нет. */}
+        {myWorkItems.length > 0 && <div>
           {isOpen ? (
             <div style={{ padding: '14px 16px 5px' }}>
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -542,7 +547,7 @@ export default function Sidebar() {
               <div style={{ height: 1, backgroundColor: 'var(--border)' }} />
             </div>
           )}
-          {MY_WORK_ITEMS.filter(item => item.key !== 'my_track' || hasMyTrack).map(item => (
+          {myWorkItems.map(item => (
             <SidebarNavLink
               key={item.key}
               href={item.href}
@@ -555,7 +560,7 @@ export default function Sidebar() {
               soonLabel={t.soon}
             />
           ))}
-        </div>
+        </div>}
 
         {/* Избранное — личная группа наверху (всегда раскрыта). */}
         {favoriteEntries.length > 0 && (

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db, managedOwnerIds, delegateIdsOf, requestTargetIds, personNames } from '@/lib/meetings/access'
 import { groupsFor } from '@/lib/meetings/contacts'
@@ -17,7 +17,7 @@ import { addressBookAccess } from '@/lib/meetings/contacts-server'
  */
 export async function GET() {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
 
     const probe = await db(sb).from('calendar_delegates').select('owner_id').limit(1)

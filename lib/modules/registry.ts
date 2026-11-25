@@ -120,35 +120,41 @@ export const MODULES = [
     inAccessibleModules: true, hasColour: true, implemented: true,
     inSidebar: false, isPrivilegeModule: true,
   },
+  // ── «ניהול שלי»: модули со своим правом (решение владельца 25.11.2026) ────
+  // Раньше были открыты любому сотруднику. Теперь страницу закрывает middleware
+  // по '<code>.access', API — requireModuleUser / canEnterPersonalModule
+  // (lib/modules/personal-access.ts). Фильтры данных внутри API прежние.
   {
     code: 'management', navKey: 'management', href: '/dashboard/management',
-    routeGuard: false, pageGates: false, pagePrivilege: null,
+    routeGuard: true, pageGates: false, pagePrivilege: null,
     gateExceptionReason:
-      'פאנל ניהול: как календарь — requireCalendarUser() пускает любого сотрудника, ' +
-      'а /api/management/** отдаёт только то, где он создатель, участник или ответственный.',
-    inAccessibleModules: false, hasColour: false, implemented: false,
-    inSidebar: false, isPrivilegeModule: false,
+      'פאנל ניהול: страницу закрывает middleware по management.access, ' +
+      '/api/management/** — requireModuleUser(\'management\') и отдаёт только то, где ' +
+      'он создатель, участник или ответственный.',
+    inAccessibleModules: true, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: true,
   },
 
   {
     code: 'meetings', navKey: 'meetings', href: '/dashboard/meetings',
-    routeGuard: false, pageGates: false, pagePrivilege: null,
+    routeGuard: true, pageGates: false, pagePrivilege: null,
     gateExceptionReason:
-      'פגישות: как календарь — requireCalendarUser() пускает любого сотрудника, а ' +
-      '/api/meetings/** отдаёт только своё: свой календарь, календарь, который он ведёт ' +
-      '(calendar_delegates), встречи, содержание которых ему открыли, и переданное ему.',
-    inAccessibleModules: false, hasColour: false, implemented: false,
-    inSidebar: false, isPrivilegeModule: false,
+      'פגישות: страницу закрывает middleware по meetings.access, /api/meetings/** — ' +
+      'requireModuleUser(\'meetings\') и отдаёт только своё: свой календарь, календарь, ' +
+      'который он ведёт (calendar_delegates), встречи, содержание которых ему открыли, и переданное ему.',
+    inAccessibleModules: true, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: true,
   },
 
   {
     code: 'my_track', navKey: 'my_track', href: '/dashboard/my-track',
-    routeGuard: false, pageGates: false, pagePrivilege: null,
+    routeGuard: true, pageGates: false, pagePrivilege: null,
     gateExceptionReason:
-      'המסלול שלי: как פאנל ניהול — страница только под auth, а /api/education/my-track/** ' +
-      'пускает ответственного маршрута (study_track_managers), manage_tracks или superadmin.',
-    inAccessibleModules: false, hasColour: false, implemented: false,
-    inSidebar: false, isPrivilegeModule: false,
+      'המסלול שלי: страницу закрывает middleware по my_track.access, а ' +
+      '/api/education/my-track/** дополнительно пускает только к маршрутам, где он ' +
+      'ответственный (study_track_managers), или ко всем — с manage_tracks / superadmin.',
+    inAccessibleModules: true, hasColour: false, implemented: false,
+    inSidebar: false, isPrivilegeModule: true,
   },
 
   {

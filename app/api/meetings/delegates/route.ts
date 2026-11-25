@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db, personNames, allDelegations } from '@/lib/meetings/access'
 import { isUuid } from '@/lib/meetings/rules'
@@ -24,7 +24,7 @@ function ownerFor(session: SessionPayload, requested: unknown): string | null {
 
 export async function GET() {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const all = await allDelegations(sb)
     const rows = session.roles.includes('superadmin')
@@ -46,7 +46,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const body = await request.json().catch(() => ({})) as { delegate_id?: unknown; owner_id?: unknown }
     const ownerId = ownerFor(session, body.owner_id)
     if (!ownerId) return apiError('forbidden', 403)
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const delegateId = request.nextUrl.searchParams.get('delegate_id')
     const ownerParam = request.nextUrl.searchParams.get('owner_id')
     if (!isUuid(delegateId)) return apiError('meetings_delegate_invalid', 400)

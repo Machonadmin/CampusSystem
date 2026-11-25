@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import {
   db, isSuperadmin, notMigrated, canEditGoal, canSeeMeeting, syncGoalCalendar, type GoalRow, type MilestoneRow, type MeetingRow,
@@ -21,7 +21,7 @@ import { parseGoalInput } from '@/lib/management/goal-input'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('management')
     const sb = db()
     const me = session.person_id
     const meetingFilter = request.nextUrl.searchParams.get('meeting_id')
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('management')
     const body = await request.json().catch(() => ({})) as Record<string, unknown>
     const parsed = parseGoalInput(body, false)
     if ('error' in parsed) return apiError(parsed.error, 400)

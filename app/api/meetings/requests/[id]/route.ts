@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { canManageCalendar } from '@/lib/meetings/access'
 import { applyRequestAction, loadRequest } from '@/lib/meetings/requests'
@@ -19,7 +19,7 @@ const REQUESTER: RequesterAction[] = ['accept_proposal', 'decline_proposal', 'ca
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const req = await loadRequest(sb, id)
     if (!req) return apiError('record_not_found', 404)

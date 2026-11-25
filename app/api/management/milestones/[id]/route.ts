@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import {
   db, notMigrated, canEditGoal, replaceCalendarItems, syncMilestoneCalendar, type GoalRow, type MilestoneRow,
@@ -29,7 +29,7 @@ async function loadPair(id: string) {
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('management')
     const r = await loadPair(params.id)
     if (r.err) return r.err
     const editGoal = canEditGoal(session, r.goal)
@@ -70,7 +70,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('management')
     const r = await loadPair(params.id)
     if (r.err) return r.err
     if (!canEditGoal(session, r.goal)) return apiError('forbidden', 403)

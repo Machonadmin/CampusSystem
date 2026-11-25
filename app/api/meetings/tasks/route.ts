@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { db, canManageCalendar, personNames } from '@/lib/meetings/access'
@@ -13,7 +13,7 @@ import { db, canManageCalendar, personNames } from '@/lib/meetings/access'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const ownerId = request.nextUrl.searchParams.get('owner') || session.person_id
     const sb = createServerClient()
     if (!(await canManageCalendar(sb, session, ownerId))) return apiError('forbidden', 403)

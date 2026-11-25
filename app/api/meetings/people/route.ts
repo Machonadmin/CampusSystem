@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { sanitizeOrSearch } from '@/lib/search/sanitize'
 import { db, managedOwnerIds, delegateIdsOf } from '@/lib/meetings/access'
@@ -18,7 +18,7 @@ import { canUseMeetingPeople, meetingPeopleFilter } from '@/lib/meetings/people'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const allowed = canUseMeetingPeople({
       isSuperadmin: session.roles.includes('superadmin'),

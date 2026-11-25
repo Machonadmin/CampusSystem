@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db, loadMeeting } from '@/lib/meetings/access'
 
@@ -13,7 +13,7 @@ import { db, loadMeeting } from '@/lib/meetings/access'
 export async function DELETE(_req: NextRequest, props: { params: Promise<{ itemId: string }> }) {
   try {
     const { itemId } = await props.params
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const { data: item, error } = await db(sb).from('appointment_action_items').select('id, appointment_id').eq('id', itemId).maybeSingle()
     if (error) throw error

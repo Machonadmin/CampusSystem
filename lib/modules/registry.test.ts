@@ -86,6 +86,8 @@ describe('производные списки не изменились посл
       'education', 'finance', 'food', 'jewishness', 'maintenance', 'persons',
       'psychologist', 'quality_control', 'reports', 'security', 'settings',
       'sponsors', 'staff',
+      // «ניהול שלי» — модули со своим правом с 25.11.2026 (решение владельца).
+      'management', 'meetings', 'my_track',
     ].sort())
   })
 
@@ -97,6 +99,8 @@ describe('производные списки не изменились посл
       'sponsors', 'staff', 'tasks',
       // «מרחב יהדות» — отдельный модуль с 19.11.2026 (решение владельца).
       'kodesh_space',
+      // «ניהול שלי» — модули со своим правом с 25.11.2026 (решение владельца).
+      'management', 'meetings', 'my_track',
     ].sort())
   })
 

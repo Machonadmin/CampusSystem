@@ -62,6 +62,8 @@ const SENSITIVE_MODULES = new Set([
 const ANY_GUARD = [
   /getSession/, /requireAuth/, /requireStaff/, /requireSuperadmin/,
   /require\w*Privilege/, /require\w*Access/, /requireCalendarUser/,
+  // «ניהול שלי» (management / meetings): сотрудник + право модуля (25.11.2026).
+  /requireModuleUser/,
   /requirePrivilege/, /requirePortal\w*/, /has\w*Privilege/,
   /get\w*PrivilegeScope/, /getUserDepartmentIds/, /can[A-Z]\w+/, /canDo\w+/,
   /roles\.includes/, /principal/,
@@ -71,7 +73,7 @@ const ANY_GUARD = [
 // getSession/requireAuth/requireStaff/principal.
 const STRONG_GUARD = [
   /requireSuperadmin/, /require\w*Privilege/, /require\w*Access/,
-  /requireCalendarUser/, /requirePrivilege\b/, /requirePortal\w*/,
+  /requireCalendarUser/, /requireModuleUser/, /requirePrivilege\b/, /requirePortal\w*/,
   /has\w*Privilege/, /get\w*PrivilegeScope/, /can[A-Z]\w+/, /canDo\w+/,
   /roles\.includes/,
 ]
