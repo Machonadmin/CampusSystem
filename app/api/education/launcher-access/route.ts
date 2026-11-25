@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
-import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope, hasEducationPrivilege, canManageTracksCatalog } from '@/lib/education/permissions'
+import { canDoEducationInAny, canManageEducationInAny, getEducationPrivilegeScope, hasEducationPrivilege, canManageTracksCatalog, canManageStudentLifecycleAnywhere } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
 import { canManageKodesh } from '@/lib/education/kodesh-access'
 import { hasFinancePrivilege } from '@/lib/finance/permissions'
@@ -56,6 +56,7 @@ export async function GET() {
         teacher_attendance: true, absences: true, teaching_surveys: true,
         chavruta: true, semesters: true, structure: true, units: true, reports: true,
         teacher_home: false, students_view_all: true, students_manage_all: true,
+        students_lifecycle_all: true,
         restrict_to_kodesh: false,
         kodesh_home: true, kodesh_rav: true, track_catalog: true, no_lesson_days: true,
         student_alerts: true, finance_admin: true, create_kodesh_course: true,
@@ -83,7 +84,7 @@ export async function GET() {
       manageKodesh, manageClassTeachers, approveKodeshTeacher, setTeacherQuota,
       manageTracks, manageClassGroupsMgr, manageAlerts,
       finView, finViewBalance, finManageBudget, finApproveDiscount, manageEnrollmentsMgr,
-      createKodeshCourse, chavrutaHub,
+      createKodeshCourse, chavrutaHub, lifecycleAll,
     ] = await Promise.all([
       safe(canManageEducationInAny(session, 'view_students'), false),
       safe(canManageEducationInAny(session, 'manage_students'), false),
@@ -113,6 +114,9 @@ export async function GET() {
       safe(hasEducationPrivilege(session, 'create_kodesh_course', { department_id: KODESH_DEPT_ID }), false),
       // Карточка «חברותא» (хаб) — зеркало гейта /dashboard/education/chavruta.
       safe(canViewChavruta(session), false),
+      // Не карточка: может ли закрыть תיק / сменить статус ЛЮБОЙ студентки
+      // (сотрудник кодеша с manage_students) — зеркало DELETE /journeys/[id] и /transition.
+      safe(canManageStudentLifecycleAnywhere(session), false),
     ])
     // Видит ли всех студенток института (view='all') и может ли всеми управлять
     // (manage='all'). У главы кафедры кодеша view='all', но manage='department' —
@@ -159,6 +163,7 @@ export async function GET() {
       teacher_home,
       students_view_all,
       students_manage_all,
+      students_lifecycle_all: lifecycleAll,
       restrict_to_kodesh: restrictToKodesh,
       kodesh_home: manageKodesh,
       kodesh_rav: (manageClassTeachers || approveKodeshTeacher)
