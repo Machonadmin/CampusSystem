@@ -12,6 +12,7 @@ import { pickLang } from './localize'
 import { activeSeatsFromPositions, type PersonSeat } from './seating'
 import { todayISO } from '@/lib/dates'
 import { seatsFromRows, structurePrivilegeRows } from '@/lib/permissions/structure-rules'
+import { loadPersonalGrantScope } from '@/lib/permissions/person-grants'
 
 // ─── Загрузка данных экрана «Безопасность данных» ────────────────────────────
 //
@@ -215,6 +216,10 @@ export async function loadPersonAccess(personId: string, lang: Lang): Promise<Pe
     }
   }
 
+  // Посадка в верхней единице (לשכת הנשיא) — личные выдачи на всё учреждение,
+  // ровно как при реальной проверке (loadPersonalGrantScope).
+  const grantScope = await loadPersonalGrantScope(personId)
+
   return {
     personId,
     name: (lang === 'he' && person.hebrew_name) ? person.hebrew_name : (person.full_name ?? ''),
@@ -233,6 +238,7 @@ export async function loadPersonAccess(personId: string, lang: Lang): Promise<Pe
         seatsFromRows(seatRows ?? [], todayISO()),
         (roleRows ?? []).map(r => r.code),
       ),
+      grantScope,
     ),
   }
 }

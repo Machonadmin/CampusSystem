@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { reduceScopes, grantsAccess, applyPersonGrants, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES, widenKodeshViewStudents } from './scope'
+import { reduceScopes, grantsAccess, applyPersonGrants, personalGrantScopeFor, expandDepartmentTree, expandWithAncestors, isTeacherOnly, narrowToOwn, TEACHER_OWN_PRIVILEGES, widenKodeshViewStudents } from './scope'
 import type { DepartmentEdge } from './scope'
 
 describe('applyPersonGrants', () => {
@@ -299,5 +299,31 @@ describe('widenKodeshViewStudents', () => {
   })
   it('не сотрудник кодеша — scope не меняется', () => {
     expect(widenKodeshViewStudents('department', base)).toBe('department')
+  })
+})
+
+describe('applyPersonGrants — область личной выдачи', () => {
+  it("grantScope='all' даёт личной выдаче 'all'", () => {
+    expect(applyPersonGrants({}, [{ code: 'view_students', is_granted: true }], 'all'))
+      .toEqual({ view_students: 'all' })
+  })
+  it("grantScope='all' не отменяет личный запрет", () => {
+    expect(applyPersonGrants({ view_students: 'all' }, [{ code: 'view_students', is_granted: false }], 'all'))
+      .toEqual({})
+  })
+  it("по умолчанию — 'department', как раньше", () => {
+    expect(applyPersonGrants({}, [{ code: 'view', is_granted: true }])).toEqual({ view: 'department' })
+  })
+})
+
+describe('personalGrantScopeFor', () => {
+  it("посадка в верхней единице → 'all'", () => {
+    expect(personalGrantScopeFor(['top', 'x'], ['top'])).toBe('all')
+  })
+  it("посадки только в нижних единицах → 'department'", () => {
+    expect(personalGrantScopeFor(['x', 'y'], ['top'])).toBe('department')
+  })
+  it("без посадок → 'department'", () => {
+    expect(personalGrantScopeFor([], ['top'])).toBe('department')
   })
 })

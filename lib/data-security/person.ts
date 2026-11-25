@@ -65,6 +65,8 @@ export function resolvePersonPrivileges(
   nowMs: number,
   /** Права из оргструктуры (lib/permissions/structure) — складываются с ролями. */
   structurePrivileges: readonly RolePrivilegeInput[] = [],
+  /** Область личных выдач (personalGrantScopeFor) — как при реальной проверке. */
+  grantScope: 'department' | 'all' = 'department',
 ): ResolvedPrivilege[] {
   const modules = new Set<string>([
     ...rolePrivileges.map(r => r.module),
@@ -86,7 +88,7 @@ export function resolvePersonPrivileges(
 
     // Ровно та же пара функций, что и в module-factory при проверке доступа.
     const fromRoles = reduceScopes(roleRows)
-    const effective = applyPersonGrants(fromRoles, live.map(p => ({ code: p.privilege_code, is_granted: p.is_granted })))
+    const effective = applyPersonGrants(fromRoles, live.map(p => ({ code: p.privilege_code, is_granted: p.is_granted })), grantScope)
 
     const roleCodes = new Set(roleRows.map(r => r.privilege_code))
     const fromRoleOnly = new Set(ownRoleRows.map(r => r.privilege_code))
