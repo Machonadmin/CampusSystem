@@ -621,6 +621,36 @@ export async function requireEducationPrivilege(
 }
 
 /**
+ * Может ли пользователь вести УЧЕБНЫЙ ЦИКЛ (закрыть תיק לימודים, перевести в
+ * бוגרות / הפסקת לימודים / חופשה) ЛЮБОЙ студентки института, а не только своего юнита.
+ *
+ * Да, если:
+ *   • superadmin, или manage_students со scope='all';
+ *   • сотрудник кафедры кодеша (активная должность или глава кафедры) с
+ *     manage_students на управляющем уровне ('department').
+ *
+ * Зачем кодеш: каждая студентка учит кодеш, но её «основное» подразделение —
+ * всегда светский מסלול, поэтому manage_students='department' на кодеш не давал
+ * закрыть ни одного תיק (решение владельца 2026-11-10). Расширение касается
+ * ТОЛЬКО учебного цикла — правка карточки, классы, маршруты остаются по юниту.
+ * «Только преподаватель» (scope 'own') не расширяется.
+ */
+export async function canManageStudentLifecycleAnywhere(
+  session: SessionPayload | null,
+): Promise<boolean> {
+  if (!session || session.principal === 'student') return false
+  if (session.roles.includes('superadmin')) return true
+  const scope = await getEducationPrivilegeScope(session, 'manage_students')
+  if (scope === 'all') return true
+  if (scope !== 'department') return false
+  const [kodeshMember, headedUnitIds] = await Promise.all([
+    hasActiveKodeshPosition(session.person_id),
+    getHeadedUnitIds(session.person_id),
+  ])
+  return kodeshMember || headedUnitIds.includes(KODESH_DEPT_ID)
+}
+
+/**
  * department_id, к которым person привязан по «образовательным» связям:
  *  - активные staff_positions (преподаватель/сотрудник юнита),
  *  - education_journeys (лид/абитуриент/студент): primary_department_id

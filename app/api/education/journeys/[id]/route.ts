@@ -7,8 +7,10 @@ import { syncAcceptanceTasks } from '@/lib/workflow/acceptance-tasks'
 import {
   requireEducationPrivilege,
   getEducationPrivilegeScope,
+  canManageStudentLifecycleAnywhere,
   type EducationPrivilege,
 } from '@/lib/education/permissions'
+import { getSession } from '@/lib/auth/session'
 import type { EducationJourneyUpdate, JourneyStatus } from '@/types/database'
 import { journeyTarget } from '@/lib/education/journey-target'
 
@@ -292,16 +294,24 @@ export async function DELETE(_request: NextRequest, props: { params: Promise<{ i
       : current.desired_department_id
 
     const priv = pickPrivilege(current.education_status, 'manage')
-    const session = await requireEducationPrivilege(priv, {
-      department_id: checkDept ?? undefined,
-    })
 
-    // F3: удаление СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead/journey)
-    // разрешено только при scope='all' (см. PATCH выше).
-    if (checkDept == null) {
-      const scope = await getEducationPrivilegeScope(session, priv)
-      if (scope !== 'all') {
-        return apiError('forbidden', 403)
+    // Закрытие תיק לימודים СТУДЕНТКИ: сотрудник кафедры кодеша с manage_students
+    // может закрыть תיק любой студентки (см. canManageStudentLifecycleAnywhere).
+    const lifecycleAnywhere = isStudentStatus(current.education_status)
+      && await canManageStudentLifecycleAnywhere(await getSession())
+
+    if (!lifecycleAnywhere) {
+      const session = await requireEducationPrivilege(priv, {
+        department_id: checkDept ?? undefined,
+      })
+
+      // F3: удаление СУЩЕСТВУЮЩЕЙ записи без подразделения (dept-less lead/journey)
+      // разрешено только при scope='all' (см. PATCH выше).
+      if (checkDept == null) {
+        const scope = await getEducationPrivilegeScope(session, priv)
+        if (scope !== 'all') {
+          return apiError('forbidden', 403)
+        }
       }
     }
 

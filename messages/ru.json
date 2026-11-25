@@ -1217,6 +1217,7 @@
         "remove_student_confirm": "Снять студентку с этой группы-класса?",
         "remove_student_failed": "Ошибка снятия",
         "enroll_modal_title": "Записать студентов",
+        "enroll_level_only": "Показаны только студентки группы «{name}»",
         "search_by_name_placeholder": "Поиск по имени…",
         "already_in_group": "в группе",
         "enroll_button": "Записать выбранных ({count})",
@@ -1283,7 +1284,18 @@
         "status_graduated": "Выпускник",
         "status_expelled": "Учёба прекращена",
         "all_tracks": "Все маршруты",
-        "all_years": "Все годы"
+        "all_years": "Все годы",
+        "close_dialog": {
+          "title": "Закрыть учебное дело: {name}",
+          "intro": "Прежде чем закрывать дело — может быть, подойдёт один из этих вариантов?",
+          "option_graduate": "Перевести в выпускницы",
+          "option_expel": "Прекратить учёбу",
+          "option_on_leave": "Академический отпуск",
+          "option_close": "Закрыть учебное дело",
+          "close_hint": "Она больше не будет отображаться в списке. Её статус не изменится. Кнопки для повторного открытия дела нет.",
+          "confirm_question": "Точно продолжить?",
+          "choose_first": "Выберите вариант"
+        }
       },
       "semester_groups": {
         "modal_create_title": "Новый семестр",
@@ -3351,7 +3363,6 @@
       "table_russian": "Русский",
       "table_category": "Категория",
       "table_teaching": "Преподавательская",
-      "table_sort_order": "Порядок",
       "table_status": "Статус",
       "table_actions": "Действия",
       "all_categories": "Все категории",
@@ -3381,7 +3392,6 @@
       "category_label": "Категория",
       "is_teaching_label": "Преподавательская должность",
       "is_teaching_hint": "(только для «Преподавательской»)",
-      "sort_order_label": "Порядок сортировки",
       "cancel": "Отмена",
       "save_button": "Сохранить",
       "add_confirm_button": "Добавить",
@@ -3931,7 +3941,14 @@
       "period": "Период (напр. 2026 семестр 1)",
       "method": "Способ оплаты",
       "reference": "Номер документа / №",
-      "required": "Заполните обязательные поля"
+      "required": "Заполните обязательные поля",
+      "kind_tuition": "Плата за семестр",
+      "kind_other": "Другое начисление",
+      "year": "Учебный год",
+      "semester": "Семестр",
+      "semester_charged": "уже начислено",
+      "tuition_amount_auto": "Сумма берётся из платы за семестр в «Финансы › Семестры и плата за обучение». Скидку дают потом на начисление, с подписью.",
+      "no_tuition_semesters": "Ни для одного семестра ещё не задана плата. Её задают в «Финансы › Семестры и плата за обучение»."
     },
     "status": {
       "active": "Активно",
@@ -5517,7 +5534,10 @@
     "meetings_blocked_day": "Этот день недоступен в календаре",
     "meetings_lesson_overlap": "В календаре урок в {time}",
     "meetings_delegate_invalid": "Выберите сотрудника с активной учётной записью",
-    "contacts_import_too_many": "За раз можно импортировать до 2000 контактов"
+    "contacts_import_too_many": "За раз можно импортировать до 2000 контактов",
+    "semester_not_found": "Семестр не найден",
+    "semester_tuition_not_set": "Для этого семестра не задана плата за обучение",
+    "semester_already_charged": "У студентки уже есть активное начисление за этот семестр"
   },
   "workflow": {
     "error": "Ошибка"

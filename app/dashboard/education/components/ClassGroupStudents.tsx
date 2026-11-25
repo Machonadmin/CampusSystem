@@ -25,6 +25,8 @@ interface StudentMini {
 interface Props {
   groupId: string
   groupDepartmentId: string | null
+  /** Курс внутри уровня/семестра: родительская группа (class_groups.parent_semester_id). */
+  parentGroupId?: string | null
   students: StudentMini[]
   onChange: () => void
   accentColor: string
@@ -44,7 +46,7 @@ function plural(n: number, one: string, few: string, many: string): string {
   return many
 }
 
-export default function ClassGroupStudents({ groupId, students, onChange, accentColor }: Props) {
+export default function ClassGroupStudents({ groupId, parentGroupId, students, onChange, accentColor }: Props) {
   const t = useTranslations('education.study')
   const [enrolling, setEnrolling] = useState(false)
 
@@ -144,6 +146,7 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
       {enrolling && (
         <EnrollModal
           groupId={groupId}
+          parentGroupId={parentGroupId ?? null}
           enrolledIds={students.map(s => s.id)}
           accentColor={accentColor}
           onClose={() => setEnrolling(false)}
@@ -158,20 +161,29 @@ export default function ClassGroupStudents({ groupId, students, onChange, accent
 
 interface CandidateStudent {
   id: string
-  person: { id: string; full_name: string; email: string | null } | null
+  person: { id: string; full_name: string; hebrew_name?: string | null; email: string | null } | null
   main_group: { id: string; name: string } | null
   status: string
 }
 
 interface EnrollModalProps {
   groupId: string
+  parentGroupId: string | null
   enrolledIds: string[]
   accentColor: string
   onClose: () => void
   onDone: () => void
 }
 
-function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: EnrollModalProps) {
+interface RosterRow { journey_id: string; person_id: string; full_name: string | null; hebrew_name: string | null }
+
+function matchesSearch(s: CandidateStudent, q: string): boolean {
+  const needle = q.trim().toLowerCase()
+  if (!needle) return true
+  return [s.person?.full_name, s.person?.hebrew_name].some(n => (n ?? '').toLowerCase().includes(needle))
+}
+
+function EnrollModal({ groupId, parentGroupId, enrolledIds, accentColor, onClose, onDone }: EnrollModalProps) {
   const t = useTranslations('education.study')
   const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
@@ -180,6 +192,34 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Курс внутри уровня/семестра: записать можно только студенток этого уровня
+  // (для кодеша это же правило держит сервер — kodesh_enroll_not_in_level).
+  // Поэтому список — состав родительской группы, как и при создании курса
+  // (CourseModal). Не удалось загрузить состав → прежний список всех студенток.
+  const [levelRoster, setLevelRoster] = useState<{ name: string; students: CandidateStudent[] } | null>(null)
+  const [rosterReady, setRosterReady] = useState(!parentGroupId)
+
+  useEffect(() => {
+    if (!parentGroupId) return
+    let alive = true
+    fetch(`/api/education/semester-groups/${parentGroupId}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then((d: { name?: string | null; students?: RosterRow[] } | null) => {
+        if (!alive || !d || !Array.isArray(d.students)) return
+        setLevelRoster({
+          name: d.name ?? '',
+          students: d.students.map(r => ({
+            id: r.journey_id,
+            person: { id: r.person_id, full_name: r.full_name || r.hebrew_name || '', hebrew_name: r.hebrew_name, email: null },
+            main_group: null,
+            status: 'student',
+          })),
+        })
+      })
+      .catch(() => { /* состав не загрузился — покажем всех студенток */ })
+      .finally(() => { if (alive) setRosterReady(true) })
+    return () => { alive = false }
+  }, [parentGroupId])
 
   const fetchCandidates = (q: string) => {
     setLoading(true)
@@ -193,10 +233,14 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
   }
 
   useEffect(() => {
+    if (!rosterReady || levelRoster) return
     if (searchTimer.current) clearTimeout(searchTimer.current)
     searchTimer.current = setTimeout(() => fetchCandidates(search), search ? 300 : 0)
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
-  }, [search])
+  }, [search, rosterReady, levelRoster])
+
+  const shown = levelRoster ? levelRoster.students.filter(s => matchesSearch(s, search)) : candidates
+  const listLoading = !rosterReady || (!levelRoster && loading)
 
   const toggle = (id: string) => {
     setSelected(prev => {
@@ -263,15 +307,20 @@ function EnrollModal({ groupId, enrolledIds, accentColor, onClose, onDone }: Enr
             boxSizing: 'border-box', outline: 'none', marginBottom: 10,
           }}
         />
+        {levelRoster && (
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', margin: '-4px 0 10px' }}>
+            {t('class_groups.enroll_level_only').replace('{name}', levelRoster.name)}
+          </div>
+        )}
 
         <div style={{ flex: 1, overflowY: 'auto', borderRadius: 8, border: '1px solid var(--border)' }}>
-          {loading && (
+          {listLoading && (
             <SkeletonRows />
           )}
-          {!loading && candidates.length === 0 && (
+          {!listLoading && shown.length === 0 && (
             <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-faint)', fontSize: 13 }}>{t('common.nothing_found')}</div>
           )}
-          {!loading && candidates.map((s, i) => {
+          {!listLoading && shown.map((s, i) => {
             const alreadyIn = enrolledSet.has(s.id)
             const isChecked = selected.has(s.id)
             return (

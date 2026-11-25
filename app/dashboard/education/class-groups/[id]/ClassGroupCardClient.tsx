@@ -42,6 +42,8 @@ interface ClassGroupDetail {
   name_he?: string | null
   name_en?: string | null
   level: string | null
+  /** Курс внутри уровня/семестра (null — самостоятельная группа). */
+  parent_semester_id?: string | null
   period_start: string | null
   period_end: string | null
   notes: string | null
@@ -248,6 +250,7 @@ export default function ClassGroupCardClient({ groupId, canViewLessons, canManag
           <ClassGroupStudents
             groupId={group.id}
             groupDepartmentId={group.department?.id ?? null}
+            parentGroupId={group.parent_semester_id ?? null}
             students={group.students}
             onChange={load}
             accentColor={accent}

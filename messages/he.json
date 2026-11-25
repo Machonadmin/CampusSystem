@@ -1217,6 +1217,7 @@
         "remove_student_confirm": "להסיר את התלמידה מקבוצת כיתה זו?",
         "remove_student_failed": "ההסרה נכשלה",
         "enroll_modal_title": "רישום תלמידות",
+        "enroll_level_only": "מוצגות רק התלמידות של {name}",
         "search_by_name_placeholder": "חיפוש לפי שם…",
         "already_in_group": "בקבוצה",
         "enroll_button": "רישום {count} נבחרים",
@@ -1283,7 +1284,18 @@
         "status_graduated": "בוגרת",
         "status_expelled": "הופסקו לימודיה",
         "all_tracks": "כל המסלולים",
-        "all_years": "כל השנים"
+        "all_years": "כל השנים",
+        "close_dialog": {
+          "title": "סגירת תיק לימודים: {name}",
+          "intro": "לפני שסוגרים את התיק, אולי אחת מהאפשרויות האלה מתאימה יותר?",
+          "option_graduate": "העברה לבוגרות",
+          "option_expel": "הפסקת לימודים",
+          "option_on_leave": "חופשה",
+          "option_close": "סגירת תיק לימודים",
+          "close_hint": "התלמידה לא תופיע יותר ברשימה. הסטטוס שלה לא ישתנה. אין כפתור לפתיחת התיק מחדש.",
+          "confirm_question": "בטוח שרוצים להמשיך?",
+          "choose_first": "יש לבחור אפשרות"
+        }
       },
       "semester_groups": {
         "modal_create_title": "סמסטר חדש",
@@ -3351,7 +3363,6 @@
       "table_russian": "רוסית",
       "table_category": "קטגוריה",
       "table_teaching": "הוראה",
-      "table_sort_order": "סדר",
       "table_status": "סטטוס",
       "table_actions": "פעולות",
       "all_categories": "כל הקטגוריות",
@@ -3381,7 +3392,6 @@
       "category_label": "קטגוריה",
       "is_teaching_label": "משרת הוראה",
       "is_teaching_hint": "רלוונטי רק לקטגוריית הוראה",
-      "sort_order_label": "סדר מיון",
       "cancel": "ביטול",
       "save_button": "שמירה",
       "add_confirm_button": "הוספה",
@@ -3931,7 +3941,14 @@
       "period": "תקופה, למשל סמסטר א׳ 2026",
       "method": "אמצעי תשלום",
       "reference": "אסמכתא או מספר",
-      "required": "יש למלא את שדות החובה"
+      "required": "יש למלא את שדות החובה",
+      "kind_tuition": "שכר לימוד לפי סמסטר",
+      "kind_other": "חיוב אחר",
+      "year": "שנת לימודים",
+      "semester": "סמסטר",
+      "semester_charged": "כבר חויב",
+      "tuition_amount_auto": "הסכום נקבע לפי שכר הלימוד של הסמסטר ב\"כספים › סמסטרים ושכר לימוד\". הנחה נותנים אחר כך על החיוב, עם חתימה.",
+      "no_tuition_semesters": "לאף סמסטר עדיין לא נקבע שכר לימוד. קובעים אותו ב\"כספים › סמסטרים ושכר לימוד\"."
     },
     "status": {
       "active": "פעיל",
@@ -5517,7 +5534,10 @@
     "meetings_blocked_day": "היום הזה חסום ביומן",
     "meetings_lesson_overlap": "ביומן יש שיעור בשעה {time}",
     "meetings_delegate_invalid": "צריך לבחור עובד/ת עם חשבון פעיל",
-    "contacts_import_too_many": "אפשר לייבא עד 2000 אנשי קשר בפעם אחת"
+    "contacts_import_too_many": "אפשר לייבא עד 2000 אנשי קשר בפעם אחת",
+    "semester_not_found": "הסמסטר לא נמצא",
+    "semester_tuition_not_set": "לסמסטר הזה לא נקבע שכר לימוד",
+    "semester_already_charged": "לתלמידה כבר יש חיוב פעיל על הסמסטר הזה"
   },
   "workflow": {
     "error": "שגיאה"
