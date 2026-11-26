@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { isIsoDate } from '@/lib/calendar/validation'
 import { db, canManageCalendar, personNames } from '@/lib/meetings/access'
@@ -19,7 +19,7 @@ import { meetingsError } from '@/lib/meetings/http'
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const body = await request.json().catch(() => ({})) as {
       owner_id?: unknown; title?: unknown; event_date?: unknown; event_time?: unknown
     }

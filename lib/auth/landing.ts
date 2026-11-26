@@ -1,14 +1,11 @@
 // ─── Посадка после входа ──────────────────────────────────────────────────────
 //
-// По умолчанию каждый пользователь после входа попадает на общий главный экран
-// /dashboard (сетка модулей + повестка + виджеты, отфильтрованные под его доступ).
+// Каждый пользователь после входа попадает на общий главный экран /dashboard
+// (сетка модулей + повестка + виджеты, отфильтрованные под его доступ).
 //
-// ИСКЛЮЧЕНИЕ (§10): управляющая кафедрой иудаики (kodesh) — её рабочее
-// пространство это отдельный дом иудаики, поэтому она открывается сразу на
-// /dashboard/education/kodesh-home. Признак «рабочее пространство = кафедра
-// иудаики» вычисляется на сервере (isKodeshDepartmentWorkspace) и передаётся сюда
-// как ctx.kodeshWorkspace — НЕ угадывается по строке роли. Более широкий админ
-// (superadmin) всегда остаётся на общем /dashboard.
+// Раньше (§10) управляющая кафедрой иудаики открывалась на своём «доме»
+// /dashboard/education/kodesh-home. Решение владельца 19.11.2026: главная одна
+// для всех, а «מרחב יהדות» — обычный модуль меню (/dashboard/kodesh-space).
 //
 // Прямые ссылки (?from=...) по-прежнему уважаются в LoginForm — это только выбор
 // стартового экрана для «пустого» входа.
@@ -31,22 +28,8 @@ export function hasBroaderAdminRole(roles: string[] | null | undefined): boolean
   return BROADER_ADMIN_ROLES.some(code => r.includes(code))
 }
 
-export interface LandingContext {
-  /** True, когда рабочее пространство пользователя — кафедра иудаики (kodesh). */
-  kodeshWorkspace?: boolean
-}
-
-/**
- * Куда отправить пользователя после входа. По умолчанию — общий главный экран;
- * управляющая кафедрой иудаики (и не более широкий админ) — на дом иудаики.
- */
-export function landingRouteForRoles(
-  roles: string[] | null | undefined,
-  ctx?: LandingContext,
-): string {
-  if (ctx?.kodeshWorkspace && !hasBroaderAdminRole(roles)) {
-    return '/dashboard/education/kodesh-home'
-  }
+/** Куда отправить пользователя после входа: всегда общий главный экран. */
+export function landingRouteForRoles(_roles?: string[] | null): string {
   return '/dashboard'
 }
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { isMissingTable } from '@/lib/supabase/errors'
 import { db, personNames } from '@/lib/meetings/access'
@@ -12,7 +12,7 @@ import { db, personNames } from '@/lib/meetings/access'
  */
 export async function GET() {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const { data, error } = await db(sb).from('appointment_shares')
       .select('id, appointment_id, content, created_by, created_at, read_at')

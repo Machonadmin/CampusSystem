@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db, personNames } from '@/lib/meetings/access'
 import { isUuid } from '@/lib/meetings/rules'
@@ -31,7 +31,7 @@ type Params = { params: Promise<{ kind: string; id: string }> }
 async function open(props: Params) {
   const { kind, id } = await props.params
   if (!isContactKind(kind) || !isUuid(id)) return { err: apiError('record_not_found', 404) }
-  const session = await requireCalendarUser()
+  const session = await requireModuleUser('meetings')
   const sb = createServerClient()
   const acc = await addressBookAccess(sb, session)
   const access = await contactAccess(sb, session, acc, kind as ContactKind, id)

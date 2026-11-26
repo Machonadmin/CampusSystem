@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { DOCUMENTS_BUCKET, getSignedUrl } from '@/lib/documents/storage'
 import { db, loadMeeting } from '@/lib/meetings/access'
@@ -13,7 +13,7 @@ import { db, loadMeeting } from '@/lib/meetings/access'
  */
 
 async function gate(docId: string) {
-  const session = await requireCalendarUser()
+  const session = await requireModuleUser('meetings')
   const sb = createServerClient()
   const { data, error } = await db(sb).from('appointment_documents').select('id, appointment_id, storage_path').eq('id', docId).maybeSingle()
   if (error) throw error

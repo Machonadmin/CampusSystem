@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { isIsoDate } from '@/lib/calendar/validation'
 import { db, canManageCalendar } from '@/lib/meetings/access'
@@ -37,7 +37,7 @@ async function loadEditable(sb: SB, session: SessionPayload, id: string): Promis
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const chk = await loadEditable(sb, session, id)
     if (!chk.ok) return chk.res
@@ -72,7 +72,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const chk = await loadEditable(sb, session, id)
     if (!chk.ok) return chk.res

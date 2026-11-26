@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db } from '@/lib/meetings/access'
 import { groupsFor, isContactGroup, cleanPrivateContact, MAX_IMPORT_ROWS } from '@/lib/meetings/contacts'
@@ -21,7 +21,7 @@ import { addressBookAccess, listGroup } from '@/lib/meetings/contacts-server'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const acc = await addressBookAccess(sb, session)
     const groups = groupsFor(acc.role, acc.sharedWithMe)
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const acc = await addressBookAccess(sb, session)
     if (!acc.role) return apiError('forbidden', 403)

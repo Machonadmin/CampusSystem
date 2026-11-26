@@ -86,6 +86,8 @@ describe('производные списки не изменились посл
       'education', 'finance', 'food', 'jewishness', 'maintenance', 'persons',
       'psychologist', 'quality_control', 'reports', 'security', 'settings',
       'sponsors', 'staff',
+      // «ניהול שלי» — модули со своим правом с 25.11.2026 (решение владельца).
+      'management', 'meetings', 'my_track',
     ].sort())
   })
 
@@ -95,6 +97,10 @@ describe('производные списки не изменились посл
       'education', 'finance', 'food', 'jewishness', 'maintenance', 'persons',
       'psychologist', 'quality_control', 'reports', 'security', 'settings',
       'sponsors', 'staff', 'tasks',
+      // «מרחב יהדות» — отдельный модуль с 19.11.2026 (решение владельца).
+      'kodesh_space',
+      // «ניהול שלי» — модули со своим правом с 25.11.2026 (решение владельца).
+      'management', 'meetings', 'my_track',
     ].sort())
   })
 
@@ -109,7 +115,9 @@ describe('производные списки не изменились посл
   it('MODULE_GATE_EXCEPTIONS == прежние два исключения плюс новый модуль', () => {
     // health и jewishness были и до объединения; data_security добавлен вместе с
     // самим модулем — его страница гейтится тем же 'access', что и видимость.
-    expect(Object.keys(MODULE_GATE_EXCEPTIONS).sort()).toEqual(['data_security', 'health', 'jewishness'])
+    // kodesh_space («מרחב יהדות», 19.11.2026): страница и API сами проверяют
+    // kodesh_space.access — то же право, что и видимость.
+    expect(Object.keys(MODULE_GATE_EXCEPTIONS).sort()).toEqual(['data_security', 'health', 'jewishness', 'kodesh_space'])
   })
 
   it('COLOURED_MODULE_CODES == токены --mod-* в globals.css', () => {
@@ -142,6 +150,7 @@ describe('производные списки не изменились посл
       'dormitory', 'education', 'finance', 'food', 'health', 'jewishness',
       'maintenance', 'persons', 'psychologist', 'quality_control', 'reports',
       'security', 'settings', 'sponsors', 'staff', 'tasks',
+      'kodesh_space',
     ].sort())
   })
 

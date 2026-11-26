@@ -3,7 +3,7 @@ import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
 import { fetchAllPages, errorResponse } from '@/lib/api/handler'
 import { getSession } from '@/lib/auth/session'
-import { canManageKodesh } from '@/lib/education/kodesh-access'
+import { canEnterKodeshSpace } from '@/lib/kodesh-space/access'
 import { hasEducationPrivilege } from '@/lib/education/permissions'
 import { KODESH_DEPT_ID } from '@/lib/education/kodesh-exceptions'
 import { courseIssues } from '@/lib/education/course-checks'
@@ -16,6 +16,7 @@ import { isMissingRelation, isMissingTable } from '@/lib/supabase/errors'
  *              утверждения преподаватели, курсы с пробелами).
  *   students — список студенток (фото, имя, основной маршрут+год, группа кодеша,
  *              счётчик открытых оповещений).
+ * Доступ — модуль «מרחב יהדות» (canEnterKodeshSpace).
  * Deploy-safe к отсутствию новых таблиц/колонок.
  */
 
@@ -24,7 +25,9 @@ export async function GET(_request: NextRequest) {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
-    if (!(await canManageKodesh(session))) return apiError('forbidden', 403)
+    // Модуль «מרחב יהדות»: вход по праву kodesh_space.access (решение владельца
+    // 19.11.2026), то же, что видимость пункта меню.
+    if (!(await canEnterKodeshSpace(session))) return apiError('forbidden', 403)
 
     const sb = createServerClient()
     const seeSensitive = await hasEducationPrivilege(session, 'view_sensitive_alerts')

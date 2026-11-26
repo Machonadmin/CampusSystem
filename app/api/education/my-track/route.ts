@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
+import { canEnterPersonalModule } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db, loadTrackCatalog, myManagedTrackIds } from '@/lib/education/track-managers'
 
@@ -13,6 +14,8 @@ export async function GET() {
   try {
     const session = await getSession()
     if (!session) return apiError('unauthorized', 401)
+    // Модуль «המסלול שלי» — по праву my_track.access (решение владельца 25.11.2026).
+    if (!(await canEnterPersonalModule(session, 'my_track'))) return apiError('forbidden', 403)
     const sb = db()
     const catalog = await loadTrackCatalog(sb)
     const { ids, admin } = await myManagedTrackIds(sb, session, catalog)

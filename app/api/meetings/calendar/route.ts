@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { isIsoDate } from '@/lib/calendar/validation'
 import { db, canManageCalendar, personNames } from '@/lib/meetings/access'
@@ -25,7 +25,7 @@ import { createNotifications } from '@/lib/notifications/create'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sp = request.nextUrl.searchParams
     const ownerId = sp.get('owner') || session.person_id
     const from = sp.get('from') ?? ''
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const body = await request.json().catch(() => ({})) as {
       owner_id?: unknown; title?: unknown; starts_at?: unknown; ends_at?: unknown
       attendee_person_ids?: unknown; prep_notes?: unknown

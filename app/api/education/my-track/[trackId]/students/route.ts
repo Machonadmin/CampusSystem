@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { apiError } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
+import { canEnterPersonalModule } from '@/lib/modules/personal-access'
 import { errorResponse, fetchAllPages, parseBody } from '@/lib/api/handler'
 import { isMissingColumn, isMissingTable } from '@/lib/supabase/errors'
 import {
@@ -29,6 +30,8 @@ import { loadSpecializations, specializationBelongsTo } from '@/lib/education/tr
 async function guard(trackId: string) {
   const session = await getSession()
   if (!session) return { error: apiError('unauthorized', 401) } as const
+  // Модуль «המסלול שלי» — по праву my_track.access (решение владельца 25.11.2026).
+  if (!(await canEnterPersonalModule(session, 'my_track'))) return { error: apiError('forbidden', 403) } as const
   const sb = db()
   const catalog = await loadTrackCatalog(sb)
   const track = catalog.find(t => t.id === trackId)

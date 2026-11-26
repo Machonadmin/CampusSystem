@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { db, isSuperadmin, notMigrated, syncMeetingCalendar, type MeetingRow } from '@/lib/management/store'
 import { personNames } from '@/lib/management/people'
@@ -19,7 +19,7 @@ import { cleanText, isIsoDateStr, isTimeStr } from '@/lib/management/validation'
 
 export async function GET() {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('management')
     const sb = db()
 
     let meetingIds: string[] | null = null
@@ -76,7 +76,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('management')
     const body = await request.json().catch(() => ({})) as Record<string, unknown>
 
     const title = cleanText(body.title, 300)

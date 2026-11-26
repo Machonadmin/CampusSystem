@@ -25,6 +25,7 @@ interface MeResponse {
 
 // ── Icons (Heroicons outline 24px) ───────────────────────────────────────────
 const ICONS: Record<string, string> = {
+  kodesh_space: MODULE_ICON_PATHS.kodesh_space,
   persons:
     'M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z',
   staff:
@@ -72,12 +73,13 @@ const ICONS: Record<string, string> = {
 // Module keys whose URL path differs from the key (underscore vs hyphen etc.)
 const HREF_OVERRIDES: Record<string, string> = {
   quality_control: '/dashboard/quality-control',
+  kodesh_space: '/dashboard/kodesh-space',
 }
 
 // Плитки главной. «tasks» убрана (owner-декластеризация: задачи всегда в
 // верхней части бокового меню + виджет «Мои задачи» на этой же странице).
 const ALL_MODULE_CARDS = [
-  'persons', 'staff', 'quality_control', 'education', 'jewishness', 'finance', 'dormitory', 'food',
+  'persons', 'staff', 'quality_control', 'education', 'kodesh_space', 'jewishness', 'finance', 'dormitory', 'food',
   'maintenance', 'security', 'alumni', 'sponsors', 'health',
   'documents', 'reports', 'contacts', 'settings',
 ]
@@ -212,7 +214,7 @@ export default function DashboardPage() {
   // Личная раскладка: избранные плитки — первыми в выбранном порядке, скрытые —
   // пропадают; режим «только избранное» оставляет лишь избранные. Работает
   // поверх уже отфильтрованного по правам списка — показать лишнее не может.
-  if (managesCalendar) {
+  if (managesCalendar && accessible.includes('meetings')) {
     cards.push({
       id: 'meetings', iconKey: 'meetings',
       label: t.nav.meetings ?? 'פגישות',

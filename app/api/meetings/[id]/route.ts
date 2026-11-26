@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/i18n/api-errors'
 import { createServerClient } from '@/lib/supabase/server'
-import { requireCalendarUser } from '@/lib/calendar/permissions'
+import { requireModuleUser } from '@/lib/modules/personal-access'
 import { errorResponse } from '@/lib/api/handler'
 import { hasOverlappingAppointment, overlappingLesson } from '@/lib/calendar/overlap'
 import { isAppointmentStatus } from '@/lib/calendar/validation'
@@ -22,7 +22,7 @@ import { meetingsError } from '@/lib/meetings/http'
 export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const m = await loadMeeting(sb, session, id)
     if (!m) return apiError('meeting_not_found', 404)
@@ -102,7 +102,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
 export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params
-    const session = await requireCalendarUser()
+    const session = await requireModuleUser('meetings')
     const sb = createServerClient()
     const m = await loadMeeting(sb, session, id)
     if (!m) return apiError('meeting_not_found', 404)

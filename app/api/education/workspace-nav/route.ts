@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { serverT } from '@/lib/i18n/api-errors'
 import { getSession } from '@/lib/auth/session'
-import { isKodeshDepartmentWorkspace } from '@/lib/education/kodesh-workspace'
+import { canEnterKodeshSpace } from '@/lib/kodesh-space/access'
 import { kodeshNavItemVisibility } from '@/lib/education/kodesh-nav'
 import { canDoEducationInAny, canManageEducationInAny } from '@/lib/education/permissions'
 import { canManageUnit } from '@/lib/education/unit-access'
@@ -10,22 +10,21 @@ import { hasJewishnessAccess } from '@/lib/jewishness/permissions'
 import { hasContactsPrivilege } from '@/lib/contacts/permissions'
 
 /**
- * GET /api/education/workspace-nav — сфокусированная навигация §10 для управляющей
- * кафедрой иудаики. Возвращает признак рабочего пространства + видимость каждого
- * пункта, вычисленную теми же правами, что энфорсят целевые маршруты (fail-closed:
- * нет права → пункт скрыт). Ни один экран НЕ новый — это только перекладка ссылок.
+ * GET /api/education/workspace-nav — какие экраны показывать ссылками внутри
+ * модуля «מרחב יהדות» (/dashboard/kodesh-space). Видимость каждой ссылки
+ * вычисляется теми же правами, что энфорсят целевые маршруты (fail-closed: нет
+ * права → ссылка скрыта). Ни один экран не новый — это только ссылки.
  *
- * Если пользователь НЕ в пространстве иудаики (или ошибка) → kodesh_workspace:false,
- * и клиент показывает обычный сайдбар (ничего не сужается — fail-safe).
+ * Кто не может войти в модуль (canEnterKodeshSpace) или ошибка → can_enter:false
+ * и пустой список.
  */
 export async function GET() {
   try {
     const session = await getSession()
     if (!session) return NextResponse.json({ error: serverT('unauthorized') }, { status: 401 })
 
-    const kodeshWorkspace = await isKodeshDepartmentWorkspace(session)
-    if (!kodeshWorkspace) {
-      return NextResponse.json({ kodesh_workspace: false, items: {} })
+    if (!(await canEnterKodeshSpace(session))) {
+      return NextResponse.json({ can_enter: false, items: {} })
     }
 
     // Право каждого пункта = ровно то, что проверяет его экран/эндпойнт.
@@ -38,13 +37,13 @@ export async function GET() {
     ])
 
     return NextResponse.json({
-      kodesh_workspace: true,
+      can_enter: true,
       // Видимость пунктов — чистая функция (lib/education/kodesh-nav), покрыта
       // тестами. fail-closed: нет права → пункт скрыт; «дом» виден всегда.
       items: kodeshNavItemVisibility({ viewStudents, manageClassGroups, kodesh, jewishness, contacts }),
     })
   } catch {
-    // Fail-safe: не смогли решить — отдаём обычный сайдбар (kodesh_workspace:false).
-    return NextResponse.json({ kodesh_workspace: false, items: {} })
+    // Fail-closed: не смогли решить — ссылок нет.
+    return NextResponse.json({ can_enter: false, items: {} })
   }
 }
