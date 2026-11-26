@@ -65,7 +65,7 @@ export default function MeetingDetailClient({ id }: { id: string }) {
   return (
     <div className="p-4 md:p-6" style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 900 }}>
       {back}
-      <ModuleHeader module="dashboard" title={m.title}
+      <ModuleHeader module="meetings" title={m.title}
         subtitle={`${formatDate(isoDate(m.starts_at), lang)} · ${isoTime(m.starts_at)}–${isoTime(m.ends_at)} · ${t('calendar_of')} ${d.owner_name}`} />
 
       {/* ── Кто участвует и ссылки на תיק ───────────────────────────────────── */}

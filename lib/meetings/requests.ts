@@ -34,7 +34,7 @@ export interface RequestRow {
 
 export type RequestError =
   | 'subject_required' | 'invalid_input' | 'target_not_available' | 'not_found'
-  | 'action_not_allowed' | 'invalid_time' | 'overlap' | 'lesson' | 'blocked'
+  | 'action_not_allowed' | 'invalid_time' | 'overlap' | 'lesson' | 'blocked' | 'event'
 
 export async function withNames(sb: SB, rows: RequestRow[]) {
   const names = await personNames(sb, rows.flatMap(r => [r.owner_id, r.requester_id, r.handled_by]))

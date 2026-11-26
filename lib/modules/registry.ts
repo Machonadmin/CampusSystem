@@ -142,7 +142,7 @@ export const MODULES = [
       'פגישות: страницу закрывает middleware по meetings.access, /api/meetings/** — ' +
       'requireModuleUser(\'meetings\') и отдаёт только своё: свой календарь, календарь, ' +
       'который он ведёт (calendar_delegates), встречи, содержание которых ему открыли, и переданное ему.',
-    inAccessibleModules: true, hasColour: false, implemented: false,
+    inAccessibleModules: true, hasColour: true, implemented: false,
     inSidebar: false, isPrivilegeModule: true,
   },
 

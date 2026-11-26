@@ -63,6 +63,7 @@ const ru = {
     other: 'Прочее',
   },
   moduleDesc: {
+    meetings: 'Календарь руководителя: встречи, события, заявки',
     quality_control: 'Проверки уроков, оценки',
     persons: 'Поиск сотрудников, студенток и лидов',
     education: 'Набор, приём и учёба',
@@ -224,6 +225,7 @@ const he: typeof ru = {
     other: 'אחר',
   },
   moduleDesc: {
+    meetings: 'יומן המנהל: פגישות, אירועים ובקשות',
     quality_control: 'בדיקות שיעורים, הערכות',
     persons: 'חיפוש צוות, תלמידות ולידים',
     education: 'גיוס, קבלה ולימודים',
@@ -385,6 +387,7 @@ const en: typeof ru = {
     other: 'Other',
   },
   moduleDesc: {
+    meetings: "Manager's calendar: meetings, events, requests",
     quality_control: 'Lesson checks, ratings',
     persons: 'Find staff, students and leads',
     education: 'Recruitment, admission and studies',

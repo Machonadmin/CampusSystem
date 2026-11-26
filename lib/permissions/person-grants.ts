@@ -1,4 +1,6 @@
 import { createServerClient } from '@/lib/supabase/server'
+import { todayISO } from '@/lib/dates'
+import { personalGrantScopeFor } from './scope'
 import type { PrivilegeModule } from '@/types/database'
 
 /**
@@ -36,5 +38,29 @@ export async function loadPersonModuleGrants(
       }))
   } catch {
     return []
+  }
+}
+
+/**
+ * Область личных выдач человека: 'all', если у него действующая посадка в
+ * верхней единице оргструктуры (parent_id = null), иначе 'department'.
+ * Правило — personalGrantScopeFor в ./scope. Ошибка чтения → 'department'
+ * (прежнее поведение, не шире).
+ */
+export async function loadPersonalGrantScope(personId: string): Promise<'department' | 'all'> {
+  try {
+    const sb = createServerClient()
+    const today = todayISO()
+    const [{ data: seats, error: seatErr }, { data: tops, error: topErr }] = await Promise.all([
+      sb.from('staff_positions').select('department_id, end_date').eq('person_id', personId),
+      sb.from('departments').select('id').is('parent_id', null),
+    ])
+    if (seatErr || topErr || !seats || !tops) return 'department'
+    const active = (seats as { department_id: string | null; end_date: string | null }[])
+      .filter(r => r.department_id && (r.end_date === null || r.end_date > today))
+      .map(r => r.department_id as string)
+    return personalGrantScopeFor(active, (tops as { id: string }[]).map(r => r.id))
+  } catch {
+    return 'department'
   }
 }

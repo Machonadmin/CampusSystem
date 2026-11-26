@@ -4,7 +4,7 @@ import { getSession } from './session'
 import { getUserDepartmentIds } from '@/lib/education/permissions'
 import { journeyTarget } from '@/lib/education/journey-target'
 import { reduceScopes, applyPersonGrants } from '@/lib/permissions/scope'
-import { loadPersonModuleGrants } from '@/lib/permissions/person-grants'
+import { loadPersonModuleGrants, loadPersonalGrantScope } from '@/lib/permissions/person-grants'
 import type { SessionPayload } from './jwt'
 import type { RoleCode, PrivilegeModule } from '@/types/database'
 
@@ -85,8 +85,12 @@ async function loadScope(
   // Просроченные строки отбрасывает сам загрузчик. deny побеждает роль.
   const grants = (await loadPersonModuleGrants(module, session.person_id))
     .filter(g => g.code === code)
+  // Посадка в верхней единице (לשכת הנשיא) — личные выдачи на всё учреждение.
+  const grantScope = grants.some(g => g.is_granted)
+    ? await loadPersonalGrantScope(session.person_id)
+    : 'department'
 
-  const effective = applyPersonGrants<string>(fromRoles, grants)
+  const effective = applyPersonGrants<string>(fromRoles, grants, grantScope)
   return (effective[code] as PrivilegeScope | undefined) ?? null
 }
 
