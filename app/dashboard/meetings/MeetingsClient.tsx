@@ -110,7 +110,10 @@ export default function MeetingsClient() {
     if (manages) out.push('requests', 'tasks')
     if (ctx.request_targets.length > 0) out.push('my_requests')
     out.push('shared')
-    if (manages || ctx.is_superadmin) out.push('settings')
+    // «מי מנהל את היומן» — только владельцу календаря (у кого есть секретарь)
+    // и superadmin. Секретарь здесь лишь добавила бы секретаря СВОЕМУ личному
+    // календарю — бессмысленно (замечание владельца 25.11.2026).
+    if (ctx.my_delegates.length > 0 || ctx.is_superadmin) out.push('settings')
     return out
   }, [ctx, manages])
 
