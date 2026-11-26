@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MODULE_ICON_PATHS } from '@/lib/nav/module-icons'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n/LanguageContext'
 import { getModuleColor, getModuleHeaderGradient, isModuleImplemented } from '@/lib/module-colors'
